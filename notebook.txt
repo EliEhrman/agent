@@ -1,0 +1,1980 @@
+Sunday 29th October
+
+I've decided not to implement a complete solution for timestamps. For now, I'll keep the flat structure of phrases
+and timestamp events and most consequences with current time. The exception is knowledge, which will get the timestamp
+of the earliest phrase in the phrase list.
+
+In practice, whenever we add consequences, whether for events or static knowledge, we give the timestamp of the record, the current
+record. a centralized step creation mechanism that includes events, inter-person questions, responses etc.
+Attach a gens-type, such as stroy-step, knowledge insertion, etc.
+
+Tuesday 31st October
+
+Pushed the commit 'Answering personal questions'
+
+An answer is generated but the next step is to add the contents of the answer as knowledge
+
+Wednesday 1st November
+
+Finished adding the answer to an inter-person query into the story database.
+
+Will commit a version wi
+
+As of now, there is no inferring from the knowledge base of a specific person. So even if John knows that Daryl went to Fiji,
+he does not directly infer that Daryl is in Fiji. Instead we use inference from the static db (objective knowledge) to do that
+
+Probably would make more sense to haveth above string
+
+I intend to remove the generation of phrases for rules just for the purpose of learning because (1) that is about to change
+and (2) some rules such as the knowledge resulting from telling rule generated millions of records.
+
+A thought about time:
+4 kinds of phrases:
+state (as in John wants the wheel - that is always true)
+current (as in Mike has the purse - this automatically updates its time. If it was true last stem, unless removed,
+        it is true the next step. Note true for objective facts but not knowledge)
+event (Harry went to the UK. Always has a specific time)
+phase (Terry knows that Mile has the purse - this is true for a time. It can go out of date unless specifically updated)
+
+Further note. Currently knows that has a time stamp of the object of the knowledge. We may need to break down a phrase into
+constinuent pieces wach with their own time.
+
+
+It doesn't make sense to have so many functions, each creating rules. There should only be one function for rule but many
+differnt types that use something like the mostly defunct 'story_based, b_db, b_story'. Each step in the story advnacing process
+must pick out the kind of rules it needs and advance them.
+
+Next, I will add motivations. The current idea is:
+(1) A steady state of wanting
+(2) If you want x and you know that x is located in y you go to y
+(3) If you want x and you are located with x and x is free pick up x
+If you want x and you are located with x and z has x ask z for x
+
+Thursday 2nd Nov
+
+Rearrangin rules. Removed defunct b_db and b_story that weren't being used anyway. Added rule_type that falls into a number of categories:
+story_start - used to initialize where people and objects are and what objects people want
+event_from_none - used to create a story step (event) based on other states (rather that events responding to events)
+state_from_state - update states based on other states. For example if Jon is in UK and glass is in UK then Jon knows glass is in UK
+state_from_event - update states as a result of an event. Jon has the purse and Jon went to France, so create a story phrase that the purse is in France (remove old)
+event_from_event - used to create a story step (event) based on another event (John gives if John is asked)
+block_event - used to block events. So a rule that says that Jon gave to Jon is blocked
+knowledge_query  - used in response to queries to first create a personal db of the knowledge of a particular person
+query - used to test any knowledge base
+
+used the opportunity to make rule indentations consistent
+
+we need to replace var_id numbers by symbolic constants. A next step could be to translate this to he current form. It's
+    just very difficult to write rles without bugs using the current form
+
+While I'm at it, do the same for referring to clauses within the AND. It will be useful for time stamps
+
+Added a probability for event_from_none rules so that we can prioiritize debugging or events that are caused by wants
+
+Added a probability for state_from_event so that some rules don't automatically run after an event (e.g. like)
+
+The are only two like states: likes and nothing.
+Giving something to somebody that they want is definately gonna cause a like
+Telling somebody something, which can only come after a question might get a like
+
+Committing with the label:
+Added likes and instory queries
+
+Monday 6th Nov
+
+Committed version with the message:
+
+"Preparing for learn. Added controlled garadual learning. curriculum. and generating possible rules to genrate results."
+
+Added curriculum.py. Similar to story.py but gets specific rules by names. At first is just adds a simple pickup rule and
+gets the 'has' consequence phrase.
+
+This is then passed with the story and the event to cascade.py which finds all phrases that includes the input words and
+then cascades on all the words it finds
+
+Back in curruculum.py, take all the permutations of the cascaded phrases and for each perm creates a rule with no vars.
+Next, grenerate a rule replacing all repeated occurences of words with vars and looking like a rule.
+
+Now I will work to incorporate standard GloVe or Word2Vec vectors for all words so that we can create an embedding for the rule.
+
+Wednesday 8th Nov
+
+About to commit a version with the message:
+
+Added parse.py and embed.py together to create .glv files for embedding.
+
+Added two stand-alones. parse.py calls StanfordNLP to create a dep tree of each of the objects and actions.
+It creates a .nlp file where each row contains
+1. The original text
+2. The number of words
+3. For each word:
+    The dep relation for which that word is the dependent
+    The idx (1-based) of its governing word
+    The word itself
+
+embed.py creates a .glv for each of actions, names, objects and countries. Countries and names are simply looked up in
+a GloVe database and the 50 values appended as an embedding. Objects and Names parse the .nlp and add the following
+embed vectors:
+1. the word itself - the vec from GloVe
+2. The dep relation - a one hot binary float vec
+3. The governing idx a one hot up to the max idx
+
+If phrases are longer than 4 words they are rejected. If they are less they are padded with an <invalid> dep rel, zeros and
+max index + 1.
+
+fixed bug in els.py: make_vec. If there was only one record, the code output a shape of dim 1 instead of 2
+
+Sunday 12th November
+
+Start of day todo:
+
+Move the initialization of elements into cuuriculum.py
+
+Apply state to story and move the story along to enrich the types of rules we are trying to learn
+
+Batch inputs of rules according to length of input
+
+Put headers on the vec representation of phrases or rules. These headers recurse into the body
+
+A header consists of a number and that number of offsets
+    Any number can be represented as a 0-1 float by appliying a factor of ten multiplier. To make up to 1000, div by 10000
+    Three els in a phrase (john, picked up, the ball) are represented as 3, 0, 125, 325 if that is where each el starts
+    An el itself can be composed of deps, so an el begins with a header with the number of deps and their offsets
+    A dep consists of the word, its dep rel and the index of the governor. So a dep, too begins with num (3) and offset
+
+Monday 13th November
+
+Yesterday I completed batching of inputs. For now I assume that in curriculum.py processes rules that come from cascade and
+only have the sel_el field set and no groups. Therefore each rule can only generate one rec. Once the rules are batched by input
+length, there needs to be an indexing into the original rule list or a rearrangement of that list.
+
+After much thinking I think the best plan is as follows:
+
+1. Learn a transformation of the rule vec into a short fixed-length key vector *key1*
+    a. This transformation can consist of multiple nets, one for each length
+    b. A net could be as simple as a matmul
+2. Cascade to find all phrases related to an input event plus the event itself
+3. Create all orderings of each component of the cascade (query options)
+    a. Apply var_dict processing to each query option to make later matching easier
+4. Transform the vec of all the query options to a key of the same length as 1.
+5. Match each query option (not the vec) to each of the rules in the db. Generate the gens from the preconds *key2*
+    a. The instantiation of the vars in the gens is from the values in the query option
+    b. Padding is required so that all vars can get something - even if it is only an empty string
+    c. Another option is to immediately decide that this query option fails to match on this rule
+6. Compare the gens of the match in the last step to the training result of the event
+    a. [TBD] what if there are more than one result
+    b. If the (instantiated) gens matches, we want key1 and key2 to be close to each other (cosine distance close) to 1
+        else, far apart
+
+Committing before starting to implement this with the message:
+Implemented batching of rules by vec length
+
+Potential inefficiency. In init_train_tensors, each vec for each rule will be multiplied separately
+OK. Couln't stand the inefficiency and fixed it.
+
+Moved do learn into a helper function called create_train_vecs. Now do_learn() can call the latter twice, once for
+a database and once for queries. The only real difference is that queries expand out to all permutations of each combination.
+
+I don't know whether we should query compare the recs or the rule. First shot the recs.
+
+Sunday 19th November
+
+Checking in a version with the following comment:
+
+Training and Evaluation working on very simple rules
+
+The training consists of creating rules-like description of succesful instances. Creating a db of all combinations as described above
+Embedding these using a set of matrices all to the standard key length
+Doing this again for queries and using embedding matrices to get to the same key length
+Creating a success matrix for xomparison of each query rule with a db rule. Success means that any object substitution
+    still yields the expected result of the query
+Learning the embedding such that the hits in the success matrix put the db items with their queries
+
+The evaluation consists of another set of queries
+This time all queries that end up with an embedding vector length are discarded
+Compare each eval-query to all rules in the db. Cosine Distance is used for now
+Find the closest 5 rules to the query in embedded space
+Create a score based on how many of these 5 are hits divide by min(k, total-hits)
+
+Next the goal is to search for a symbolic representation of the rules
+Proposal is as follows:
+1. Do a k-means on the db in embedded space.
+2. For each cluster, find rules (actually recs) of the same length (number of phrases)
+3. Evaluate the distance within the cluster of the different members at each phrase
+4. Define a groupimg for each such phrase-distance group
+5. Look for the same grouping in other places.
+6. Create versions of the rule that can utilize these groupings.
+
+Monday 20th November
+
+We're pretending we are creating the y_db in batches.Right now there is only one batch
+and the y_db is passed in from the outside.
+
+Tuesday 21st November
+
+Created a function out of the code for match_phrases that just matches the preconds. This is needed for the build_sym_rules()
+so that we can create clusters out of the embedded db recs where in fact all the members of the clusters are compatible.
+
+Actually, to explain a little, what I did was to first take the embedded version of all the db recs and do a kmeans on
+them to get clusters. However, I want all members of a cluster to be compatible, so I split the clusters themselves
+into a lower-level cluster where each low-level cluster is compatible with all other members. Compatible means the
+same number of els in the rec and the all vars match by id and all objs match all objs
+
+Wednesday 22nd November
+
+Checking in a version with the following comment:
+
+Added kmeans clustering of embedded recs of the db
+
+Thursday 23rd November
+
+Checking in a version with the following comment:
+
+Changed embed module to combine all vecs of el phrase to one vec
+
+Sat 25th November
+
+How do we represent a rule that was built from instances in a cluser
+
+The first idea is to add two fields to rec_def_type
+
+Monday 27th November
+
+Checking in with comment:
+
+Created first pass of sym rules, creating sets and some combination.
+
+Wednesday 29th November
+
+for now everything is in do_learn. Ignore all the rest
+
+Checking in with comment:
+
+Creating first pass learned rules. Some evaluation but not excluding unnecessary clauses.
+
+Thursday 30th November
+
+Moved the glv_dict creation outside the curriculum learning but all other set creation and rule initiation happens inside
+each iteration of story creation, whether for the database, queries or evaluation set
+
+Wednesday 6th December
+
+Checking in with comment:
+
+Learned rules succeeds for simplest stories
+
+Checking in with comment:
+
+Added a criteria of most specific rule wins
+
+Wednesday 13th December
+
+
+Conversation opened. 1 read message.
+
+
+Skip to content
+rec text
+Inbox
+x
+
+Eli Ehrman <ehrman.eli@gmail.com>
+Attachments4:37 PM (21 minutes ago)
+
+to me
+Attachments area
+
+Click here to Reply or Forward
+13.37 GB (89%) of 15 GB used
+Manage
+Terms - Privacy
+Last account activity: 4 minutes ago
+Details
+
+
+csc_list
+sort by len  = total number of words in a all phrases
+for each csc comb, find all permutations
+	select all equally high-scored perms (var positions etc)
+	create rec with vars
+	calc rec len and svo pattern
+		There is a svo for the preconds and a svo plus o list for the gens
+		svo rules
+			c for conn
+			followed by s, e, a and r (r for or)
+			v for var
+			followed by two digit var num 0 padded
+			o for obj (will translate to anyobj, obj and set)
+			g placed between preconds and gens only for lexical ordering
+				correction ordering must be based on preconds alone
+	for each rec
+		Find its len grp, templ,
+		Is there ust one gg or many?
+		if one:
+			do i match gg?
+			if not, create new gg
+		if > 1 gg, whether from before or now
+			does new input match on one of the gg's mrg?
+			does it fail to mmap on competing gg's mrg's
+			if both yes, add to the statistic and cosider upgrading mrg confidence
+			if not,
+				attempt to broaden
+				look at other rec of the mrg as well as recs from other gg's
+				if competing gg's now fit ito broadened category
+					backtrack on broadening and trycreating a new mrg
+					do the same checks
+				if you cant't make this work - shout for help
+					might need a NN solution here
+				if there is a longer rule that has none of these problems, give him the confidence
+				might need to take recs out of the mothballs
+		dig down to mrg
+		if complete confidence reached
+			remove all event insertions
+			stop
+		if confidence relative to longer
+			keep going as long as incming recs are no longer
+		if fail where no prev failure on high confidence
+			TBD
+		if match grp found, and success
+			add to eid success group
+			add mrgid to event list successes
+		if mrg match but fail
+			search
+
+list of len groups, sorted by len
+c_len_grp
+	len
+	template list (sorted by var score?)
+c_templ_grp
+	var score?
+	svo pattern
+	event_id_set success
+	eid fail
+	gens grp list
+		if only one, template is enough
+c_gens_grp
+	svo pattern and olist (only obj allowed, not anyobj or set)
+	match rec group (mrg) list
+		at least one, the top level with all o fields set to anyobj ????
+		at least one, defining how to distinguish recs that match the parent template from other cgg's
+c_mrg
+	o-list. list of all obj fields.
+		anyobj, obj and set.
+	eid success list
+	eid fail
+	child mrgs
+		defined as same o-list but one field more restricted, otherwise a sibling not a child
+rec_match_group.txt
+Open with
+Displaying rec_match_group.txt.
+
+Thursday 14th December
+
+More details on the same:
+
+c_gg test
+	list of c_mrgs
+	for each mrg
+		if !match
+			irrelevent
+		if match and !correct
+			problem for the whole gg and maybe template
+		if match and correct
+			match_found
+	if !match_found
+		for each mrg
+			add to perm_list
+			create new rule
+				for each gg in templ
+					if not curr gg
+						continue
+					for each perm_rec in gg
+						if match perm_rec to new rule
+							fail on new rule
+
+		create new mrg
+			???repeat test for all other gg's
+
+
+for each new perm
+	for each templ match
+		for each gg
+			if correct (test with gg is all that's needed)
+				for each mrg
+					look for at least one match
+				if founf add to scoring for that mrg
+				if !found do above proc
+			if !correct
+				for each mrg,
+					check that no match
+					but if match add to fail scoring
+
+Sunday,  17th December
+
+Giving up on the direction of mrg.
+
+Checking in just to keep some record of the code with the message:
+
+Version not working. Giving up on mrg
+
+I think i'm going to take a different tack
+Yes to len grps and templ groups
+yes there are a number of different gens for each templ group
+no to gens groups and mrg's
+use nn, distance metric learning and cosine distance
+c_templ_grp
+	o-len
+	gens_arr (with dict?)
+	list of perm_rec with gens_arr_idx
+	tf call tree
+	nn_transform
+	db of transformed perm_rec with gens_arr_idx
+	(loss function uses distance between gens's?)
+
+new perm_rec
+	if num prev perm > 2 and num gg's  > 1
+		if nn/transform is none
+	        create new instance of nn/transform
+	do transform
+	do knn on all recs so far
+	generate result
+		use two stage:
+			build var dict from preconds
+			fill in results for each match
+				perhaps cache results of gens that was already calculated
+	create score
+		score a fn of:
+			number of results if less than k
+			% correct
+				n number correct / k. (even if there are not k results)
+			average cd
+				n * cd / k
+		if score passes thresh
+			add eid to success list for gens
+    else
+do a few rounds of learning
+	get matching gens
+		if no match: extend gens_arr
+
+Once confidence is reached, go to other templates with the same eids and delete the perm recs
+	Can do this
+
+Saturday 23rd December
+
+Sent myself the following:
+
+for all ggs that have graduated
+
+for any event, not event result , see if it is activated
+
+create a special nn:
+    lots of spare nodes of input
+    every graduated gg is an input and output
+
+Actually gonna change tack again (within the last tack, sort of)
+
+I want to join the event results for each event step (story step). So a record in the db is associated
+with the event step. Then each record might have a number of different gens or event results associated
+with it. After all, the cascade is on the event step and not the results so it is the same for
+all results of that step.
+
+Before proceeding, I check in what I wrote so far. It actually works well except that it does not achieve
+the desired result. The nn learns as well as it can the gens. The problem is that if all the inputs are
+identical, it cannot learn to really distinguish the same input doing this or that.
+
+I will check in with the comment:
+
+Learning each gg for each preconds rec separately, but learning only on ggs substantiated with many eids
+
+One last comment on the change just made is the concept of a graduated gg. A graduated gg is a gg that
+has a threshold number of eids. The idea is that a gens with a non-variable which is diferent for each
+eid is not something worth loearning. To deeal with this I introduced the provisional gg (pgg)
+
+In the new porposed scheme you find close examples of preconds recs but each one can have multiple events it generated.
+
+Sunday 24th December
+
+Todo:
+    Write a new get_score function so that it scores an indvidual graduated gg (startt with get_match_score)
+    Write a summary of the successes for an event to decide whether to promote graduated to successful
+
+match score:
+
+for each event
+	for each perm
+		find template
+		if first-pass and template has confirmed or second-pass and template has graduated
+			find closest perms in template db
+			for each gg
+				if closest matches support this gg:
+					gen result
+					if result list not known (inference stage only)
+						if gg confirmed
+							output result!!!!!!!
+					else if result in result list:
+						for that result_list entry add the len, template and score
+						if gg confirmed:
+							mark result as match-confirm
+							if all results have match-confirm
+								continue to next event!!!!!!
+					else result not in result list and list exhaustive
+						mark gg as bad
+
+
+	for each result:
+		find best gg among results
+			best score and if tied, shortest len
+			give a point to the gg
+
+	if a gg crosses a point thresh
+		add to confirmed list
+
+Monday 25th December
+
+Yet again I will change tack.
+
+The NN will need to be on a per gg basis (not pgg) rather than on a per-template basis. The result will be yes/no
+on the specific gg.
+
+First I will check in current code with the following comment:
+
+Code running but unsatisfactory results. Check in beore change to per-gg NN
+
+Friday 29th December
+
+Implemented:
+
+learn
+
+for each graduated gg, learn a NN for all the per list with outcome 1/0 were 1 means that one of the results
+belongs to the gg
+
+each gg has an arr 1-to-1 correspondence with templ per_list. 1 means has a matching result. learn closeness
+
+score
+
+for each gg
+	if the closest matches indicate 1
+		gen output
+		if learning and matches one of the outputs
+			add a record to score_result_list for that result
+				members of the gg create a minimum cd for acceptance
+			if confirmed gg
+				mark result confirmed
+
+So NN is per gg. Once all the results are confirmed, the processing for that event step stops.
+There is some scoring based on event results not happening
+
+I found that without this scoring, one rule was getting confirmed despite providing unecessary data. However,
+its own cds were creating a threshold of 0.2+. Rather than use that fact, I added a scoring mechanism so that
+it should be overridden by a correct rule, even if longer.
+
+Checking in with message:
+
+Sort of working. NN is gg based. Score based on successes after match. Stop when all results has been matched by confirmed rules.
+
+After reviwing log of output of version just checked in. Adding the new scoring mechanism removed a rule that
+was confirmed but generating matches for perms that did not have an event result
+
+Monday 1st January
+
+Checking in with the following comment:
+
+Working fairly well. Cascade can crawl to a stop.
+
+The next step is to solve the cascade issues. I think the right approach is to sinply find all place names and
+people names that are mentioned and keep expanding the list of phrases as follows: Take all objects mentioned,
+find all phrases mentioning them. Find all objects this new list mentions find all phrases mentioning this
+new list.
+
+Sunday January 7th
+
+Thoughts at the sea:
+
+What i want to do next is apply the same process to blocking rules
+
+
+
+If a result was predicted best by a low-scoring rule, suggest a blocking rule
+
+
+
+Just realized that I'm totally not ready to do blocking event till I have event production
+
+
+
+However, just to record the thought. The idea is that an event block
+
+would be proposed just like an event result. A separate list of pggs
+
+would be kept by templates that graduate, learn rules, confirm and print
+
+just like event results.
+
+
+
+The question is, how do we create the proposed event block. We need to
+
+look for a failure to predict.
+
+
+
+Event generation
+
+
+
+Options:
+
+
+
+1. Cascade from the actual event, make the gens the event
+
+
+
+Problem. We want to use this to predict. So we can't generate the preconds
+
+and look for a mtching rule, unless the preconds are the whole story db
+
+
+
+Solution. Make events inherently person based. For a story this would translate to all people in the story taking turns in participating in
+
+an event. The name of the person can be used to seed the cascade.
+
+
+
+Learn rules fo events_from_none the way we learnt state_from_event
+
+
+
+Add the empty list to all_perms because some events require no preconditions
+
+
+
+Success will not be close to 100%. Perhaps there should be a record of all ggs that
+
+match (and succeed) for an event. For a specific event the winner is highest-scoring
+
+(where score is % success) and for ties, the shortest wins. However with a records
+
+across many eids we might be able to use set of eids, an event that is longer and is a subset
+
+of a shorter gg is a definite loser. Even if it has a small % if eids not in the smaller
+
+
+
+Returning to blocking events.
+
+
+
+If a confirmed gg fails to predict an event, we look at what it did predict.
+
+
+
+This could include a simple John gives John. There the gg itself could add conditions to block.
+
+However, that is not good for  block that depends on the some extra phrase in the perm
+
+So once a block phrase is created we add it to a list of block event results.
+
+We now repeat the procedure for predicting block event results the way we did for event_from_none
+
+
+
+We will need mltiple lists of pggs and ggs for each template for each kind of event and block
+
+Once we predict a block we see if it mathes a fail to predict phrase from the last round.
+
+If it matches but fails, that is serious (if not immedately) fatal for the block gg.
+
+
+
+However, for now it may be best to switch to working on the story generator. i want to
+
+separate people decisions from the rules that enable an event.
+
+
+
+Options.
+
+
+
+1. Add a requirement for event that a person "decided to do" X. All rule genrators have this as a clause.
+
+
+
+Create a class called decide_event. They are generated like from state (so event->state->state->decide->event)
+
+
+
+event_from_decide can be learned from trial-and-error
+
+decide_from_state can be learned from the event result implying, once I know event_from_decide, that the decide happened
+
+For an AI creating rules for decide_from_state, first of all it must take into account the conditions for decide->event success
+
+A player-engine is a set of policies that generate decisions from state
+
+Simple AI Strategy;
+
+Create a tree. The top node is having the desired object.
+
+To have you must pick up, to pick up you must go, you need to know
+knowing requires asking and being told etc.
+
+Another path down the tree. To get something someone has, it must be given.
+He'll give if he likes you. He'll like you if you give him. So you must get that
+Again, to give you, you need to be where he is. To do that you have to know...
+
+The search can be done using symbolic rules. You want X. you look for a rule whose gens could be X
+if Vars A and B are instantiated such that the gens fits X. Then you look for what could make the
+preconds of the found rule true. There could be more than one way to fit the rule or more that one
+rule, so you got a tree. That is a symbolc strategy and fit for the oracle and could be used by the AI
+too.
+
+The AI wants to do better. It wants to find positions that are high-value w.r.t. winning the game. It wants
+to create small trees that get to high value positions. We can search for a new type of gg that represents
+the relation between the current state and the goal
+
+We can also create relations between the current state and high-value positions. However, this could generate
+a lot of options and we may want to narrow the search for these with a similarity search. Again this could be
+done by iterating many perms from the current state where the cascade is seeded by the target. The "gens" in this
+case is the target or potential target (high value position). (gens is in quotes because it is not really what is
+generated by the preconds. However, it does use the var table creation which captures the relations between els)
+
+1. So the first step is to create a classic search tree and try to get better than random results
+
+2. Next, we look at games that we won. We look the state a few steps before success. Generate a cascade of perms
+from that state with a gens as the result
+
+3. Do learning to reduce dimensions and find connections between states and targets
+
+4. If, during play a target is signaled, generate classic search tree to try and get there
+
+5. Hopefully, we're getting better and so we look to improve the high-value precursors to winning
+
+6 Repeat from step 2, but now we look for states that preceeded the high value states. We now aim at these
+
+7. Keep playing more games.
+
+
+The order of search in finding heuristic rules is different. This time I'm looking for a specific goal
+which is like an event result. There will be lots of cascaded phrase perms. This will result in a number of
+templates and a limited number of gens recs (different choices of who is var and who an obj as well as different
+var nums). Perhaps a second NN layer can take the confirmed ggs which now all have an equal representation regardless
+of template. This second layer learns distance to target based on % success. The result is a representation which
+can be compared to many other to determine one or more sub-goals towards the goal.
+
+This (heuristic) search for sub-goals (not the classic g p solver) could use the original perm records but i suspect
+that it would be better to use the rules themselves. This would create a neat tree but not a means of scoring how
+close I am to any node of the tree
+
+So we need a function that can score my current position relative to a specific node. This, again, looks like many of
+the sorts of matching. We need a set of perms on the current db, created by a caascade seeded by an event result, we
+add the end result to create a number of gens recs. We learn how to match - perhaps separately from success. We then
+create another layer that learns success of the gg relative to the target event (i.e. how likely given a match on
+the gg, that the event will occur within a few moves.
+
+Once learned, I have a way to say what the chances that the current state will get to a specific node in the tree:
+We just cascade, create the perms and from a siilarity search extract the score. We do this for all nodes on the
+heuristic search sub-goals tree. The tree has probs to get from one node to the other. I should probavbly multiply (or some such)
+the probs along te tree to get a discount factor for nodes that the current state is really close to but the node
+itself is not so close to the target state.
+
+We can pick a sorted list of the best candidates. (Maybe just one). Then plan a path from the current state to that
+node.
+
+How do we handle multiple criteria? For exampl a high value state might be that I am A's friend AND A has an X. Just
+being A's friend has little inherent value. (Not none).
+
+The best solution I can think of righht now is to use the tree for AND. So I might find a preconds consisting of two
+phrases: be A's fried AND A has X. The score to achieve that node is the LESSER of the two score for achieving
+each phrase as an event result. If that node is chosen, paths must be found (classic gps) to achieve BOTH phrases.
+However, note, the score for the closeness of current state to a given phrase (or single-phrase gens rec) is, as before,
+just a single phrase gens.
+
+Before I start implementing, checking in with:
+
+Improved cascading drastically
+
+Isses:
+
+What to do with event_from_event.
+
+I know about:
+event_from_decide
+state_from_event
+state_from_state
+decide_from_state
+
+Also, how do we handle numbers and lists
+
+event_from_event should be dealt with by knows_that.
+
+For example, John asked Mike to give him the ball, so Mike knows that John asked Mike.. and acts accordingly
+
+We need time-based processing.
+
+One suggestion. Just as we create vars, we create realtive times. Find the earliest time, and adjust all
+other times of the phrases relative to that.
+
+Question. How do put the time into the rule. AND time(phrase1) < time(phrase2)... ?
+
+Monday 8th January
+
+Additions to instructions on embed.py and parse.py explained above
+
+First of all run the function els.create_actions_file() (Take it out of comment and run it first thing)
+
+Both stand-alones are run without parameters. parse.py produces actions.txt.nlp and objects.txt.nlp
+embed.py produces four .glv files. Run them in the logic directory which I think should already have some
+.txt files hand-created in the directory.
+
+Don't worry about the message they both produce No module named...
+
+Thoughts on learing decision_from_state and event_from_decision_:
+
+Create decide from state rules
+
+Create a round robin of decisions
+
+Add the results to a list
+
+Loop through list
+
+    With each added to the end of the story db, create event
+
+How to create trial and error examples?
+
+Ultimately we want to observe events and then make "decide to" results which get tested to form rules.
+
+For now we make a special rule that generates either inserts or null results. We need to learn from these what the 'event from decide' rule is.
+
+The special rule for learning is simply
+'decided to' the action with no other pre condition. Put this with the story db and generate results. For invalid results the generator makes an empty list.
+
+Need a generator for decisions for the NPC s. Start off with random go to and pick up objects in my location.
+
+The player character uses the 'event from decide' rules he learnt. These become without modification the 'decide from state' rules.
+
+JUst in case you're wondering what rand_sel does. If it is false (the default), the records are created in order; one per element in the set.
+If there are a number of fields, the number of records will be increased so that each el in the set gets a record. If there
+are multiple fields, gen_for_rule() makes sure that there as many records as all possible combinations.
+If rand_sel is True, that rule field does NOT increase the number of recs generated. Instead only one of the set is selected.
+
+Wednesday 10th January
+
+Create a central loop where each iteration is a phase of a step but there will be multiple steps.
+
+Each phase consists of one of:
+Decide
+Event
+State 1 (state from event)
+State 2 (state from state)
+
+So if there are 400 iterations of the main loop there are 100 actual events.
+
+This means that we maintain a variable for deciding which phase we're in rather than having a loop of it's own.
+
+First we create a list of players. Each name is set in a single word phase.
+
+The decide phase consists of generating many decisions for each of the players. Again, this is not done as a loop but with a turn variable.
+
+The list of decisions is shuffled
+
+Each decision is tried and only when one decision succeeds in generating an event in the next phase will the turn switch to the next player.
+
+A decision is generated by a function that takes the name as a parameter. The decision has no pre conditions. It is just a gens of the decision phrase.
+
+Sunday 14th January
+
+I'm pretty excited about an idea of how to implement:
+
+    necessary but not sufficient (nbns)
+
+Every successful vector is going to be modified as follows. Multiply each value of the vector by the absolute of itself,
+so we basically get a signed square function. We then re-normalize
+
+Any unsuccesful value is imput as is. When testing a new example (where
+we don't know or pretend not to know the answer) we enter both the modified and the unmodified version of the vector.
+
+We are doing something pretty radical here. I'm putting the expected output into the input. So why do I expect it to work?
+Because there may be another condition I don't know about. So what I have are the necessay conditions but these may or may not
+be sufficient. Even if not sufficient, there may be an extra condition which is actually fulfilled but the data is not
+available. It could be a random value that doesn't actually figure in the logic or it could be something that this template
+group doesn't deal with or it could be some blocking condition.
+
+I hope the learning function doesn't just learn the atrifact of the vector modification. That is why I'm not just adding
+an extra input value of success or not. The learning would ignore all other parameters and learn just that. Ideally totally
+different records will not match even with the modification, even though there is no way to learn from a non-fitting
+example whether its unknown condition is just not fulfilled and if it was, it would succeed or whether it would make no difference.
+
+So the learning function is jsut learning to distinguish modified from not because all the positive examples are modified.
+
+The testing, which inputs both modified and unmodified, should find the closest to be true values only if the phrase would be
+a true statement of the necessary conditions whether the sufficient is fulfilled or not. Others should fail even when
+modified.
+
+So I have three changes I'm juggling:
+
+1. Handling decide-to events (not technically events) that have no result
+2. Learning blocking conditions
+3. nbns
+
+I've got 1 working in a somewhat tested environment. The testing as such did not fail but did not get very far because
+it is hard to learn the preconds when so many preconds are identical but fail. However, the code seems to work.
+
+I have done some preparation for 2. Each match without success generates expected_but_fail phrase
+
+I have not started nbns. I will be doing it entirely with additions saying "if c_b_nbns" so that I can roll back
+if this whole idea fails. It may. However, I should still pursue the direction in that case because nbns must
+be solved.
+
+So before starting nbns, I am checking in with the comment
+
+Working with minimal testing. About to start nbns.
+
+Wednesday, 17th January
+
+Well, for now the idea look like it works but may need some fine-tuning. Checking with:
+
+nbns seems to be working.
+
+Friday 26th January
+
+Made wd1, a python module for running against the wibdiplomacy php, mysql and javascript server.
+
+Runs games with all players moving randomly including builds and null retreats.
+
+It is being put in a sub-directory in order to start converting logic to a program or library that
+can support different modules.
+
+Checking in with the comment:
+Added webdiplomacy module. Working but with no integration to logic.
+
+Monday 29th January
+
+Checking in with the comment:
+Added the infrustructure to begin learning which moves succeed and which dont
+
+Thursday 1st February
+
+I've got one level of perms working. That means only one level of cascade and only one phrase
+is added to the event phrase. Since there are so many phrases in Diplomacy, that
+stil leaves me with a lot of perms and a very slow process.
+
+I have to winnow the poorly performing pggs more aggressively. Checking in before I do that with the following
+comment:
+
+webdiplomacy working in one dir with wd prefix. Working fairlly well but slowly.
+
+Sat 3rd February
+
+Suggested corrections.
+
+Remove num_add_perms on the templ level
+ggs with points get more time before giving up learning
+print when you don't do learning and scoring to explain why
+add some leeway to thresh
+figure out a way to remove perms at the template level while:
+    1. Making sure the ggs with points don't lose all their perms
+    2. Don't make all the perms belong to one of the ggs only
+points exchange with penalties
+
+Sunday 4th February
+
+Save and reload templ and ggs with their models but not their data.
+
+points exchange with penalties
+    done. not test
+
+ggs with points get more time before giving up learning
+    done.not tested
+
+Tuesday 6th February
+
+Checking in with the comment:
+
+Rule learning works for webdip. About to start blocking.
+
+I am being too harsh in giving out penalties.
+Suggestion: You get a point if you win but you get a penalty only if:
+1. Your score is below some fraction of that of the winner
+2. If your eid set is no better than the winner
+After all we have to accout for OR. Something will happen if A or B is True or will be blocked by either of two circumstances
+
+Friday 9th Feb
+
+Blocking ran but was too much a mess to see what was going on.
+
+Also, the rule discovery did not get the benefit of both positive and negative examples.
+The way forward is to focus on one potentially powerful rule at a time. Remove all
+other distraction and provide pos and neg so eid's. If we significantly increase the
+prediction success we add that to our beilef system.
+
+For now, since I will spend some time on laptop only, I will return to the adventure story
+but will now try to use the central modules in the same way that webdip does. Unfortunately,
+the modules systemin python is not allowing me to use separate dirs, so I will use previx adv_
+
+Will check in the current state with the comment:
+
+Blocking code running but no sig results.
+
+Monday 19th Feb
+
+while on vaccation, I've implemented a first shot at step by step learning of the rules.
+For now it has a poor name of a "gg cont". This cont can store the important parts of
+learning a rule and can be used to extend it. At first you learn a one phrase rule. This
+should increase the probability in one direction or another with necessary conditions
+but still not know about other criteria for sufficient. So once you have that, you look for
+more associated phrases to extend the rule. This is more like searching through a tree than
+the older way which was more like looking at all permutations all together.
+
+The adventure module files are prefixed with adv just like the web diplomacy is wd. The data
+files can be places in a sub dir. The new code is growing in addlearn.py
+
+Checking in with the comment:
+First version of step by step working.
+
+Will now start working one making blocking rules work with a flag on the gg.
+
+However, first I need to make the load of gg cont working. That's not happened yet.
+
+Need to take care that penalized gg's to not generate gg conts
+
+Look at a gg cont score relative to his parent. If he went down, but not a block, then don't give
+him a cont. However, it might be important to be re-scoring his parent with the same data to be fair.
+
+Also, need to work on penalities using eid sets
+
+Show the values you are saving.
+
+Sunday 25th February
+
+Checking in just because I now have to make extensive changes. Making the blocking a property of the
+template group was a mistake. It is a property of gens. Comment:
+
+Version of blocking not working because applied to templ group
+
+Also need to save db len grp information for each gg cont so that work can continue on a cont after lots of
+tries have already been made. Need an algorithm for deciding after each load, which gg cont it is worth
+continuing work on.
+
+Once there are many conts, need an algorithm for summing up and selecting a complete set of conts/rules
+
+Detailed short-term todo:
+
+Find all usages of find_templ which has now been changed
+check all calls to cl_gens_grp.get_gens_rec in case you also need to call get_b_blocking
+changed arguments for:
+    cl_len_grp.find_templ
+    cl_templ_grp.add_perm
+    cl_templ_grp.find_pgg
+    cl_prov_gens_grp.__init__
+    cl_gens_grp.__init__
+    cl_gens_grp.gens_matches
+    cl_gens_grp.init_for_learn
+    cl_gens_grp.get_match_score
+
+Checking in with the following comment:
+
+First signs of blocking working. No flexibility yet on conts.
+
+db grps file must contain:
+A line for the NULL cont
+The number of cont groups
+Each cont group with its db len grps
+We need a cont id
+Every cont needs a reference to its parent cont
+
+Each cont group must hold the text of the db len grps in raw format
+
+We need a fn that does not actually learn but just decides whether a child
+is significantly improving over its parent.
+Only these get to produce their own children
+
+fn should also consider if there is a class of perms that matched the parent, failed but simply did not match the child. In other words there are other alternative (not
+additional) conditions of failure or success
+
+
+special attention to 100% or nearly
+     but dont get fooled by low num of tests
+
+Monday 26th Feb
+
+Detailed short-term stuff:
+Changed arguments for:
+    save_len_grps
+
+Create a random chance that the null cont will be selected
+
+You MUST!!! make sure that repeats of the phrase cannot comprise a perm. See around line 309 of learn.py
+Done!
+
+Tuesday 27th Feb
+
+Checking in with the following comment:
+
+Blocking with multilevel works. Still need to work on selecting conts to cont.
+
+I now plan to add a comparison between parent and child conts. Each calls learn step without actual learning
+and sees whether the child improves on the parent.
+
+Wednesday 28th Feb
+
+Checking in with the following comment:
+
+Blocking and multilevel work. All rules of adv decision phase discovered.
+
+Sunday 4th March
+
+Changed gg processing so that only one action happens per eid, giving a chance to more focused (and often successful) rules
+
+Checking in with the following comment:
+
+Rule discovery for Diplomacy working with Blocking.
+
+Notes for future improvements:
+1. Make blocking part of the rule itself. Perhpas a phrase can end with ce to indicate normal or cb to mean
+that the phrase in the rule must NOT match with any pattern in the db
+2. Change wd to make learning know about whehter all other rules succeeded
+Once rules have been learned, processing will have to keep iterating until no further changes occur or some rules keep flipping
+
+However, for now I would rather get on with some AI. At least a montecarlo based on rules learned
+One or two things must be cleaned up first:
+1. Why does occupied not figure as a successful rule
+2. Advance partial_expand and partial_block processs
+3. Always advance untried processing
+4. Summarize and extract winning conts
+5. Consider removing penalty and a module-based option. Rely on 'untried' processing
+
+Perhaps commit at the end of that before adding wd_imagine. This latter must create the results and status for the next turn
+without actually consulting the sql db,
+Look at convert_list_to_phrases. All that must be recreated in imagine
+
+I'm going to try a radical experiment so I want to records enough details to be able to roll it back
+1. Don't learn if you have a cont id
+2. Don't score if you have a cont id
+3. Create a cont id for ANY gg that has a score whatsoever
+increase by a lot the number of eids needed to validate
+c_gg_graduate_len
+c_gg_learn_every_num_perms
+c_gg_validate_thresh
+
+Experiment basically a failure. Must revert to penalties etc. But this must be done when I ca see the consequences and have time.
+Will keep the idea of no learning after a cont id and marking when a cont has finished producing viable children
+scoring is not so important once there is a cont id - but it keeps the others' heads down
+
+conts must be done in order
+null  - till no kids
+initials - till no kids
+untried - order by level - till all have evolved
+partial expand/block don't proceed to higher level while lower level still producing viable kids
+
+Wednesday 7th March
+
+Checking in with the following comment:
+
+Rule learning looks solid.
+
+Thursday 8th March
+
+Checking in with the following comment:
+
+AI of Monte Carlo beats random using rules it learned.
+
+Friday 9th March
+
+Checking in with the following comment:
+
+Learning based on success list. Learning to a target.
+
+Saturday 10th March
+
+Figure out why the following seems so rare:
+
+cacsoooooocecsv02v03v07v05v06v04cece
+
+Look for blocking, that while perfect, do not explain all the blocking.
+Thus there parent has status T,F and the child is ALWAYS T,T and yet there are situations where the parent was T,F
+but the child what F,F. So there is a different explanation for why the parent matched but did not succeed. Conversely,
+if we add up all the perfect blockers and they cover ALL the T.F  cases for the parent - that is perfect knowledge
+
+Monday 12th March
+
+Checking in with the following comment:
+
+Learning wd rules. No nonblock after block. New untried maturation.
+
+Checking in with the following comment:
+
+Add wd_admin. Deleting all finshed games.
+
+Thursday 15th March
+
+Thoughts:
+
+Simple nn/learning to arbitrate between rules
+
+Each rule translates to a key.
+
+Even simpler. Each rule has an index. Index is either 1 or 0 based on match or not.. That is the vector input
+
+Transform with simple matrix to a key. keys with success close to each other as are keys with failure
+
+Could be done with an extra stage that transforms rules into a slot on the input vector
+
+Can create new rules by replicating random clauses
+
+if a clause contains one l el with cd < 1.0, replicate it
+
+Two rules with the same clause, take the other clauses and put them both on. Try the following assumptions:
+1. If there are els with like<1.0 assume they are the  same
+2. As above but assume they are different
+3. For repeats use 2, for combines prefer 1
+4. If there are more than 1 of the like<1.0,. then try multiple variations, one the same one diffrent...
+
+Try the variations, see if they get any hits
+See if any are never unique. Do a cross of all rules
+
+Use natural selection as  a means of selecting generation candidates
+Keep away from middling scores and perfect scores
+
+
+​Once you have a goal and rules, you can use regular planning.
+
+​Say the goal is a successful move to Romania
+Iterate though rule list
+Take goal and fill in Romania into v7
+find from stored list examples where Romania is in the v7
+look at your potential moves to see if they can match the vars
+If we are looking one ahead - job done
+If two ahead look to see what is missing.
+For example you can find a couple of moves into romania
+Do you have armies there?
+Say you don't. So you create new goals of places you want to move to
+
+How do you create a rule two moves ahead?
+
+Implemented so far the simple matrix described above.
+
+Checking in with the following comment:
+
+Learning of prediction when multiple rules match working.
+
+From audio notes:
+Here are a few thoughts on how to proceed. The first step I want to do is to expand the current rules
+by mixing and matching different control components.
+Once we have that we should be able to move forward to improving the
+AI in general.
+The first step is that once we have good rules.
+Let's try to use those roles, together with the Monte Carlo
+loading of where we might succeed
+to take those potential successes and go for them and a search based tree method, maybe, including the probabilities of success.
+Once we have that we may have a decent AI
+that point we need to add convoys and then we have the game. The basic game working. Once we have that.
+The next stage is to add alliances: stating the alliances and also specific
+requests, such as help me support me over here, Don't go into this territory this as one component
+This is just informing.
+The other component is actually promising to do X
+where X is in response to a request to do X,
+we have to evaluate both.
+Then once you have that working
+at least on a technical level we want to incorporate that into the rules.
+
+Add a learning of very global results from like if I'm in a position like this and I'm an alliance like that.
+What are the chances of success and how can I change that to a better chance of success
+Okay, one last stage is to try to learn general rules based on what happens
+from now given what the situation was before.
+Earlier
+I wanted to simply, without variables, predict what will happen,
+but being able to do it with variables would be very cool.
+That's a totality would should make a pretty decent AI.
+
+Friday March 16th
+
+Recap of the order of building:
+
+Use these settings for initial building of wdlengrps.txt
+
+c_b_compare_conts = False
+c_b_save_orders = False
+c_b_add_to_db_len_grps = True # normally keep this and above one-True
+c_b_play_from_saved = False
+
+I used this setting from config to make sure the rule captures more distant territories:
+
+c_gg_graduate_len = 100 # was 10
+
+With that you have to increase the following:
+
+c_story_len = 350
+
+I wanted a long run so I used the following from wdconfig
+
+c_num_plays = 5300
+
+With story len set so high, it takes a long time to move along from initial but I still used the following:
+
+c_cont_not_parent_max = 10.0
+
+Now I need to clean the diplomacy tables so set
+
+c_admin_action = 'DeleteGames'
+
+Now you need to build the cont stats from the dblengrps.txt file.
+Remove the cont_stats.txt file
+set the following in config
+
+c_b_compare_conts = True
+c_b_save_orders = False
+c_b_add_to_db_len_grps = False # normally keep this and above one-True
+c_b_play_from_saved = False
+
+Just a note. If you want to create orders_success.txt and orders_failed.txt you need to set
+
+c_b_save_orders = True
+
+Lastly, there are two ways to create moves. The algorithmic, oracle method uses
+
+create_move_orders
+
+To call it make sure that
+
+c_b_play_from_saved = False
+
+otherwise it will call
+
+create_move_orders2
+
+This uses the saved orders files aand AI to generate the moves.
+
+Saturday 17th March
+
+Will eventually have to reorder the different phases:
+
+0. Generate examples from oracle-random player
+1. Create pgg
+2. Learn selection W and rule_grp
+3. Score against other templates
+4. Create cont
+5. Evaluate untried cont
+6. Add new db len grp to cont
+7. Compare stats of the best conts
+8. Delete useless and create mutations
+9. Incorporate into AI
+10. Create new play examples to learn from
+11. Return to step 1.
+
+Data should be saved into dedicated files in a directory for the module (eg adv, wd)
+Data should be gathered across runs so that rare cases get a chance but time is not wasted on done deals
+Allocate time for phases using clock time, so that you can keep returning and adding but no endless exhaustive searches
+
+Monday 19th March
+
+The code I'm checking in contains a first on-working version of the next feature
+
+Checking in with the comment:
+
+Rejection of rules and creation of mutations seems to be working but not useful.
+
+Wednesday 21st March
+
+The wdconfig options for different phases are a bit of a mess.
+
+LEt's try and put some order into it.
+
+Here are some phases:
+
+* Conts stats and AI, no learning
+    Reading from cont_stats.txt. c_b_load_cont_stats = True
+    building cont_stats. c_b_load_conts = True
+    No analysis or new conts. c_b_analyze_and_modify_conts = False
+    making orders, AI based on
+        reading from orders_success. c_b_play_from_saved = True
+        evaluating moves based on conts prediction. c_b_play_from_saved = True no other flag yet to decide which AI
+    in-play learning - just saving orders_success. c_b_save_orders = True
+    no learning of conts W. c_b_learn_conts_and_save = False
+    no save of new conts. c_b_learn_conts_and_save = False
+
+Checking in with:
+
+Classic AI using prediction of rules in cont stats working.
+
+The goal now is to improve to oracle so that we can start learning all rules including convoy
+
+Another phase:
+
+* No learning, using oracle to generate move
+    No reading from cont_stats.txt or wdlengrps. c_b_load_cont_stats = False, c_b_load_cont_mgr = False
+    making orders, AI based on
+        Use the oracle. c_b_play_from_saved = False
+    in-play learning - just saving orders_success. c_b_save_orders = True
+    no learning of conts W. c_b_learn_conts_and_save = False
+    no save of new conts. c_b_learn_conts_and_save = False
+
+Checking in with the following comment:
+
+Convoy, hold and support hold introduced.
+
+Thursday 22nd March
+
+Checking in with:
+
+Single human player against the oracle working.
+
+Used the following phase to play human vs AI
+
+c_admin_action = None # 'DeleteGames'
+c_b_play_human = True
+c_starting_user_id = 6
+c_human_uids = [7]
+c_gname_human_prefix = 'tplay'
+
+Another phase:
+* Learning the core len grps and conts
+    Reading from wdlengrps but no reading from cont_stats.txt. c_b_load_cont_stats = False, c_b_load_cont_mgr = True
+    making orders, AI based on
+        Use the oracle. c_b_play_from_saved = False
+    in-play learning - saving orders_success. c_b_save_orders = True
+    in-play learning - add to the db_len_grps, learn new conts c_b_add_to_db_len_grps = True
+    no learning of conts W. c_b_learn_conts_and_save = False
+    no save of new conts. c_b_learn_conts_and_save = False
+
+Monday 26th March
+
+I think the best strategy is to learn no more than level 2 using standatd db_len_grps. The combos can be learned using
+cont stats learning. I have worked very hard to let the initial group slowly build up the rarest cases because
+they can be tactically significant
+
+In retrospect it may have been better to build a good hand-crafted AI to learn from.
+
+Another phase:
+* Using the cont groups in wdlengrps to initialize the cont stats
+    no learning of cont stat probs
+c_b_load_cont_mgr = True # loads cont manager and the conts from wdlengrps
+c_b_add_to_db_len_grps = False # Assumes c_b_load_cont_mgr, makes one cont active and loads its len grps. When it comes time to play, learns from
+c_b_init_cont_stats_from_cont_mgr = True # This is how you build cont stats the first time from cont groups
+c_b_cont_stats_save = True # saves all cont modification and W to file, including new stats
+c_b_learn_conts = False # At the end of game or play pahse (30 to 300 turns), Learns the W for success prediction
+
+Checking in with the comment:
+
+Learning wdlengrps to only level 2 and waiting patiently for the rare cases.
+
+Another phase:
+* Load the cont stats and use them to learn
+    COllect cont stat statistics
+    Learn cont stats probs
+    Play using the oracle
+    Don't analyze or modify the conts list (later becomes analyze without modify)
+c_b_load_cont_stats = True # Loads cont stats from conts file and builds a cont for each one
+c_b_load_cont_mgr = False # loads cont manager and the conts from wdlengrps
+c_b_analyze_and_modify_conts = False # Analyses accuracy and usefulness of each cont and Decides which conts to keep and when to try and create new cont mutations
+c_b_collect_cont_stats = True # Adds to matches and predict statistic for all conts
+c_b_init_cont_stats_from_cont_mgr = False # This is how you build cont stats the first time from cont groups
+c_b_cont_stats_save = True # saves all cont modification and W to file, including new stats
+c_b_learn_conts = True # At the end of game or play pahse (30 to 300 turns), Learns the W for success prediction
+
+modified the last a little:
+
+c_b_analyze_conts = True # Analyses accuracy and usefulness of each cont
+c_b_modify_conts = False # if c_b_analyze_conts is True, Decides which conts to keep and when to try and create new cont mutations
+
+So this phase basically learns the stats for cont stats and even does some analysis but does not modify them.
+
+This config can be used, without the learning to run the AI
+
+Another phase:
+* Load the cont stats and use them to play!
+    Don't COllect cont stat statistics
+    Don't Learn cont stats probs
+    Play using the classic AI
+    Don't analyze or modify the conts list
+c_b_load_cont_stats = True # Loads cont stats from conts file and builds a cont for each one
+c_b_load_cont_mgr = False # loads cont manager and the conts from wdlengrps
+c_b_collect_cont_stats = False # Adds to matches and predict statistic for all conts
+c_b_init_cont_stats_from_cont_mgr = False # This is how you build cont stats the first time from cont groups
+c_b_cont_stats_save = False # saves all cont modification and W to file, including new stats
+c_b_learn_conts = False # At the end of game or play pahse (30 to 300 turns), Learns the W for success prediction
+c_b_analyze_conts = False # Analyses accuracy and usefulness of each cont
+c_b_modify_conts = False # if c_b_analyze_conts is True, Decides which conts to keep and when to try and create new cont mutations
+c_b_play_from_saved = True # Means we use the saved orders_success file and use some AI to create move. Alternative is to use the oracle move creator
+
+Analysis so far
+
+Analysis for rule 0 c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e blocking: False
+score 0.679972
+Analysis for rule 1 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,l:warsaw:-0.5,v:5,v:6,v:7,c:e,c:e blocking: True
+score 0.184615
+Analysis for rule 2 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,l:russia:0.2,l:owns:1.0,v:2,v:3,v:7,c:e,c:e blocking: True
+score 0.405226
+Analysis for rule 3 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,l:warsaw:-0.5,l:support:1.0,v:5,l:from:1.0,v:4,v:6,v:7,c:e,c:e blocking: False
+score 0.959588
+Analysis for rule 4 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,l:fleet:1.0,v:3,l:black sea:-0.5,l:convoy:1.0,v:2,v:3,v:4,v:6,v:7,c:e,c:e blocking: False
+score 0.981553
+Analysis for rule 5 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,l:army:0.2,v:3,l:bulgaria:-0.5,v:5,v:6,v:7,c:e,c:e blocking: True
+score 0.178394
+Analysis for rule 6 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,v:7,l:hold:1.0,c:e,c:e blocking: True
+score 0.177305
+Analysis for rule 7 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,l:fleet:0.2,v:3,l:bulgaria:-0.5,l:support:1.0,v:5,l:from:1.0,v:4,v:6,v:7,c:e,c:e blocking: False
+score 0.952191
+Analysis for rule 8 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,v:7,v:5,v:6,v:4,c:e,c:e blocking: True
+score 0.0846154
+Analysis for rule 9 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,l:fleet:0.2,v:3,v:7,l:hold:1.0,c:e,c:e blocking: True
+score 0.246835
+Analysis for rule 10 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,v:7,l:support:1.0,v:5,l:from:1.0,l:warsaw:-0.5,v:6,l:warsaw:-0.5,c:e,c:e blocking: True
+score 0.197674
+Analysis for rule 11 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,l:warsaw:-0.5,l:support:1.0,v:5,l:from:1.0,l:warsaw:-0.5,v:6,v:7,c:e,c:e blocking: True
+score 0.15
+Analysis for rule 12 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,l:warsaw:-0.5,l:support:1.0,v:5,l:from:1.0,v:7,v:6,l:warsaw:-0.5,c:e,c:e blocking: False
+score 0.782609
+Analysis for rule 13 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,v:7,l:convoy:1.0,l:army:1.0,v:3,l:bulgaria:-0.5,v:6,l:bulgaria:-0.5,c:e,c:e blocking: True
+score 0.0282486
+Analysis for rule 14 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,v:2,v:3,l:warsaw:-0.5,l:support:1.0,l:hold:1.0,v:3,v:7,c:e,c:e blocking: True
+score 0.0921986
+Analysis for rule 15 c:a,c:s,l:army:0.2,l:in:1.0,l:warsaw:-0.5,l:move:1.0,l:to:1.0,l:bulgaria:-0.5,c:e,c:s,l:fleet:0.2,v:3,v:7,v:5,v:6,v:4,c:e,c:e blocking: True
+score 0.0714286
+No items to score at predict level at -0.1
+Score for 4321 items at predict level at 0.0 is 0.00185142
+Score for 3 items at predict level at 0.1 is 0.333333
+Score for 1 items at predict level at 0.2 is 1.0
+Score for 2 items at predict level at 0.3 is 0.0
+Score for 2 items at predict level at 0.4 is 0.5
+Score for 157 items at predict level at 0.5 is 0.636943
+Score for 6 items at predict level at 0.6 is 0.666667
+Score for 11 items at predict level at 0.7 is 0.545455
+Score for 1386 items at predict level at 0.8 is 0.590909
+Score for 1177 items at predict level at 0.9 is 0.938828
+Score for 9845 items at predict level at 1.0 is 0.960284
+No items to score at predict level at 1.1
+Score for 16911 items at predict level above -0.1 is 0.679972
+Score for 12590 items at predict level above 0.0 is 0.912709
+Score for 12587 items at predict level above 0.1 is 0.912847
+Score for 12586 items at predict level above 0.2 is 0.91284
+Score for 12584 items at predict level above 0.3 is 0.912985
+Score for 12582 items at predict level above 0.4 is 0.91305
+Score for 12425 items at predict level above 0.5 is 0.916539
+Score for 12419 items at predict level above 0.6 is 0.91666
+Score for 12408 items at predict level above 0.7 is 0.916989
+Score for 11022 items at predict level above 0.8 is 0.957993
+Score for 9845 items at predict level above 0.9 is 0.960284
+No items to score at predict level above 1.0
+No items to score at predict level above 1.1
+No items to score at predict level below -0.1
+No items to score at predict level below 0.0
+Score for 4321 items at predict level below 0.1 is 0.00185142
+Score for 4324 items at predict level below 0.2 is 0.00208141
+Score for 4325 items at predict level below 0.3 is 0.00231214
+Score for 4327 items at predict level below 0.4 is 0.00231107
+Score for 4329 items at predict level below 0.5 is 0.002541
+Score for 4486 items at predict level below 0.6 is 0.0247436
+Score for 4492 items at predict level below 0.7 is 0.0256011
+Score for 4503 items at predict level below 0.8 is 0.026871
+Score for 5889 items at predict level below 0.9 is 0.15962
+Score for 7066 items at predict level below 1.0 is 0.289414
+Score for 16911 items at predict level below 1.1 is 0.679972
+
+Tuesday 27th March
+
+Been trying defensive plus offensive AI (written but not debugged before last check in)
+
+Conclusions so far:
+
+1. Convoy is a disaster so far (need to change to being convoyed order so that it doesn't look like regular move)
+2. Learning from an Oracle has some interesting problems. The oracle only ever created a support if there was a move.
+    This encorages the AI to think that you can succeed in blocking a move with a supported opposing move even without the blocking move
+3. Limit the number of possible moves (even if only for performance)
+4. Look at the success before you move to the next stage
+5. Create new mutations even from different rules because you can control the variables that way
+6. It's crazy not to pre-multiply the DB of matches before the actual CD calculation
+7. Learn all the time. Use the AI to play, improve the db_len grps and collect cont stats
+
+I'm gonna push off the whole business of trying multiple options and picking the best
+or playing all the time  have while the human thinks
+That's only going to happen after the convoy stuff is sorted out
+
+Alliances, saying facts to each other and making requests is going to be pushed off even more,
+
+Checking in with the following:
+
+Offensive and Defensive classic AI code seems correct but no proof of working,
+
+Minor check in with the following:
+
+convoy move separated out for wd.
+
+Wednesday 28th March
+
+Created a system for managing match lists in cont stats. A dictionary is kept of those
+events who have a specific set of matches across the const. If there are too many (currantly > 100)
+of that exact match, the event is either discarded or an event of that pattern is removed.
+Prediction score looks first of all for an exact match and only if that fails, does the CD
+
+The database of predictions is now precreated once at the load of the file and not for each query.
+
+Checking in with:
+
+Management of cont stat patterns working.
+
+Thursday 29th March
+
+Havong a lot of trouble with pycharm which upgraded itself without my knowledge and I did not import settings
+
+Wednesday 11th April
+
+Looks like the first comment since after Pesach
+
+checking in with the following
+
+Added a layer above classic AI to protect wd sql from supports without moves. Classic AI technically working.
+
+Thursday 12th April
+
+Checking in:
+
+Support and convoy orders now fail if their target does
+
+Made sure that the changes apply to both calssic Ai and the oracle
+
+Checking in with:
+
+Order frequency stats working with colist stats.
+
+to do:
+Integrate the colist stats with the classic AI so that it doesn't waste its time suporting moves that never happened.
+Re-integrate playing against the AI including using all the time avail
+Add (and remove) conts based on combination and mutation
+Go back and improve gevos
+Add alliances
+
+Using colist scores
+
+The current proposed plan is:
+1. If it an requirement without a reverse requirement, it must already be in the orders list
+2. If it is a req but also a reverse req (mutually req) then it must be in the avail
+3. High colist scores become the priority for follow on moves
+
+Monday 16th April
+
+Checking in with:
+
+AI using new frequency stats and convoy colist.
+
+Wednesday 18th April
+
+Added a system that explores options as lomg as the humaan player has not finished his move. The top three option for
+each country are chosen and when the human player has finished the top move is chosen and played. Next move.
+
+There are a lot of improvements that can still be made:
+
+1. The random moves are terrible. They should be added to the list of targets and played appropriately.
+2. Go to the next level. Try the effect of a set of moves on the next turn
+3. If there is nothing else to do, move towards juicy targets
+
+However, not going to do all that for now. The goal at this point is to demonstrate that we can learn the rules of a
+game and use them to play it sort of decently. That point has been made.
+
+The next is inter-player communication. I want to start with alliances. That we can add rules manually forbidding behavior.
+That we can start talking about promises, lies etc.
+
+What is worth considering adding in the near term is:
+
+Expanding the rule learning to combine successful elements to create higher-level rules.
+
+Checking in with:
+
+AI plays with as much time as it has.
+
+Got to do something about the AI not knowing that you have to hold a terr at the end of Fall
+
+Proposal for alliance random model
+
+Rnd number 0.0-1.0. Theshold, say, 6.0, 7.0 and 8.0.
+Over 8.0, offer alliance.
+Over 7.0, accept offer.
+Below 6.0, give notice of termination. 2 moves.
+After an offer has been made wait 4 turns before offer again
+After termination, wait 8 turns
+Rnd param stored for each country to each country, moves each turn by 0.1
+Clock marks time since:
+    notice of termination
+    offer made and rejected
+
+Proposal for better use of random moves
+1. Mark which countries created an offensive target
+2. The rest consider a random move. From there, look for either:
+    One of the defensive targets
+    One of the offensive targets
+    new offensive targets
+3. Score each random move
+4. Add the top n to the targets at a lower priority
+    n is a multiple of the original list creating random moves
+
+Friday 20th April
+
+Wow! How short sighed can you can.
+
+Information on embed, embed.py embedding producing glv files
+
+Contrary to prev comment, you do not run embed as is without arguments
+
+Well, without arguments, but you must modify the __name__ called. Calling main(), which should happen in the adv dir
+will do what you need for adv. Calling create_wd will do what you need for wd
+
+Saturday 21st April
+
+Made a change to the php code for messages
+File changed: board/chatbox.php
+public function output
+
+created a new table:
+
+wD_BoardMessages
+
+used the  MySQL workbench
+Created the table within the 'schema' webdiplomacy. I assume schema is the same as database
+Took the details from the first two fields from wD_ForumMessages and the gameID field from wD_Units
+
+Sunday 22nd April
+
+Checking in with the following comment:
+
+Inter-AI alliances working and displaying.
+
+Monday 23rd April
+
+Started a process of a game state object that hold the game state instead of long long lists of parameters
+passed between functions.
+
+Checking in:
+
+Initial use of game state object working.
+
+Alliances work. There was a problem because once some borders were not hot, the units far from the hot borders
+wandered around aimlesssly. Now they gravitate toward the contested supply centers.
+Also, the colist demands were too high and few support moves were made. This was fixed by requiring only
+the top colist and then only if it crossed the threshold
+
+Checking in with:
+
+Alliances and moving towards front lines work.
+
+Sunday 29th April
+
+Created a mechanism that stores bitvectors per turn for each of:
+    strength-alliances
+    territories held
+    army-fleet locations and whose they are.
+ The turn data is appended to the appropriate file with game id and turn number and a look into the future five turns
+ later to see how the number of units has changed in that time.
+
+Created a stand-alone module called wd_allied_lrn.py. Its purpose is to take the alliance bitvecs and learn to
+predict the strength change that would happen over the next few turns
+It uses a selection matrix that selects a number of bits for each output bit and a threshold for how many
+of these input bits must be turned on, for the output to turn on.
+It learns by aiming for an accuracy using hamming knn
+It writes a matrix file which is loaded by wd_alliance and used to build a database and transform each query for
+matching with the db using haming knn
+The system is used as follows. Each country considers its predicted strength change and then sends a query for how
+the prediction looks with an additional alliance or a current alliance removed. This data is used to affect the
+strength of the alliance_rel matrix each turn until alliances are forged or dropped.
+
+Currently alliances don't help you much. There is also not much data collected. So the predictions are not far different
+from numerology. However, the system is in place and I hope it gets better.
+
+Checking in with:
+
+Alliance strength prediction integrated into the alliance system.
+
+Monday 30th April
+
+Modified alliance system so that aliiances are formed in groups. Everybody in the alliance is friends
+
+Checking in with:
+
+New alliance-group system working.
+
+Wednesday 2nd May
+
+Spent some time on HD but I'm back now
+
+Thursday 3rd May
+
+Upgraded forbidden module to include blocking with subsidiary unless rules.
+
+Don't forget
+recalculate the target list each option - otherwise it isn't an option
+don't consider blocking units that are more than 2 distance units away
+when it's time to pick an option, add a request system
+
+Friday 4th May
+
+More to work on before you're done with alliances and support
+    Don't set all forbidden rules before you start
+        Load the file once er.. per game not turn
+        Add two fields to the content of the freq_dict
+            b_tested_for_allowed
+            b_allowed
+        These two fields are reset once per turn not once per option run
+            so reset when you reset the game store
+        Calculate forbidden only in wd_imaging get_moves.
+            It needs to take a target and list of distance-1 from target
+            Orders that include no words from the target or dist-1
+                Should not be tested for allowed
+                Should not be returned even if they have been previouly tested and found allowed
+
+
+And when that's done...
+    You work on UI
+    1. One line lets you pick an alliance or unalligen individual to choose from
+        When you are in the alliance get replaced by a leave button
+    2. Add a refresh conditional on the db telling you to
+    3. A second line allows you to pick a requested support (once the order is saved)
+        If there is an incoming request, this line is replaced by Accept or reject a request
+
+Saturday 5th May
+
+Fix that horrible issue of AI leaving a terr before ownership is transferred!!!!!!
+Fix it! Fix it!
+
+Sunday 6th May
+
+Don't forget to impact the like based on accept/reject of requests for support
+
+Monday 7th May
+
+It's starting to look a little better. Allies are supporting each other - if a little rarely.
+The AI starts very slowly as it still works through a lot of forbidden and allowed moves but after that... wow!
+I am on 9 option runs now, but many more could be added. We might even start looking into the future
+
+Checkin in with:
+
+Allies can support each other units. Some speedups implemented.
+
+Wednesday 9th May
+
+In preparation for adding human alliances and unit support, I have added a whole framework of user
+options. It is a kind of message system where countrys consider making alliance requests, perhaps make
+them, send them to the partner and he considers the request.
+
+Checking in with:
+
+Alliance and user option system working. No humans yet.
+
+Friday 11th May
+
+Check in :
+
+Alliances including human seems to work.
+
+Thursday 17th May
+
+Checking in with:
+
+Made adv work again including loading perms and writing freq stats.
+
+Monday 21st May
+
+Pausing in mid-work because I want wd wok to happen only on Thursday & Friday
+
+Checking in with:
+
+Trying to get AI only games to support only with user options. Not working yet.
+
+Thursday 7th July
+
+Been working on bits. Now the goal is to integrate bits into this project. The planned change is
+very disruptive. Rules will be implemented differently and the goal is that inference/running/playing
+will be much faster - particularly when there is real hardware support.
+
+Checking in:
+
+Bitvector integrated minimally. The event phrase is stored.
+
+Friday 8th July
+
+CIW:
+
+Bitvector integration includes new but frequent words.
+
+Wednesday 20th June 2018
+
+Bitvec learning of up to two stages of ruls works technically. However, we are distinguishing poorey between the
+success and failure cases.
+
+Next I will try decision trees
+
+CIW:
+
+Bitvecs learns two stage rules but distinguishes poorely.
+
+Monday 25th June
+
+CIW:
+
+Bitvecs rules work with reverse and rnd improvements but not applied.
+
+Thursday 28th June
+
+CIW:
+
+Text-specified rules that are implemented with vectors.
+
+Not all rules work like this. I didn't want to mess with the initialization of the story rules that work through all combos.
+
+For now, I just want a way to process efficiently the decisions and events as they come in.
+
+Thursday 5th July
+
+CIW
+
+Three stage rules seem to work for run but learning is broken.
+
+Sunday 7th July
+
+CIW
+
+Learning not broken but still learning two-phased rules only
+
+Monday 8th June
+
+To do:
+
+Finish off knows picked up - A picked up, A in B C in B t C knows , A picked up t A knows
+Add wants
+Likes, Asks for, wants to give, gives
+Asks where A went, wants to tell
+Monte, lookahead, rules about
+
+After about 3000 added phrases the program starts slowing down. After 7000, the output is no longer flying. This is even
+without learning any rules. Turns out the problem is add_phrase. All words added are scored for closeness to neighbors.
+The knn db for this is growing becuase it's the phrases that are compared.
+1. There is little need to process every phrase
+2. Phrases should be thrown out after enough examples are collected for a rule
+
+CIW
+
+Rules working for pickup and went and all observer dbs.
+
+Monday 23rd July
+
+Completed a downsize so that we're back to 5 python modules. Moved to a new project named agent.
+
+Different 'games' or modules now reside in dynamically loaded modules such as adv2.py. The flow of rules execution
+and, optionally, learning is implemented in adv_main2.py which will soon be renamed. This is the main function
+and flow driver which should be able to support any type of module.
+
+mpdb.py, multi-player db controls the application of knowledge to different player's subset of the phrases
+
+bitvec.py handles the bitvec, rule execution and learning. It will probably need to be divided up.
+
+rules2.py should handle most of the mechanics of loading rules and the processing of elements or recs (which used to be
+found in makerecs and els.py
+
+Finally, the game-specific module, in this case adv2.py handles creation of decisions (not ready to call it the AI yet).
+It makes use of rule-like text-specified code fragments that can produce list of things such as 'which players are present
+here'.
+
+Checked in already as the initial.
+
