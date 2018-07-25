@@ -89,7 +89,7 @@ class cl_mpdb_mgr(object):
 		if isrphrase == -1:
 			# if ilen >= len(self.__ll_sphrases):
 			# 	self.__ll_sphrases += [[] for _ in range(len(self.__ll_sphrases), ilen+1)]
-			isrphrase = len(self.__l_srphrases[ilen])
+			isrphrase = len(self.__l_srphrases)
 			self.__map_rphrase_to_isrphrase[phrase_ref] = isrphrase
 			self.__l_srphrases.append(phrase_ref)
 			for idb_mrk in self.__ll_idb_mrks:
