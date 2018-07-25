@@ -134,8 +134,7 @@ class cl_mpdb_mgr(object):
 				# story_refs.remove((ilen, iphrase))
 				self.remove_phrase([db_name], (ilen, iphrase))
 				phrase = self.__bitvec_mgr.get_phrase(ilen, iphrase)
-				pot_results = self.__bitvec_mgr.apply_rule(	phrase, ilen, iphrase, phase_data, self.__l_dbs[idb],
-															self.__l_d_story_len_refs[idb], l_rule_cats)
+				pot_results = self.__bitvec_mgr.apply_rule(	phrase, ilen, iphrase, idb, l_rule_cats)
 				if pot_results != []:
 					results += pot_results
 				self.insert([db_name], (ilen, iphrase))
@@ -147,9 +146,14 @@ class cl_mpdb_mgr(object):
 		if idb == -1:
 			print('Error. mpdb requested to run rule on db', db_name, 'which doesnt exist.')
 			return None
-		results = self.__bitvec_mgr.run_rule(	stmt, phase_data, self.__l_dbs[idb], self.__l_d_story_len_refs[idb],
-												l_rule_cats, l_rule_names)
+		results = self.__bitvec_mgr.run_rule(	stmt, phase_data, idb, l_rule_cats, l_rule_names)
 		return [db_name for _ in results], results
+
+	def get_idb_rphrases(self, idb):
+		return self.__l_dbs[idb]
+
+	def get_d_story_len_refs(self, idb):
+		self.__l_d_story_len_refs[idb]
 
 	def learn_rule(self, stmt, l_results, phase_data, db_name):
 		idb = self.__d_dn_names.get(db_name, -1)
