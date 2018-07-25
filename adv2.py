@@ -14,6 +14,7 @@ els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
 __rules_mgr = None
 __mpdb_mgr = None
+__rules_mod = None
 l_names = []
 l_countries = []
 l_objects = []
@@ -37,9 +38,9 @@ def mod_init():
 
 	return els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt
 
-def set_mgrs(rules_mgr, mpdb_mgr):
-	global __rules_mgr, __mpdb_mgr
-	__rules_mgr, __mpdb_mgr = rules_mgr, mpdb_mgr
+def set_mgrs(rules_mgr, mpdb_mgr, rules_mod):
+	global __rules_mgr, __mpdb_mgr, __rules_mod
+	__rules_mgr, __mpdb_mgr, __rules_mod = rules_mgr, mpdb_mgr, rules_mod
 
 def get_mpdb_mgr():
 	return __mpdb_mgr
@@ -65,9 +66,21 @@ def get_num_decision_rules():
 
 def get_decision_for_player(player_name, phase_data, rule_stats):
 	for one_try in range(c_num_tries_per_player):
+		ruleid = random.randint(0,1)
 		ruleid = 0
 		bfail = random.random() < rule_stats[ruleid][1] / (rule_stats[ruleid][0] + rule_stats[ruleid][1] + 1e-6)
-		player_loc = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
-							player_name, [], ['get_location'])[1][0][0][1]
-		dest = player_loc if bfail else random.choice(tuple(set(l_countries)-set([player_loc])))
-		return [player_name, 'decided to', 'go to', dest],0
+		if ruleid == 0:
+			player_loc = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
+								player_name, [], ['get_location'])[1][0][0][1]
+			dest = player_loc if bfail else random.choice(tuple(set(l_countries)-set([player_loc])))
+			return [player_name, 'decided to', 'go to', dest],ruleid
+		elif ruleid == 1:
+			l_free_objs = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
+								player_name, [], ['get_free_objs'])[1]
+			if l_free_objs == []: continue
+			wlist_objs_els = __rules_mod.convert_phrase_to_word_list(l_free_objs)
+			wlist_objs = [o[0] for o in wlist_objs_els]
+			pickup_obj = random.choice(tuple(set(l_objects)-set(wlist_objs))) if bfail else random.choice(wlist_objs)
+			return [player_name, 'decided to', 'pick up', pickup_obj],ruleid
+
+	return [],-1

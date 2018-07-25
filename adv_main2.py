@@ -232,6 +232,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 			if story_loop_stage == e_story_loop_stage.complete_state1:
 				for db_name, event_result in zip(l_dbs_to_mod, events_to_queue):
 					mpdb_mgr.apply_mods(db_name, event_result, (i_one_story, story_loop_stage, event_step_id[0]))
+				mpdb_mgr.apply_delayed_inserts()
 					# story_db, iremoved, iadded, added_phrase = \
 					# 	rules.apply_mods(story_db, [rules.C_phrase_rec(event_result)], i_story_step)
 					# if iremoved != -1:
@@ -296,7 +297,7 @@ def main():
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr)
-	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr)
+	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, rules2)
 
 
 	event_step_id = -1
