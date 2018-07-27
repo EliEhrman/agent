@@ -95,6 +95,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 			num_descision_rules = mod.get_num_decision_rules()
 			rule_stats = [[0.0, 0.0] for _ in range(num_descision_rules)]
 
+		num_since_cleanup = 0
 		while i_story_loop_stage < c_close_to_inf:
 			i_story_loop_stage += 1
 			if i_story_loop_stage >= c_close_to_inf - 1:
@@ -103,6 +104,10 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 				break
 			event_step_id[0] += 1
 			if story_loop_stage == e_story_loop_stage.decision_init:
+				num_since_cleanup += 1
+				if num_since_cleanup > 10:
+					mpdb_mgr.cleanup_srphrases()
+					num_since_cleanup = 0
 				# decide_options = []
 				if i_story_player < len(story_names) - 1:
 					i_story_player += 1

@@ -31,6 +31,7 @@ class cl_mpdb_mgr(object):
 		return self.__bitvec_mgr
 
 	def clear_dbs(self):
+		self.__bitvec_mgr.clear_mpdb_bins()
 		self.__l_dbs = []
 		self.__l_d_story_len_refs = []
 		self.__d_dn_names = dict()
@@ -94,13 +95,42 @@ class cl_mpdb_mgr(object):
 			self.__l_srphrases.append(phrase_ref)
 			for idb_mrk in self.__ll_idb_mrks:
 				idb_mrk.append(False)
+			self.__bitvec_mgr.add_mpdb_bins(*phrase_ref)
 		self.__ll_idb_mrks[idb][isrphrase] = True
+
+	def cleanup_srphrases(self):
+		num_srphrases_orig = len(self.__l_srphrases)
+		l_idxs = range(num_srphrases_orig)
+		for isrphrase in reversed(xrange(num_srphrases_orig)):
+			binuse = False
+			for idb_mrks in self.__ll_idb_mrks:
+				if idb_mrks[isrphrase]:
+					binuse = True
+					break
+			if not binuse:
+				del self.__map_rphrase_to_isrphrase[self.__l_srphrases[isrphrase]]
+				del l_idxs[isrphrase], self.__l_srphrases[isrphrase]
+				for idb_mrks in self.__ll_idb_mrks:
+					del idb_mrks[isrphrase]
+
+		d_rev_idx = {idx:iidx for iidx, idx in enumerate(l_idxs)}
+		for krphrase in self.__map_rphrase_to_isrphrase:
+			iorig = self.__map_rphrase_to_isrphrase[krphrase]
+			self.__map_rphrase_to_isrphrase[krphrase] = d_rev_idx[iorig]
+
+		self.__bitvec_mgr.cleanup_mpdb_bins(l_idxs)
 
 	def apply_delayed_inserts(self):
 		for delayed_insert in self.__l_delayed_inserts:
 			self.do_base_insert(*delayed_insert)
 		self.__l_delayed_inserts = []
 
+	def get_rphrases(self):
+		return self.__l_srphrases
+
+	def get_nd_idb_mrk(self, idb):
+		l_idb_mrks = self.__ll_idb_mrks[idb]
+		return np.array(l_idb_mrks, dtype=np.bool)
 
 	def remove_phrase(self,  l_db_names, phrase_ref):
 		isrphrase = self.__map_rphrase_to_isrphrase.get(phrase_ref, ())
@@ -141,6 +171,9 @@ class cl_mpdb_mgr(object):
 
 		return results
 
+	def get_idb_from_db_name(self, db_name):
+		return self.__d_dn_names.get(db_name, -1)
+
 	def run_rule(self, stmt, phase_data, db_name, l_rule_cats, l_rule_names=[]):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1:
@@ -153,14 +186,14 @@ class cl_mpdb_mgr(object):
 		return self.__l_dbs[idb]
 
 	def get_d_story_len_refs(self, idb):
-		self.__l_d_story_len_refs[idb]
+		return self.__l_d_story_len_refs[idb]
 
 	def learn_rule(self, stmt, l_results, phase_data, db_name):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1:
 			print('Warning. mpdb requested to learn rule on db', db_name, 'which doesnt exist.')
 			return
-		return self.__bitvec_mgr.learn_rule(stmt, l_results, phase_data, self.__l_dbs[idb], self.__l_d_story_len_refs[idb])
+		return self.__bitvec_mgr.learn_rule(stmt, l_results, phase_data, idb)
 
 	def apply_mods(self, db_name, phrase, phase_data):
 		insert_phrase, remove_phrase, m_unique_bels = self.__rules_mgr.parse_phrase_for_mod(phrase)
