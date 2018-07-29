@@ -1979,3 +1979,18 @@ here'.
 Checked in already as the initial.
 
 Testing change for git
+
+Sunday 29th July 2018
+
+An important point to note in the last set of changes. The phrases that the bitvec manager keeps are now unique relative to
+their content without regard to the phase data or even which story the appear in. This keeps the dbs smaller but looses the
+ability to distinguish two identical statements by the time the were inserted. I justify this with the fact that the
+current phase data is not good enough and a serious timeline system will have to be developed anyway.
+
+Completed a change over to a single db per story. The bitvecs are padded to the longest phrase. There are markers
+for the length of the record and markers for each multi-player db. This is capable of handling incorrect knowledge
+rules and is closer to the way it will work in the APU.
+
+CIW:
+
+Single srphrase db working.

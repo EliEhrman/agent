@@ -69,7 +69,7 @@ remove_went_loc.....	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1
 											c:t,c:d:1,v:4:r,v:5:r,v:3,mle
 knows_went_loc......	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finland:0.:3,c:e,
 											c:s,l:Roy:0.:4,l:is located in:1.:5,v:3,c:e,c:e,
-											c:t,c:u:1,v:4:r,v:5:r,v:3:r,mle
+											c:t,c:u:1,v:4:r,v:5:r,v:3,mle
 remove_went_has.....	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finland:0.:3,c:e,
 											c:s,l:Roy:0.:4,l:is located in:1.:5,v:3,c:e,
 											c:s:1,v:4,l:has:1.:8,l:chair:0.:9,c:e,c:e,

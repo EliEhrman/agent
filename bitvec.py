@@ -480,7 +480,7 @@ class cl_bitvec_gg(object):
 			return self.__l_nd_unused[self.d_len_to_idx[len]]
 
 
-	def find_matches(self, phrase, phrase_bin, mpdb_mgr, idb):
+	def find_matches_old(self, phrase, phrase_bin, mpdb_mgr, idb):
 		# a lot of work just ot get the type
 		eltype = None
 		for els_rep in self.__l_els_rep:
@@ -625,7 +625,7 @@ class cl_bitvec_gg(object):
 		return l_match_paths, l_imatches
 
 
-	def find_matches2(self, phrase, phrase_bin, mpdb_mgr, idb):
+	def find_matches(self, phrase, phrase_bin, mpdb_mgr, idb):
 		# a lot of work just ot get the type
 		eltype = None
 		for els_rep in self.__l_els_rep:
@@ -681,12 +681,12 @@ class cl_bitvec_gg(object):
 		l_l_mat_pat_stgs[0] = [list(self.__l_els_rep)]
 		l_l_hd_max_stgs[0] = [list(self.__l_hd_max)]
 		l_l_phrases_stgs[0] = [phrase]
-		l_l_obj_unused_stgs[0] = np.ones(nd_story_bins.shape[0], dtype=np.bool) # [self.cl_unused_mrk()]
+		l_l_obj_unused_stgs[0] = [np.ones(nd_story_bins.shape[0], dtype=np.bool)] # [self.cl_unused_mrk()]
 		l_match_paths, b_some_found = [], False
 		for stg in r_num_stages[:-1]:
 			stg_ilen = self.__l_phrases_ilen[stg+1]
 			# story_refs = d_story_len_refs.get(stg_ilen, [])
-			nd_story_bins, l_story_rphrases, nd_default_idb_mrk
+			# nd_story_bins, l_story_rphrases, nd_default_idb_mrk
 			nd_ilen_mrk = np.array([ilen == stg_ilen for ilen, _ in l_story_rphrases], dtype=np.bool)
 			if not np.any(nd_ilen_mrk): break
 			# bin_dn = self.__mgr.get_phrase_bin_db(stg_ilen)
@@ -743,7 +743,7 @@ class cl_bitvec_gg(object):
 					# 	m_match[imatch] = False
 					# 	continue
 					l_match_path_phrases = l_back_match_root + [self.__mgr.get_phrase(*l_story_rphrases[imatch])] # reversed(l_back_match)
-					l_wlist_vars, new_result = rules2.replace_with_vars_in_wlist(l_match_path_phrases, [])
+					l_wlist_vars, _ = rules2.replace_with_vars_in_wlist(l_match_path_phrases, [])
 					if l_wlist_vars != l_l_wlist_var_dest_stgs[stg+1]:
 						m_match[imatch] = False
 						continue
@@ -1303,6 +1303,8 @@ class cl_bitvec_mgr(object):
 				continue
 
 			l_match_paths, _ = gg.find_matches(phrase, phrase_bin, self.__mpdb_mgr, idb)
+			# l_match_paths2, t2 = gg.find_matches2(phrase, phrase_bin, self.__mpdb_mgr, idb)
+			# assert sorted(l_match_paths) == sorted(l_match_paths2), 'new find match differs from old'
 			if l_match_paths == []:
 				continue
 			for match_path in l_match_paths:

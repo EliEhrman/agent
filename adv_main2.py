@@ -12,6 +12,7 @@ import random
 import time
 from enum import Enum
 import importlib
+import numpy as np
 
 # import els
 from rules2 import conn_type
@@ -149,7 +150,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 					print(one_decide)
 					player_event = event_as_decided[0]
 					player_event_phrase = rules2.convert_phrase_to_word_list([player_event[1:]])[0]
-					out_str = 'time:' + str(i_story_step) + '. Next story step: *** '
+					out_str = 'time: ' + str(i_story_step) + '. Next story step: *** '
 					out_str += ' '.join(player_event_phrase) # els.output_phrase(def_article_dict, out_str, player_event[1:])
 					out_str += ' **** '
 					print(out_str)
@@ -294,6 +295,8 @@ def do_adv(els_lists, learn_vars, mod):
 
 
 def main():
+	random.seed(9001)
+	np.random.seed(9001)
 	mod = importlib.import_module('adv2')
 	# following need not be string dynamic but keeping working code to show how it's done
 	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()

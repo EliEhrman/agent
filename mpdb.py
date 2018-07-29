@@ -8,7 +8,8 @@ Also, monte-carlo or tree-based search might use the db
 
 from __future__ import print_function
 import numpy as np
-import copy
+# import copy
+import warnings
 
 
 class cl_mpdb_mgr(object):
@@ -96,6 +97,10 @@ class cl_mpdb_mgr(object):
 			for idb_mrk in self.__ll_idb_mrks:
 				idb_mrk.append(False)
 			self.__bitvec_mgr.add_mpdb_bins(*phrase_ref)
+		if self.__ll_idb_mrks[idb][isrphrase]:
+			warnings.warn('Warning! Attempting to add a phrase twice')
+			print('not adding duplicate', self.__bitvec_mgr.get_phrase(*phrase_ref))
+			del self.__l_dbs[idb][-1]
 		self.__ll_idb_mrks[idb][isrphrase] = True
 
 	def cleanup_srphrases(self):
@@ -133,7 +138,7 @@ class cl_mpdb_mgr(object):
 		return np.array(l_idb_mrks, dtype=np.bool)
 
 	def remove_phrase(self,  l_db_names, phrase_ref):
-		isrphrase = self.__map_rphrase_to_isrphrase.get(phrase_ref, ())
+		isrphrase = self.__map_rphrase_to_isrphrase.get(phrase_ref, -1)
 		if isrphrase == -1:
 			print('Error. mpdb requested to remove item', phrase_ref, 'that does not exist in any of the dbs.')
 			return
@@ -145,7 +150,8 @@ class cl_mpdb_mgr(object):
 			if phrase_ref not in self.__l_dbs[idb]:
 				print('Error. mpdb requested to remove item', phrase_ref, 'from db', db_name, '.Item not found.')
 				continue
-			self.__l_dbs[idb].remove(phrase_ref)
+			# self.__l_dbs[idb].remove(phrase_ref)
+			self.__l_dbs[idb] = filter(lambda a: a != phrase_ref, self.__l_dbs[idb])
 			ilen, iphrase = phrase_ref
 			d_len_refs = self.__l_d_story_len_refs[idb]
 			len_refs = d_len_refs[ilen]
@@ -226,6 +232,9 @@ class cl_mpdb_mgr(object):
 			for iphrase, phrase_ref in enumerate( self.__l_dbs[vidb]):
 				phrase = self.__bitvec_mgr.get_phrase(*phrase_ref)
 				print(phrase)
+				isrphrase = self.__map_rphrase_to_isrphrase.get(phrase_ref, -1)
+				assert isrphrase != -1, 'l_db contains a ref that is not in the isrphrase map'
+				assert self.__ll_idb_mrks[vidb][isrphrase], 'l_db contains a ref that idb mrks thinks is false'
 
 	def get_one_db_phrases(self, db_name):
 		idb = self.__d_dn_names.get(db_name, -1)
