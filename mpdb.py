@@ -99,7 +99,8 @@ class cl_mpdb_mgr(object):
 			self.__bitvec_mgr.add_mpdb_bins(*phrase_ref)
 		if self.__ll_idb_mrks[idb][isrphrase]:
 			warnings.warn('Warning! Attempting to add a phrase twice')
-			print('not adding duplicate', self.__bitvec_mgr.get_phrase(*phrase_ref))
+			db_name = self.get_db_name_from_idb(idb)
+			print('not adding duplicate', self.__bitvec_mgr.get_phrase(*phrase_ref), 'to db', db_name)
 			del self.__l_dbs[idb][-1]
 		self.__ll_idb_mrks[idb][isrphrase] = True
 
@@ -180,6 +181,16 @@ class cl_mpdb_mgr(object):
 	def get_idb_from_db_name(self, db_name):
 		return self.__d_dn_names.get(db_name, -1)
 
+	def get_srphrases_text(self):
+		return [self.__bitvec_mgr.get_phrase(*rphrase) for rphrase in self.__l_srphrases]
+
+	def get_db_name_from_idb(self, idb):
+		print('Warning. get_db_name_from_idb is a slow function. NOt intended for production')
+		for kname, vidb in self.__d_dn_names.iteritems():
+			if vidb == idb:
+				return kname
+		return 'Name not found'
+
 	def run_rule(self, stmt, phase_data, db_name, l_rule_cats, l_rule_names=[]):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1:
@@ -192,6 +203,7 @@ class cl_mpdb_mgr(object):
 		return self.__l_dbs[idb]
 
 	def get_d_story_len_refs(self, idb):
+		assert False, 'Intending to delete'
 		return self.__l_d_story_len_refs[idb]
 
 	def learn_rule(self, stmt, l_results, phase_data, db_name):

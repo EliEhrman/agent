@@ -108,6 +108,7 @@ class cl_bitvec_gg(object):
 		self.__gg_src = [] # The src gg is not a parent but a less improved version of the rule that caused this one to be created
 		self.__impr_score = -1.
 		self.__d_exdb = dict()
+		self.__name = ''
 		if l_phrases_len == []:
 			self.__l_phrases_len = [phrase_len]
 			self.__l_phrases_ilen = [ilen]
@@ -132,6 +133,9 @@ class cl_bitvec_gg(object):
 	def set_els_rep(self, l_els_rep, l_hd_max):
 		self.__l_els_rep = l_els_rep
 		self.__l_hd_max = l_hd_max
+
+	def set_name(self, name):
+		self.__name = name
 
 	def get_phrase2_ilen(self):
 		return self.__phrase2_ilen
@@ -480,151 +484,6 @@ class cl_bitvec_gg(object):
 			return self.__l_nd_unused[self.d_len_to_idx[len]]
 
 
-	def find_matches_old(self, phrase, phrase_bin, mpdb_mgr, idb):
-		# a lot of work just ot get the type
-		eltype = None
-		for els_rep in self.__l_els_rep:
-			if els_rep != []:
-				eltype = type(els_rep[0])
-				break
-		assert eltype != None, 'Can\'t work with rule that has not one element preset'
-		assert self.__num_stages > 1, 'function find_matches should only be called for stage 2+ rules'
-
-		d_story_len_refs = mpdb_mgr.get_d_story_len_refs(idb)
-		# match_pat = list(self.__l_els_rep)
-		# l_hd_max = list(self.__l_hd_max)
-		l_stagelens = [0] #, self.__phrase_len, self.__phrase_len + self.__phrase2_len]
-		for stg_len in self.__l_phrases_len:
-			l_stagelens.append(stg_len+l_stagelens[-1])
-
-		r_num_stages = range(self.__num_stages)
-		l_wlist_vars_stgs = [[] for _ in r_num_stages]
-		l_l_wlist_var_dest_stgs  = [[] for _ in r_num_stages]
-		l_l_src_phrase_bin_stgs = [[] for _ in r_num_stages]
-		l_l_mat_pat_stgs = [[] for _ in r_num_stages]
-		l_l_hd_max_stgs = [[] for _ in r_num_stages]
-		l_l_src_stg = [[] for _ in r_num_stages]
-		l_l_story_refs = [[] for _ in r_num_stages]
-		l_l_phrases_stgs = [[] for _ in r_num_stages]
-		l_l_obj_unused_stgs = [[] for _ in r_num_stages]
-		l_l_obj_imatch_stgs = [[] for _ in r_num_stages]
-		d_len_to_idx, l_story_lens = dict(), []
-		for stg in r_num_stages[1:]:
-			stg_ilen, stg_len = self.__l_phrases_ilen[stg], self.__l_phrases_len[stg]
-			story_refs = d_story_len_refs.get(stg_ilen, [])
-			unused_idx = d_len_to_idx.get(stg_len, -1)
-			if unused_idx == -1:
-				d_len_to_idx[stg_len] = len(l_story_lens)
-				l_story_lens.append(len(story_refs))
-		self.cl_unused_mrk.l_story_lens = l_story_lens
-		self.cl_unused_mrk.d_len_to_idx = d_len_to_idx
-		self.cl_unused_mrk.eltype = eltype
-
-
-		# 	if story_bin == []: return []
-		# 	l_nd_used_stgs.append(np.ones(story_bin.shape[0], dtype=eltype))
-		for src_istage, src_iel, dest_istage, dest_iel  in self.__l_wlist_vars:
-			l_wlist_vars_stgs[src_istage] += [[src_iel, dest_istage, dest_iel]]
-			for rem_dest_stage in range(dest_istage, self.__num_stages):
-				l_l_wlist_var_dest_stgs[rem_dest_stage].append((src_istage, src_iel, dest_istage, dest_iel))
-
-		l_l_src_phrase_bin_stgs[0] = [phrase_bin]
-		l_l_mat_pat_stgs[0] = [list(self.__l_els_rep)]
-		l_l_hd_max_stgs[0] = [list(self.__l_hd_max)]
-		l_l_phrases_stgs[0] = [phrase]
-		l_l_obj_unused_stgs[0] = [self.cl_unused_mrk()]
-		l_match_paths, b_some_found = [], False
-		for stg in r_num_stages[:-1]:
-			stg_ilen = self.__l_phrases_ilen[stg+1]
-			story_refs = d_story_len_refs.get(stg_ilen, [])
-			if story_refs == []: break
-
-			bin_dn = self.__mgr.get_phrase_bin_db(stg_ilen)
-			story_bin = bin_dn[story_refs]
-
-			for i_stg_phrase, stg_phrase in enumerate(l_l_src_phrase_bin_stgs[stg]):
-
-				l_back_match_root = [l_l_phrases_stgs[stg][i_stg_phrase]]
-				if stg > 0:
-					src_stg = l_l_src_stg[stg][i_stg_phrase]
-					for stg2 in reversed(range(stg)):
-						l_back_match_root += [l_l_phrases_stgs[stg2][src_stg]]
-						if stg2 > 0: src_stg = l_l_src_stg[stg2][src_stg]
-				l_back_match_root.reverse()
-
-				exdb_ref = self.__d_exdb.get(stg+1, ())
-				if exdb_ref != ():
-					ex_db_name = l_back_match_root[exdb_ref[0]][exdb_ref[1]]
-					""" There is a strong assumption here. The database that the function was called for is the main
-					db or at least a strict superset of the ex_db. 
-					We keep the search on the called (main) db and only later test as an extra condition that the 
-					phrase is also to be found in the ex_db
-					"""
-					exdb_story_refs = self.__mgr.get_story_refs(ex_db_name, stg_ilen)
-					# story_bin = bin_dn[story_refs]
-
-				for src_iel, dest_istage, dest_iel in l_wlist_vars_stgs[stg]:
-				# src_base_len = l_stagelens[dest_istage]
-					dest_base_len = l_stagelens[dest_istage]
-					src_pat = stg_phrase[src_iel*c_bitvec_size:(src_iel+1)*c_bitvec_size].astype(eltype)
-					# if src_istage == 0:
-					# else:
-					# assert False, 'Not coded yet phrases that depend on earlier els in phrase or earlier phrases'
-					l_l_mat_pat_stgs[stg][i_stg_phrase][dest_base_len+dest_iel] = src_pat
-					l_l_hd_max_stgs[stg][i_stg_phrase][dest_base_len+dest_iel] = 0
-
-				obj_unused = l_l_obj_unused_stgs[stg][i_stg_phrase]
-				m_match = np.ones(story_bin.shape[0], dtype=bool)
-				for iel in range(self.__l_phrases_len[stg+1]):
-					src_bin = l_l_mat_pat_stgs[stg][i_stg_phrase][l_stagelens[stg+1] + iel]
-					el_story_bins = story_bin[:, iel*c_bitvec_size:(iel+1)*c_bitvec_size]
-					nd_el_diffs = np.not_equal(src_bin, el_story_bins)
-					m_el_match = np.sum(nd_el_diffs, axis=1) <= l_l_hd_max_stgs[stg][i_stg_phrase][l_stagelens[stg+1] + iel]
-					m_match = np.logical_and(m_match, m_el_match)
-
-				m_match = np.logical_and(obj_unused.get_unused(self.__l_phrases_len[stg+1]), m_match)
-
-				for imatch, bmatch in enumerate(m_match.tolist()):
-					if not bmatch: continue
-					if exdb_ref != () and story_refs[imatch] not in exdb_story_refs:
-						m_match[imatch] = False
-						continue
-					# l_back_match = [self.__mgr.get_phrase(stg_ilen, story_refs[imatch]), l_l_phrases_stgs[stg][i_stg_phrase]]
-					# if stg > 0:
-					# 	src_stg = l_l_src_stg[stg][i_stg_phrase]
-					# 	for stg2 in reversed(range(stg)):
-					# 		l_back_match += [l_l_phrases_stgs[stg2][src_stg]]
-					# 		if stg2 > 0: src_stg = l_l_src_stg[stg2][src_stg]
-					l_match_path_phrases = l_back_match_root + [self.__mgr.get_phrase(stg_ilen, story_refs[imatch])] # reversed(l_back_match)
-					l_wlist_vars, new_result = rules2.replace_with_vars_in_wlist(l_match_path_phrases, [])
-					if l_wlist_vars != l_l_wlist_var_dest_stgs[stg+1]:
-						m_match[imatch] = False
-						continue
-					match_bin = story_bin[imatch]
-					l_l_src_stg[stg+1].append(i_stg_phrase)
-					l_l_src_phrase_bin_stgs[stg+1].append(match_bin)
-					l_l_mat_pat_stgs[stg+1].append(l_l_mat_pat_stgs[stg][i_stg_phrase])
-					l_l_hd_max_stgs[stg+1].append(l_l_hd_max_stgs[stg][i_stg_phrase])
-					l_l_story_refs[stg+1].append(story_refs[imatch])
-					l_l_phrases_stgs[stg+1].append(l_match_path_phrases[-1])
-					l_l_obj_unused_stgs[stg + 1].append(self.cl_unused_mrk(obj_unused, self.__l_phrases_len[stg+1], imatch))
-					l_l_obj_imatch_stgs[stg+1].append(imatch)
-
-		stg, l_imatches = r_num_stages[-1], []
-		# m_match_last_stage = np.zeros(story_bin.shape[0], dtype=bool)
-		for isrc, src_stg in  enumerate(l_l_src_stg[stg]):
-			b_some_found = True
-			match_path = [l_l_phrases_stgs[stg][isrc]]
-			for stg2 in reversed(r_num_stages[:-1]):
-				match_path += [l_l_phrases_stgs[stg2][src_stg]]
-				if stg2 > 0: src_stg = l_l_src_stg[stg2][src_stg]
-			l_match_paths.append(match_path[::-1]) # reverses the list and returns it in the same step
-			# m_match_last_stage[l_l_obj_imatch_stgs[stg]] = True
-			l_imatches.append(l_l_obj_imatch_stgs[stg][isrc])
-
-		return l_match_paths, l_imatches
-
-
 	def find_matches(self, phrase, phrase_bin, mpdb_mgr, idb):
 		# a lot of work just ot get the type
 		eltype = None
@@ -635,11 +494,11 @@ class cl_bitvec_gg(object):
 		assert eltype != None, 'Can\'t work with rule that has not one element preset'
 		assert self.__num_stages > 1, 'function find_matches should only be called for stage 2+ rules'
 
-		d_story_len_refs = mpdb_mgr.get_d_story_len_refs(idb)
+		# d_story_len_refs = mpdb_mgr.get_d_story_len_refs(idb)
 		nd_story_bins = self.__mgr.get_mpdb_bins()
 		l_story_rphrases = mpdb_mgr.get_rphrases()
 		nd_default_idb_mrk = mpdb_mgr.get_nd_idb_mrk(idb)
-
+		l_srphrases_text = mpdb_mgr.get_srphrases_text()
 		# match_pat = list(self.__l_els_rep)
 		# l_hd_max = list(self.__l_hd_max)
 		l_stagelens = [0] #, self.__phrase_len, self.__phrase_len + self.__phrase2_len]
@@ -909,12 +768,24 @@ class cl_bitvec_mgr(object):
 			grow = self.__mpdb_bins.shape[1] - bins.shape[0]
 			self.__mpdb_bins = np.pad(self.__mpdb_bins, (0, grow), 'constant')
 		self.__mpdb_bins = np.vstack((self.__mpdb_bins, bins))
+		self.debug_test_mpdb_bins()
 
 		pass
+
+	def debug_test_mpdb_bins(self):
+		l_rphrases = self.__mpdb_mgr.get_rphrases()
+		for irphrase, rphrase in enumerate(l_rphrases):
+			ilen, iphrase = rphrase
+			bin_db = self.get_phrase_bin_db(ilen)
+			bins = bin_db[iphrase]
+			assert np.array_equal(self.__mpdb_bins[irphrase], bins), 'self.__mpdb_bins does not match src'
+
+
 
 	def cleanup_mpdb_bins(self, l_keep):
 		# l_keep is the indexes of the current version to keep
 		self.__mpdb_bins = self.__mpdb_bins[l_keep]
+		self.debug_test_mpdb_bins()
 
 	def clear_mpdb_bins(self):
 		self.__mpdb_bins = []
@@ -1028,6 +899,7 @@ class cl_bitvec_mgr(object):
 		fixed_rule.set_formed_and_tested(bformed=True, btested=True)
 		fixed_rule.set_rule_rec(rule_rec)
 		fixed_rule.set_exdb(d_exdb)
+		fixed_rule.set_name(rule_name)
 		l_cat_rules = self.__d_fr_categories.get(rule_category, [])
 		l_cat_rules.append(len(self.__l_fixed_rules))
 		self.__d_fr_categories[rule_category] = l_cat_rules
@@ -1082,6 +954,7 @@ class cl_bitvec_mgr(object):
 		return ilen, iphrase
 
 	def get_story_refs(self, ex_db_name, stg_ilen):
+		assert False, 'deprecated?'
 		return self.__mpdb_mgr.get_story_refs(ex_db_name, stg_ilen)
 
 	def get_rule(self, irule):
@@ -1316,7 +1189,7 @@ class cl_bitvec_mgr(object):
 
 	def update_rule_stats(self, phrase, ilen, iphrase, l_results, idb):
 		# l_story_db_rphrases = self.__mpdb_mgr.get_idb_rphrases(idb)
-		d_story_len_refs = self.__mpdb_mgr.get_d_story_len_refs(idb)
+		# d_story_len_refs = self.__mpdb_mgr.get_d_story_len_refs(idb)
 		# phrase = rules2.convert_phrase_to_word_list([stmt])[0]
 		# ilen, iphrase =  self.__add_phrase(phrase, phase_data)
 		# self.__l_all_phrases.append((phase_data, ilen, iphrase))
@@ -1352,17 +1225,19 @@ class cl_bitvec_mgr(object):
 				gg2 = self.__l_ggs[irule]
 				if not gg2.is_formed():
 					continue
-				story_refs = d_story_len_refs.get(gg2.get_last_phrase_ilen(), [])
-				if story_refs == []:
-					continue
+				# story_refs = d_story_len_refs.get(gg2.get_last_phrase_ilen(), [])
+				l_srphrases= self.__mpdb_mgr.get_rphrases()
+				# if story_refs == []:
+				# 	continue
 				l_match_paths, l_imatches = gg2.find_matches(phrase, phrase_bin, self.__mpdb_mgr, idb)
 				if l_match_paths == []:
 					continue
-				m_matches, m_hits = gg2.update_stats_stage_2(l_match_paths, l_imatches, len(story_refs), l_results)
+				m_matches, m_hits = gg2.update_stats_stage_2(l_match_paths, l_imatches, len(l_srphrases), l_results)
 				if np.sum(m_hits) < np.sum(m_matches) and gg2._cl_bitvec_gg__rule_rec[8][0] == rec_def_type.var:
 					pass
-				story_bin = self.get_phrase_bin_db(gg2.get_last_phrase_ilen())[story_refs]
-				gg2.set_match_hits(story_bin[m_matches], match_hits = m_hits[m_matches])
+				# story_bin = self.get_phrase_bin_db(gg2.get_last_phrase_ilen())[story_refs]
+				gg2.set_match_hits(self.__mpdb_bins[m_matches], match_hits = m_hits[m_matches])
+
 			pass
 
 
