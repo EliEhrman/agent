@@ -768,7 +768,7 @@ class cl_bitvec_mgr(object):
 			grow = self.__mpdb_bins.shape[1] - bins.shape[0]
 			self.__mpdb_bins = np.pad(self.__mpdb_bins, (0, grow), 'constant')
 		self.__mpdb_bins = np.vstack((self.__mpdb_bins, bins))
-		self.debug_test_mpdb_bins()
+		# self.debug_test_mpdb_bins()
 
 		pass
 
@@ -786,6 +786,9 @@ class cl_bitvec_mgr(object):
 		# l_keep is the indexes of the current version to keep
 		self.__mpdb_bins = self.__mpdb_bins[l_keep]
 		self.debug_test_mpdb_bins()
+
+	def update_mpdb_bins(self, iupdate, rphrase):
+		self.__mpdb_bins[iupdate] = self.get_phrase_bin(*rphrase)
 
 	def clear_mpdb_bins(self):
 		self.__mpdb_bins = []
@@ -910,6 +913,9 @@ class cl_bitvec_mgr(object):
 
 	def increase_rule_stages(self):
 		self.__rule_stages += 1
+
+	def get_phrase_bin(self, ilen, iphrase):
+		return self.__phrase_bin_db[ilen][iphrase]
 
 	def get_phrase_bin_db(self, ilen):
 		return self.__phrase_bin_db[ilen]
@@ -1324,13 +1330,15 @@ class cl_bitvec_mgr(object):
 		else:
 			phrase_bin_db[ilen] = np.concatenate((phrase_bin_db[ilen], np.expand_dims(input_bits, axis=0)), axis=0)
 
+		l_rphrase_changed = []
 		for word_changed in changed_words:
 			iword = d_words[word_changed]
-			change_phrase_bin_db(phrase_bin_db, l_phrases, self.__nd_el_bin_db, d_words, iword, l_word_phrase_ids)
+			l_rphrase_changed = change_phrase_bin_db(phrase_bin_db, l_phrases, self.__nd_el_bin_db,
+													d_words, iword, l_word_phrase_ids, l_rphrase_changed)
 			l_fixed_rule_pos_data = self.__d_word_in_fixed_rule.get(word_changed, [])
 			for i_fixed_rule, word_pos in l_fixed_rule_pos_data:
 				self.__l_fixed_rules[i_fixed_rule].update_bin_for_word(word_pos, self.__nd_el_bin_db[iword])
-
+		if l_rphrase_changed != []: self.__mpdb_mgr.apply_bin_db_changes(l_rphrase_changed)
 		return self.__nd_el_bin_db, ilen, iphrase
 
 def create_word_dict(phrase_list, max_process):
@@ -1705,12 +1713,14 @@ def build_phrase_bin_db(s_phrase_lens, l_phrases, nd_el_bin_db, d_words):
 
 	return phrase_bits_db
 
-def change_phrase_bin_db(phrase_bits_db, l_phrases, nd_el_bin_db, d_words, iword, l_word_phrase_ids):
-	score = 0.0
+def change_phrase_bin_db(phrase_bits_db, l_phrases, nd_el_bin_db, d_words, iword, l_word_phrase_ids, l_rphrase_changed):
+	# l_rphrase_changed = []
 	for ilen, iphrase in l_word_phrase_ids[iword]:
 		phrase = l_phrases[ilen][iphrase]
 		input_bits = create_input_bits(nd_el_bin_db, d_words, phrase)
 		phrase_bits_db[ilen][iphrase, :] = input_bits
+		l_rphrase_changed.append((ilen, iphrase))
+	return l_rphrase_changed
 
 
 

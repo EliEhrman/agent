@@ -1980,6 +1980,7 @@ Checked in already as the initial.
 
 Testing change for git
 
+
 Sunday 29th July 2018
 
 An important point to note in the last set of changes. The phrases that the bitvec manager keeps are now unique relative to
@@ -1994,3 +1995,11 @@ rules and is closer to the way it will work in the APU.
 CIW:
 
 Single srphrase db working.
+
+Tuesday 31st July
+
+That check in that I claied was working? Well it wasn't
+
+CIW
+
+Single sphrase db working take 2

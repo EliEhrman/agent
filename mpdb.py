@@ -126,6 +126,11 @@ class cl_mpdb_mgr(object):
 
 		self.__bitvec_mgr.cleanup_mpdb_bins(l_idxs)
 
+	def apply_bin_db_changes(self, l_rphrase_changes):
+		for rphrase in l_rphrase_changes:
+			isrphrase = self.__map_rphrase_to_isrphrase.get(rphrase, -1)
+			if isrphrase != -1: self.__bitvec_mgr.update_mpdb_bins(isrphrase, rphrase)
+
 	def apply_delayed_inserts(self):
 		for delayed_insert in self.__l_delayed_inserts:
 			self.do_base_insert(*delayed_insert)
