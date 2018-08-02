@@ -13,6 +13,7 @@ import time
 from enum import Enum
 import importlib
 import numpy as np
+import timeit
 
 # import els
 from rules2 import conn_type
@@ -23,6 +24,7 @@ import mpdb
 # import adv_config
 # import adv_learn
 
+complete_time = 0.
 # def convert_phrase_to_word_list(statement_list):
 # 	return [[el[1] for el in statement] for statement in statement_list]
 
@@ -129,6 +131,10 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				# 	story_loop_stage = e_story_loop_stage.decision_init
 				# else:
 				# 	one_decide = (decide_options.pop(0).phrase())[1:-1]
+				# one_decide, ruleid = \
+				# 	mod.get_decision_for_player(story_player_name,
+				# 										(i_one_story, story_loop_stage,
+				# 										 event_step_id[0]), rule_stats)
 				one_decide, ruleid = \
 					d_mod_fns['get_decision_for_player'](story_player_name,
 														(i_one_story, story_loop_stage,
@@ -237,6 +243,8 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				exit(1)
 
 			if story_loop_stage == e_story_loop_stage.complete_state1:
+				global complete_time
+				s = timeit.default_timer()
 				for db_name, event_result in zip(l_dbs_to_mod, events_to_queue):
 					mpdb_mgr.apply_mods(db_name, event_result, (i_one_story, story_loop_stage, event_step_id[0]))
 				mpdb_mgr.apply_delayed_inserts()
@@ -256,6 +264,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				if i_story_step >= num_story_steps:
 					break
 				i_story_loop_stage = -1
+				complete_time += timeit.default_timer() - s
 
 			continue
 

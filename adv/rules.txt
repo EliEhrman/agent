@@ -23,13 +23,13 @@ get_ask_cands.......	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:
 											c:s,l:Roy:0.:6,v:4,v:5,c:e,c:e,
 											c:t,v:6,mle
 get_tell_cands......	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
-											c:s,v:3,l:wants to:1.:5,l:tell:1.:6,l:Roy:0.:7,l:where is:1.:8,l:chair:0.:9,c:e,
+											c:s,v:3,l:asked to:1.:5,l:tell:1.:6,l:Roy:0.:7,l:where is:1.:8,l:chair:0.:9,c:e,
 											c:s,v:3,l:is located in:1.:11,l:Belgium:0.:12,c:e,
 											c:s,v:7,v:11,v:12,c:e,
 											c:s,v:9,l:is held in:1.:17,l:Finland:0.:18,c:e,c:e,
 											c:t,v:7,v:9,mle
 get_tell_cands2.....	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
-											c:s,v:3,l:wants to:1.:5,l:tell:1.:6,l:Roy:0.:7,l:where is:1.:8,l:chair:0.:9,c:e,
+											c:s,v:3,l:asked to:1.:5,l:tell:1.:6,l:Roy:0.:7,l:where is:1.:8,l:chair:0.:9,c:e,
 											c:s,v:3,l:is located in:1.:11,l:Belgium:0.:12,c:e,
 											c:s,v:7,v:11,v:12,c:e,
 											c:s,v:9,l:is free in:1.:17,l:Finland:0.:18,c:e,c:e,
@@ -41,7 +41,7 @@ get_ask_give_cands..	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:
 											c:s,v:7,l:has:1.:14,v:12,c:e,c:e,
 											c:t,v:7,mle
 get_give_cands......	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
-											c:s,v:3,l:wants to:1.:5,l:give:1.:6,l:Roy:0.:7,l:chair:0.:8,c:e,
+											c:s,v:3,l:asked to:1.:5,l:give:1.:6,l:Roy:0.:7,l:chair:0.:8,c:e,
 											c:s,v:3,l:is located in:1.:10,l:Belgium:0.:11,c:e,
 											c:s,v:7,v:10,v:11,c:e,
 											c:s,v:3,l:has:1.:16,v:8,c:e,c:e,
@@ -65,13 +65,13 @@ tell_where_decide...	event_from_decide	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:
 											c:s,v:1,l:is located in:1.:8,l:Belgium:0.:9,c:e,
 											c:s,v:4,v:8,v:9,c:e,
 											c:s:1,v:6,l:is held in:1.:14,l:Finland:0.:15,c:e,
-											c:s,v:1,l:wants to:1.:17,v:3,v:4,v:5,v:6,c:e,c:e,
+											c:s,v:1,l:asked to:1.:17,v:3,v:4,v:5,v:6,c:e,c:e,
 											c:t,c:i,v:1,o:told,v:4,v:6,v:14,v:15,mle
 tell_where_decide2..	event_from_decide	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:tell:1.:3,l:Roy:0.:4,l:where is:1.:5,l:chair:0.:6,c:e,
 											c:s,v:1,l:is located in:1.:8,l:Belgium:0.:9,c:e,
 											c:s,v:4,v:8,v:9,c:e,
 											c:s:1,v:6,l:is free in:1.:14,l:Finland:0.:15,c:e,
-											c:s,v:1,l:wants to:1.:17,v:3,v:4,v:5,v:6,c:e,c:e,
+											c:s,v:1,l:asked to:1.:17,v:3,v:4,v:5,v:6,c:e,c:e,
 											c:t,c:i,v:1,o:told,v:4,v:6,v:14,v:15,mle
 ask_give_decide.....	event_from_decide	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:ask:1.:3,l:Roy:0.:4,l:for:1.:5,l:chair:0.:6,c:e,
 											c:s,v:4,l:has:1.:8,v:6,c:e,
@@ -82,7 +82,7 @@ give_decide.........	event_from_decide	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:
 											c:s,v:1,l:has:1.:7,v:5,c:e,
 											c:s,v:1,l:is located in:1.:10,l:Belgium:0.:11,c:e,
 											c:s,v:4,v:10,v:11,c:e,
-											c:s,v:1,l:wants to:1.:12,v:3,v:4,v:5,c:e,c:e,
+											c:s,v:1,l:asked to:1.:12,v:3,v:4,v:5,c:e,c:e,
 											c:t,c:i,v:1,o:gave,v:4,v:5,mle
 gen_rule_went_from..	state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finland:0.:3,c:e,
 											c:s,v:1,l:is located in:1.:4,l:Belgium:0.:5,c:e,c:e,
@@ -97,11 +97,11 @@ gen_has_went........	state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1.:2
 											c:s,v:1,l:is located in:1.:8,l:Belgium:0.:9,c:e,c:e,
 											c:t,c:m,v:6,o:is held in,v:9:r,v:3,mle
 gen_ask_where.......	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:asked:1.:2,l:Roy:0.:4,l:where is:1.:5,l:chair:0.:6,c:e,
-											c:t,c:u,v:4:r,o:wants to:r,o:tell:r,v:1:r,v:5:r,v:6:r,mle
+											c:t,c:u,v:4:r,o:asked to:r,o:tell:r,v:1:r,v:5:r,v:6:r,mle
 gen_tell_where_end..	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:0.:4,l:chair:0.:5,l:is held in:0.:6,l:Belgium:0.:7,c:e,
-											c:t,c:d,v:1:r,o:wants to:r,o:tell:r,v:4:r,o:where is:r,v:5:r,mle
+											c:t,c:d,v:1:r,o:asked to:r,o:tell:r,v:4:r,o:where is:r,v:5:r,mle
 gen_ask_give........	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:asked:1.:2,l:Roy:0.:3,l:for:1.:4,l:chair:0.:5,c:e,
-											c:t,c:u,v:3:r,o:wants to:r,o:give:r,v:1:r,v:5:r,mle
+											c:t,c:u,v:3:r,o:asked to:r,o:give:r,v:1:r,v:5:r,mle
 gen_gave............	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:gave:1.:2,l:Roy:0.:3,l:chair:0.:4,c:e,
 											c:t,c:u,v:3,o:has:r,v:4:r,mle
 knows_I_located.....	state_from_start	c:f,c:s,l:Edgar:0.:1,l:is located in:1.:2,l:Belgium:0.:3,c:e,c:t,c:i:1,v:1,v:2,v:3

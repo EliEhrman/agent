@@ -2014,3 +2014,11 @@ things like gratitude, like etc.
 CIW
 
 Rules for adv written, tweaking and testing required.
+
+Timing results. Best case, run rule is 95% of the total execution time with find_matches being 90% of that. This
+does not yet guarantee a 20x speedup with the APU but with some hard work, putting all the rest of the heavy
+duty stuff into C etc. we might get 100-1000x speedup. We are at around 1ms per query now.
+
+CIW
+
+Completed some timing and testing. Adv seems tobe working.

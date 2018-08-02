@@ -15,6 +15,7 @@ import os
 from os.path import expanduser
 from shutil import copyfile
 import itertools
+import timeit
 
 import numpy as np
 
@@ -73,7 +74,25 @@ assert c_bitvec_gg_learn_min % 2 == 0, 'c_bitvec_gg_learn_min must be even'
 
 tdown = lambda l: tuple([tuple(li) for li in l])
 
+total_time = 0
+
+def bv_time_decor(fn):
+	def wr(*args, **kwargs):
+		global total_time
+		s = timeit.default_timer()
+		r = fn(*args, **kwargs)
+		total_time += timeit.default_timer() - s
+		return r
+	return wr
+
+
 class cl_bitvec_gg(object):
+	find_matches_num_calls = 0
+	find_matches_time_sum = 0.
+	find_matches_time_count = 0.
+	test_start_time = timeit.default_timer()
+
+
 	def __init__(self, mgr, ilen, phrase_len, result, num_stages=1, l_wlist_vars = [],
 				 phrase2_ilen = -1, phrase2_len = -1, parent_irule = -1,
 				 l_phrases_len=[], l_phrases_ilen=[]):
@@ -118,6 +137,7 @@ class cl_bitvec_gg(object):
 		else:
 			self.__l_phrases_len = l_phrases_len
 			self.__l_phrases_ilen = l_phrases_ilen
+
 
 
 		for stg in range(1, num_stages):
@@ -485,6 +505,8 @@ class cl_bitvec_gg(object):
 
 
 	def find_matches(self, phrase, phrase_bin, mpdb_mgr, idb):
+		cl_bitvec_gg.find_matches_num_calls += 1
+		# start = timeit.default_timer()
 		# a lot of work just ot get the type
 		eltype = None
 		for els_rep in self.__l_els_rep:
@@ -630,6 +652,9 @@ class cl_bitvec_gg(object):
 			# m_match_last_stage[l_l_obj_imatch_stgs[stg]] = True
 			l_imatches.append(l_l_obj_imatch_stgs[stg][isrc])
 
+		# cl_bitvec_gg.find_matches_time_sum += (timeit.default_timer() - start)
+		# cl_bitvec_gg.find_matches_time_count += 1
+		# time_now = (timeit.default_timer() - cl_bitvec_gg.test_start_time)
 		return l_match_paths, l_imatches
 
 
@@ -1144,9 +1169,11 @@ class cl_bitvec_mgr(object):
 		return results, scores
 
 
+	# @bv_time_decor
 	def apply_rule(self, phrase, ilen, iphrase, idb, l_rule_cats):
 		return self._run_rule(phrase, ilen, iphrase, idb, l_rule_cats)
 
+	# @bv_time_decor
 	def run_rule(self, stmt, phase_data, idb, l_rule_cats, l_rule_names=[]):
 		phrase = stmt # els.convert_phrase_to_word_list([stmt])[0]
 		ilen, iphrase = self.__add_phrase(phrase, phase_data)

@@ -1,6 +1,7 @@
 import csv
 import random
 from enum import Enum
+import timeit
 import numpy as np
 
 c_set_list = ['name', 'object', 'countrie']
@@ -27,7 +28,7 @@ c_b_save_freq_stats= False
 c_story_len = 200
 c_num_stories = 500
 c_num_plays = 100
-c_b_dummy = True
+c_b_dummy = False
 l_dummy_types = []
 l_dummy_events = []
 l_dummy_ruleid = []
@@ -116,6 +117,18 @@ def get_decision_for_player_dummy(player_name, phase_data, rule_stats):
 	return get_decision_for_player(	l_dummy_events[g_dummy_idx][0], phase_data,
 									rule_stats, l_dummy_ruleid[g_dummy_idx])
 
+total_time = 0
+
+def time_decor(fn):
+	def wr(*args, **kwargs):
+		global total_time
+		s = timeit.default_timer()
+		r = fn(*args, **kwargs)
+		total_time += timeit.default_timer() - s
+		return r
+	return wr
+
+# @time_decor
 def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice = None):
 	for one_try in range(c_num_tries_per_player):
 		if decision_choice == None:
@@ -184,10 +197,8 @@ def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice
 			icand = random.randrange(0, len(wlist_cand_els))
 			player_told, obj = wlist_cand_els[icand]
 			if bfail:
-				if random.random() < 0.5:
-					player_told = random.choice(l_names)
-				else:
-					obj = random.choice(l_objects)
+				if random.random() < 0.5: player_told = random.choice(l_names)
+				else: obj = random.choice(l_objects)
 			return [player_name, 'decided to', 'tell', player_told,
 					'where is', obj],ruleid
 		elif decision_choice == e_player_decide.ask_give:
@@ -200,6 +211,9 @@ def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice
 			want_obj = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 										   player_name, [], ['get_want_obj'])[1][0][0][1]
 			player_asked = l_ask_give_cands[0][0][1]
+			if bfail:
+				if random.random() < 0.5: player_asked = random.choice(l_names)
+				else: want_obj = random.choice(l_objects)
 			return [player_name, 'decided to', 'ask', player_asked, 'for', want_obj], ruleid
 		elif decision_choice == e_player_decide.give:
 			l_give_cands = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
@@ -214,5 +228,8 @@ def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice
 			if wlist_cand_els == []: continue
 			icand = random.randrange(0, len(wlist_cand_els))
 			player_to_give, obj = wlist_cand_els[icand]
+			if bfail:
+				if random.random() < 0.5: player_to_give = random.choice(l_names)
+				else: obj = random.choice(l_objects)
 			return [player_name, 'decided to', 'give', player_to_give, obj], ruleid
 	return [],-1
