@@ -1,0 +1,5 @@
+#	comment
+e	John	decided to	pick up	chair	pickup
+e	John	decided to	go to	Canada	goto
+e	James	decided to	ask	John	for	chair	ask_give
+d	John	give

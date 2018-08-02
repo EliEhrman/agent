@@ -26,8 +26,8 @@ import mpdb
 # def convert_phrase_to_word_list(statement_list):
 # 	return [[el[1] for el in statement] for statement in statement_list]
 
-def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
-	mpdb_mgr = mod.get_mpdb_mgr()
+def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
+	mpdb_mgr = d_mod_fns['get_mpdb_mgr']()
 	bitvec_mgr = mpdb_mgr.get_bitvec_mgr()
 	# start_rule_names = ['objects_start', 'people_start', 'people_want_start']  # ['people_start'] #
 	# event_rule_names = ['pickup_rule', 'went_rule']
@@ -47,7 +47,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 		# 	bitvec_mgr.increase_rule_stages()
 
 		l_player_events = []
-		story_sets, set_names = mod.init_per_story_sets()
+		story_sets, set_names = d_mod_fns['init_per_story_sets']()
 		story_names = story_sets[set_names.index('names')]
 
 		e_story_loop_stage = Enum('e_story_loop_stage', 'story_init decision_init decision event state1 complete_state1 state2')
@@ -58,7 +58,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 
 		# l_story_db_event_refs = []
 		# story_db = []
-		l_story_phrases = mod.create_initial_db()
+		l_story_phrases = d_mod_fns['create_initial_db']()
 		for story_phrase in l_story_phrases:
 			ilen, iphrase = bitvec_mgr.add_phrase(story_phrase,
 												  (i_one_story, e_story_loop_stage.story_init,
@@ -93,7 +93,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 		i_story_loop_stage = -1
 		if i_one_story == 0:
 			# player_decide_rules = adv_rules.init_decide_rules(els_sets, els_dict, story_player_name)
-			num_descision_rules = mod.get_num_decision_rules()
+			num_descision_rules = d_mod_fns['get_num_decision_rules']()
 			rule_stats = [[0.0, 0.0] for _ in range(num_descision_rules)]
 
 		num_since_cleanup = 0
@@ -130,8 +130,9 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 				# else:
 				# 	one_decide = (decide_options.pop(0).phrase())[1:-1]
 				one_decide, ruleid = \
-					mod.get_decision_for_player(story_player_name,
-												(i_one_story, story_loop_stage, event_step_id[0]), rule_stats)
+					d_mod_fns['get_decision_for_player'](story_player_name,
+														(i_one_story, story_loop_stage,
+														 event_step_id[0]), rule_stats)
 				if one_decide == []:
 					story_loop_stage = e_story_loop_stage.decision_init
 				else:
@@ -284,11 +285,11 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod):
 	# 	print(out_str)
 
 
-def do_adv(els_lists, learn_vars, mod):
+def do_adv(els_lists, learn_vars, mod, d_mod_fns):
 
 	learn_vars[0] = 0
 	for iplay in range(mod.c_num_plays):
-		play(	els_lists, mod.c_num_stories, mod.c_story_len, learn_vars, mod)
+		play(	els_lists, mod.c_num_stories, mod.c_story_len, learn_vars, mod, d_mod_fns)
 	print('Done!')
 	exit(1)
 
@@ -298,8 +299,11 @@ def main():
 	random.seed(9001)
 	np.random.seed(9001)
 	mod = importlib.import_module('adv2')
+	d_mod_fns = getattr(mod, 'init_functions')()
+
 	# following need not be string dynamic but keeping working code to show how it's done
-	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()
+	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()
+	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = d_mod_fns['mod_init']()
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
@@ -310,7 +314,7 @@ def main():
 
 	event_step_id = -1
 	learn_vars = [event_step_id]
-	do_adv(els_sets, learn_vars, mod)
+	do_adv(els_sets, learn_vars, mod, d_mod_fns)
 
 
 	# all_dicts = logic_init()

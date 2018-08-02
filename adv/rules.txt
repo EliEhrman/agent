@@ -7,6 +7,49 @@ get_free_objs.......	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:
 											c:s,v:3,l:is located in:1.:4,l:Belgium:0.:5,c:e,
 											c:s,l:chair:0.:6,l:is free in:1.:7,v:5,c:e,c:e,
 											c:t,v:6,mle
+get_want_obj........	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,c:e,
+											c:t,v:6,mle
+get_want_loc........	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,
+											c:s,v:6,l:is held in:1.:8,l:Belgium:0.:9,c:e,c:e,
+											c:t,v:9,mle
+get_want_loc2.......	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,
+											c:s,v:6,l:is free in:1.:8,l:Belgium:0.:9,c:e,c:e,
+											c:t,v:9,mle
+get_ask_cands.......	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:is located in:1.:4,l:Belgium:0.:5,c:e,
+											c:s,l:Roy:0.:6,v:4,v:5,c:e,c:e,
+											c:t,v:6,mle
+get_tell_cands......	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants to:1.:5,l:tell:1.:6,l:Roy:0.:7,l:where is:1.:8,l:chair:0.:9,c:e,
+											c:s,v:3,l:is located in:1.:11,l:Belgium:0.:12,c:e,
+											c:s,v:7,v:11,v:12,c:e,
+											c:s,v:9,l:is held in:1.:17,l:Finland:0.:18,c:e,c:e,
+											c:t,v:7,v:9,mle
+get_tell_cands2.....	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants to:1.:5,l:tell:1.:6,l:Roy:0.:7,l:where is:1.:8,l:chair:0.:9,c:e,
+											c:s,v:3,l:is located in:1.:11,l:Belgium:0.:12,c:e,
+											c:s,v:7,v:11,v:12,c:e,
+											c:s,v:9,l:is free in:1.:17,l:Finland:0.:18,c:e,c:e,
+											c:t,v:7,v:9,mle
+get_ask_give_cands..	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:is located in:1.:5,l:Belgium:0.:6,c:e,
+											c:s,l:Roy:0.:7,v:5,v:6,c:e,
+											c:s,v:3,l:wants:1.:11,l:chair:0.:12,c:e,
+											c:s,v:7,l:has:1.:14,v:12,c:e,c:e,
+											c:t,v:7,mle
+get_give_cands......	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants to:1.:5,l:give:1.:6,l:Roy:0.:7,l:chair:0.:8,c:e,
+											c:s,v:3,l:is located in:1.:10,l:Belgium:0.:11,c:e,
+											c:s,v:7,v:10,v:11,c:e,
+											c:s,v:3,l:has:1.:16,v:8,c:e,c:e,
+											c:t,v:7,v:8,mle
+has_want_obj........	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,
+											c:s,v:3,l:has:1.:8,v:6,c:e,c:e,
+											c:t,o:yes,mle
 goto_decide.........	event_from_decide	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:go to:1.:3,l:Finland:0.:4,c:e,
 											c:s,v:1,l:is located in:1.:5,l:Belgium:0.:6,c:e,c:e,
 											c:t,c:i,v:1,o:went to,v:4,mle
@@ -31,7 +74,7 @@ tell_where_decide2..	event_from_decide	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:
 											c:s,v:1,l:wants to:1.:17,v:3,v:4,v:5,v:6,c:e,c:e,
 											c:t,c:i,v:1,o:told,v:4,v:6,v:14,v:15,mle
 ask_give_decide.....	event_from_decide	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:ask:1.:3,l:Roy:0.:4,l:for:1.:5,l:chair:0.:6,c:e,
-											c:s,v:1,l:has:1.:8,v:6,c:e,
+											c:s,v:4,l:has:1.:8,v:6,c:e,
 											c:s,v:1,l:is located in:1.:11,l:Belgium:0.:12,c:e,
 											c:s,v:4,v:11,v:12,c:e,c:e,
 											c:t,c:i,v:1,o:asked,v:4,v:5,v:6,mle
@@ -64,6 +107,7 @@ gen_gave............	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:gave:1.:2,l:Roy:
 knows_I_located.....	state_from_start	c:f,c:s,l:Edgar:0.:1,l:is located in:1.:2,l:Belgium:0.:3,c:e,c:t,c:i:1,v:1,v:2,v:3
 knows_located.......	state_from_start	c:f,c:a,c:s,l:Edgar:0.:1,l:is located in:1.:2,l:Belgium:0.:3,c:e,c:s,l:Roy:0.:4,v:2,v:3,c:e,c:e,c:t,c:i:4,v:1,v:2,v:3
 knows_free..........	state_from_start	c:f,c:a,c:s,l:chair:0.:1,l:is free in:1.:2,l:Belgium:0.:3,c:e,c:s,l:Edgar:0.:4,l:is located in:1.:5,v:3,c:e,c:e,c:t,c:i:4,v:1,v:2,v:3
+knows_I_want........	state_from_start	c:f,c:s,l:Edgar:0.:1,l:wants:1.:2,l:chair:0.:3,c:e,c:t,c:i:1,v:1,v:2,v:3
 remove_went_loc.....	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finland:0.:3,c:e,
 											c:s:1,l:Roy:0.:4,l:is located in:1.:5,v:3,c:e,c:e,
 											c:t,c:d:1,v:4:r,v:5:r,v:3:r,mle

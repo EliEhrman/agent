@@ -766,11 +766,12 @@ class cl_bitvec_mgr(object):
 			self.__mpdb_bins  = np.pad(self.__mpdb_bins, ((0,0), (0, grow)), 'constant')
 		elif bins.shape[0] < self.__mpdb_bins.shape[1]:
 			grow = self.__mpdb_bins.shape[1] - bins.shape[0]
-			self.__mpdb_bins = np.pad(self.__mpdb_bins, (0, grow), 'constant')
+			bins = np.pad(bins, (0, grow), 'constant')
 		self.__mpdb_bins = np.vstack((self.__mpdb_bins, bins))
 		# self.debug_test_mpdb_bins()
 
 		pass
+
 
 	def debug_test_mpdb_bins(self):
 		l_rphrases = self.__mpdb_mgr.get_rphrases()
@@ -778,8 +779,7 @@ class cl_bitvec_mgr(object):
 			ilen, iphrase = rphrase
 			bin_db = self.get_phrase_bin_db(ilen)
 			bins = bin_db[iphrase]
-			assert np.array_equal(self.__mpdb_bins[irphrase], bins), 'self.__mpdb_bins does not match src'
-
+			assert np.array_equal(self.__mpdb_bins[irphrase][:bins.shape[0]], bins), 'self.__mpdb_bins does not match src'
 
 
 	def cleanup_mpdb_bins(self, l_keep):
@@ -787,11 +787,17 @@ class cl_bitvec_mgr(object):
 		self.__mpdb_bins = self.__mpdb_bins[l_keep]
 		self.debug_test_mpdb_bins()
 
+
 	def update_mpdb_bins(self, iupdate, rphrase):
-		self.__mpdb_bins[iupdate] = self.get_phrase_bin(*rphrase)
+		new_bin = self.get_phrase_bin(*rphrase)
+		if new_bin.shape[0] < self.__mpdb_bins.shape[1]:
+			grow = self.__mpdb_bins.shape[1] - new_bin.shape[0]
+			self.__mpdb_bins[iupdate] = np.pad(new_bin, (0, grow), 'constant')
+
 
 	def clear_mpdb_bins(self):
 		self.__mpdb_bins = []
+
 
 	def get_mpdb_bins(self):
 		return self.__mpdb_bins
@@ -807,9 +813,9 @@ class cl_bitvec_mgr(object):
 			raise ValueError('Error. Trying to add ill-formed rule to bitvec mgr')
 		then_idx = rule_rec.index(then_el)
 		rule_arr = rules2.make_rule_arr(rule_rec[1:then_idx])
-		if len(rule_arr) > 2:
-			print('testing')
-			# raise ValueError('Error. For now, no longer than 2-stage rules may be added to bitvec mgr')
+		# if len(rule_arr) > 2:
+		# 	print('testing')
+		# 	# raise ValueError('Error. For now, no longer than 2-stage rules may be added to bitvec mgr')
 
 		def get_ilen(phrase_len):
 			ilen = self.__d_lens.get(phrase_len, -1)
@@ -1844,7 +1850,4 @@ def main():
 		for iiter in range(c_add_fix_iter):
 			score = score_and_change_db(s_phrase_lens, d_words, l_phrases, nd_bit_db, s_word_bit_db)
 			print('iiter', iiter, 'score:', score)  # , 'list', l_scores)
-
-
-
 

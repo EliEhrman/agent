@@ -2003,3 +2003,14 @@ That check in that I claied was working? Well it wasn't
 CIW
 
 Single sphrase db working take 2
+
+Thursday 2nd Aug 2018
+
+All the rules are done. I've decided for now that it would not be correct to put gratitude or liking into
+the adv game. The rules should only contain what is possible (like is the person you are giving to in the same
+place, do you have what you are giving etc.) A further layer, perhaps the AI itself would add to the ontology
+things like gratitude, like etc.
+
+CIW
+
+Rules for adv written, tweaking and testing required.
