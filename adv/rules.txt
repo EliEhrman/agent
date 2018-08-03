@@ -1,5 +1,8 @@
 adv rules	version	1
 rules start
+get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,c:e,
+											c:t,v:3,o:has,v:6,mle
 get_location........	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
 											c:s,v:3,l:is located in:1.:5,l:Belgium:0.:6,c:e,c:e,
 											c:t,v:6,mle

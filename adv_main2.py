@@ -20,6 +20,7 @@ from rules2 import conn_type
 import bitvec
 import rules2
 import mpdb
+import gpsai
 
 # import adv_config
 # import adv_learn
@@ -31,6 +32,7 @@ complete_time = 0.
 def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 	mpdb_mgr = d_mod_fns['get_mpdb_mgr']()
 	bitvec_mgr = mpdb_mgr.get_bitvec_mgr()
+	gpsai_mgr = d_mod_fns['get_ai_mgr']()
 	# start_rule_names = ['objects_start', 'people_start', 'people_want_start']  # ['people_start'] #
 	# event_rule_names = ['pickup_rule', 'went_rule']
 	# state_from_event_names = ['gen_rule_picked_up', 'gen_rule_picked_up_free', 'gen_rule_went', 'gen_rule_has_and_went',
@@ -117,6 +119,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				else:
 					i_story_player = 0
 				story_player_name = story_names[i_story_player]
+				d_mod_fns['set_player_goal'](story_player_name, (i_one_story, story_loop_stage, event_step_id[0]))
 
 				# player_decide_rules = adv_rules.init_decide_rules(els_sets, els_dict, story_player_name)
 				# ruleid = random.randint(0, len(player_decide_rules)-1)
@@ -318,7 +321,9 @@ def main():
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr)
-	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, rules2)
+	gpsai_mgr = gpsai.cl_gpsai_mgr()
+	gpsai_mgr.set_mgrs(mpdb_mgr)
+	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, rules2)
 
 
 	event_step_id = -1

@@ -2021,4 +2021,4 @@ duty stuff into C etc. we might get 100-1000x speedup. We are at around 1ms per 
 
 CIW
 
-Completed some timing and testing. Adv seems tobe working.
+Completed some timing and testing. Adv seems to be working.

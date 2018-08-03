@@ -20,6 +20,7 @@ set_names = [lname +'s' for lname in c_set_list]
 __rules_mgr = None
 __mpdb_mgr = None
 __rules_mod = None
+__ai_mgr = None
 l_names = []
 l_countries = []
 l_objects = []
@@ -49,12 +50,15 @@ def mod_init():
 
 	return els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt
 
-def set_mgrs(rules_mgr, mpdb_mgr, rules_mod):
-	global __rules_mgr, __mpdb_mgr, __rules_mod
-	__rules_mgr, __mpdb_mgr, __rules_mod = rules_mgr, mpdb_mgr, rules_mod
+def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, rules_mod):
+	global __rules_mgr, __mpdb_mgr, __ai_mgr, __rules_mod
+	__rules_mgr, __mpdb_mgr, __ai_mgr, __rules_mod = rules_mgr, mpdb_mgr, ai_mgr, rules_mod
 
 def get_mpdb_mgr():
 	return __mpdb_mgr
+
+def get_ai_mgr():
+	return __ai_mgr
 
 def init_per_story_sets():
 	global l_objects, l_countries, l_names
@@ -66,9 +70,11 @@ def init_per_story_sets():
 def init_functions():
 	d_fns = {	'mod_init':mod_init,
 				'get_mpdb_mgr':get_mpdb_mgr,
+				'get_ai_mgr':get_ai_mgr,
 				'create_initial_db':create_initial_db_dummy if c_b_dummy else create_initial_db,
 				 'get_num_decision_rules':get_num_decision_rules,
 				'init_per_story_sets':init_per_story_sets,
+				'set_player_goal':set_player_goal,
 				'get_decision_for_player':get_decision_for_player_dummy if c_b_dummy else get_decision_for_player}
 	return d_fns
 
@@ -101,6 +107,11 @@ def create_initial_db_dummy():
 		g_dummy_idx = -1
 
 	return l_db
+
+def set_player_goal(player_name, phase_data):
+	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
+								   player_name, [], ['get_goal_phrase'])[1][0]
+	__ai_mgr.set_player_goal(player_name, goal_stmt,__rules_mgr)
 
 def get_num_decision_rules():
 	return len(e_player_decide)
