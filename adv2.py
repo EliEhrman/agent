@@ -21,6 +21,7 @@ __rules_mgr = None
 __mpdb_mgr = None
 __rules_mod = None
 __ai_mgr = None
+__bitvec_mgr = None
 l_names = []
 l_countries = []
 l_objects = []
@@ -50,9 +51,9 @@ def mod_init():
 
 	return els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt
 
-def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, rules_mod):
-	global __rules_mgr, __mpdb_mgr, __ai_mgr, __rules_mod
-	__rules_mgr, __mpdb_mgr, __ai_mgr, __rules_mod = rules_mgr, mpdb_mgr, ai_mgr, rules_mod
+def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
+	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod
+	__rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod = rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod
 
 def get_mpdb_mgr():
 	return __mpdb_mgr
@@ -111,7 +112,7 @@ def create_initial_db_dummy():
 def set_player_goal(player_name, phase_data):
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, [], ['get_goal_phrase'])[1][0]
-	__ai_mgr.set_player_goal(player_name, goal_stmt,__rules_mgr)
+	__ai_mgr.set_player_goal(player_name, goal_stmt)
 
 def get_num_decision_rules():
 	return len(e_player_decide)

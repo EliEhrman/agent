@@ -322,8 +322,8 @@ def main():
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr)
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
-	gpsai_mgr.set_mgrs(mpdb_mgr)
-	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, rules2)
+	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
+	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 
 
 	event_step_id = -1

@@ -448,6 +448,9 @@ class cl_bitvec_gg(object):
 					self.__status = rule_status.initial
 				print('status', self.__status, 'score', self.__score, 'for rule:', rules2.gen_rec_str(self.__rule_rec) )
 
+	def does_stmt_match_result(self, stmt):
+		for el in self.__result:
+			if el[0] = rec_def_type.conn:
 	def is_a_match_one_stage(self, ilen, iphrase):
 		if ilen != self.__ilen:
 			return False
@@ -1179,6 +1182,15 @@ class cl_bitvec_mgr(object):
 		ilen, iphrase = self.__add_phrase(phrase, phase_data)
 		return self._run_rule(	phrase, ilen, iphrase, idb,
 								l_rule_cats, l_rule_names)
+
+	def get_rules_by_cat(self, l_rule_cats):
+		l_use_rules_ids = []
+		for rule_cat in l_rule_cats:
+			l_use_rules_ids += self.__d_fr_categories.get(rule_cat, [])
+		l_use_rules = [self.__l_fixed_rules[ir] for ir in l_use_rules_ids]
+		l_rule_names = [self.__l_rule_names[ir] for ir in l_use_rules_ids]
+		return l_use_rules, l_rule_names
+
 
 	def _run_rule(	self, phrase, ilen, iphrase, idb, l_rule_cats, l_rule_names=[]):
 		# d_story_len_refs = self.__mpdb_mgr.get_d_story_len_refs(idb)
