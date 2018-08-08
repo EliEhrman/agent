@@ -21,9 +21,19 @@ class cl_gpsai_mgr(object):
 		self.__bitvec_mgr = bitvec_mgr
 		self.__rule_mod = rule_mod
 
-	def set_player_goal(self, player_name, goal_stmt):
-		l_rules, l_rule_names = self.__bitvec_mgr.get_rules_by_cat(['state_from_event'])
-		for gg in l_rules:
-			gg.does_stmt_match_result(goal_stmt)
+	def set_player_goal(self, player_name, goal_stmt, db_name):
+		l_options, l_irule_opts = [], []
+		l_rules, l_rule_names = self.__bitvec_mgr.get_rules_by_cat(['state_from_event', 'event_from_decide'])
+		for irule, gg in enumerate(l_rules):
+			bmatch, l_var_tbl = gg.does_stmt_match_result(goal_stmt)
+			if bmatch:
+				l_options.append(l_var_tbl)
+				l_irule_opts.append(irule)
+
+		for opt, irule in zip(l_options, l_irule_opts):
+			gg = l_rules[irule]
+			l_matches, l_b_phrases_matched = gg.find_var_opts(opt, db_name)
+			for match, b_phrase_matched in zip(l_matches, l_b_phrases_matched):
+				if not b_phrase_matched: self.set_player_goal(player_name, match, db_name)
 		pass
 

@@ -109,10 +109,10 @@ def create_initial_db_dummy():
 
 	return l_db
 
-def set_player_goal(player_name, phase_data):
+def set_player_goal(player_name, phase_data, db_name):
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, [], ['get_goal_phrase'])[1][0]
-	__ai_mgr.set_player_goal(player_name, goal_stmt)
+	__ai_mgr.set_player_goal(player_name, goal_stmt, db_name)
 
 def get_num_decision_rules():
 	return len(e_player_decide)

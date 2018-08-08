@@ -119,7 +119,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				else:
 					i_story_player = 0
 				story_player_name = story_names[i_story_player]
-				d_mod_fns['set_player_goal'](story_player_name, (i_one_story, story_loop_stage, event_step_id[0]))
+				d_mod_fns['set_player_goal'](story_player_name, (i_one_story, story_loop_stage, event_step_id[0]), 'main')
 
 				# player_decide_rules = adv_rules.init_decide_rules(els_sets, els_dict, story_player_name)
 				# ruleid = random.randint(0, len(player_decide_rules)-1)

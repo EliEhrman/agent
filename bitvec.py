@@ -16,6 +16,7 @@ from os.path import expanduser
 from shutil import copyfile
 import itertools
 import timeit
+import collections
 
 import numpy as np
 
@@ -449,8 +450,116 @@ class cl_bitvec_gg(object):
 				print('status', self.__status, 'score', self.__score, 'for rule:', rules2.gen_rec_str(self.__rule_rec) )
 
 	def does_stmt_match_result(self, stmt):
+		iel, bmatch, l_var_tbl = -1, True, []
 		for el in self.__result:
-			if el[0] = rec_def_type.conn:
+			if el[0] == rec_def_type.conn:
+				if el[1] in [conn_type.Insert, conn_type.Modify, conn_type.Unique]:
+					continue
+				else:
+					bmatch = False
+					break
+			iel += 1
+			if iel >= len(stmt):
+				bmatch = False
+				break
+			if el[0] == rec_def_type.var:
+				l_var_tbl += [(el[1], True, stmt[iel][1])]
+			elif el[0] == rec_def_type.obj:
+				if el[1] != stmt[iel][1]:
+					bmatch = False
+					break
+		return bmatch, l_var_tbl
+
+	def find_var_opts(self, l_var_opts, db_name):
+		nt_vars = collections.namedtuple('nt_vars', 'b_var_opt, loc, b_bound, val')
+		mpdb_mgr = self.__mgr.get_mpdb_mgr()
+		idb = mpdb_mgr.get_idb_from_db_name(db_name)
+		nd_story_bins = self.__mgr.get_mpdb_bins()
+		l_story_rphrases = mpdb_mgr.get_rphrases()
+
+		# The tuple is interpreted as b_var_opt (not internal), first var loc, b_instantiated, val
+		l_vars = [[True] + list(vo) for vo in l_var_opts]
+		l_vars = [nt_vars(b_var_opt=True, loc=vo[0], b_bound=vo[1], val=vo[2]) for vo in l_var_opts]
+
+		l_phrase_starts = [0]
+		for phrase_len in self.__l_phrases_len: l_phrase_starts.append(l_phrase_starts[-1]+phrase_len)
+		l_var_locs = [vo[0] for vo in l_var_opts]
+		l_var_loc_pairs, d_var_opts, l_var_all_locs = [], dict(), []
+		for iopt, var_loc in enumerate(l_var_locs):
+			for itlen, tlen in enumerate(l_phrase_starts):
+				if var_loc < tlen:
+					l_var_loc_pairs.append((itlen-1, var_loc-l_phrase_starts[itlen-1]))
+					l_var_all_locs.append([l_var_loc_pairs[-1]])
+					d_var_opts[l_var_loc_pairs[-1]] = iopt
+					break
+		l_matches, l_b_phrases_matched = [], []
+		for src_istage, src_iel, dest_istage, dest_iel in self.__l_wlist_vars:
+			iopt = d_var_opts.get((src_istage, src_iel), -1)
+			if iopt == -1:
+				iopt = len(l_vars)
+				d_var_opts[(src_istage, src_iel)] = iopt
+				d_var_opts[(dest_istage, dest_iel)] = iopt
+				l_vars.append(nt_vars(b_var_opt=False, loc=l_phrase_starts[src_istage]+src_iel, b_bound=False, val=None))
+				l_var_all_locs.append([(src_istage, src_iel), (dest_istage, dest_iel)])
+			else:
+				d_var_opts[(dest_istage, dest_iel)] = iopt
+				l_var_all_locs[iopt].append((dest_istage, dest_iel))
+
+		nd_default_idb_mrk = mpdb_mgr.get_nd_idb_mrk(idb)
+		for istage, phrase_len in enumerate(self.__l_phrases_len):
+			nd_ilen_mrk = np.array([ilen == self.__l_phrases_ilen[istage] for ilen, _ in l_story_rphrases], dtype=np.bool)
+			m_match = np.ones(nd_story_bins.shape[0], dtype=np.bool)
+			m_mrks = np.logical_and(nd_default_idb_mrk, nd_ilen_mrk)
+			m_match = np.logical_and(m_mrks, m_match)
+			l_phrase_found = [[] for _ in range(phrase_len)]
+			l_b_unbound, l_i_unbound = [False for _ in range(phrase_len)], [-1 for _ in range(phrase_len)]
+			for iel in range(phrase_len):
+				iopt = d_var_opts.get((istage, iel), -1)
+				if iopt == -1 or not l_vars[iopt].b_bound:
+					src_pat = self.__l_els_rep[l_phrase_starts[istage]+iel]
+					hd_max = self.__l_hd_max[l_phrase_starts[istage]+iel]
+					# nd_el_match_idx = np.sum(np.equal(self.__mgr.get_el_db(), src_pat), axis=1)
+					nd_el_match_idx = np.argmax(np.sum(np.equal(self.__mgr.get_el_db(), src_pat), axis=1))
+					el_word = self.__mgr.get_word_by_id(nd_el_match_idx)
+					if hd_max == 0:
+						l_phrase_found[iel] = [rec_def_type.obj, el_word]
+					else:
+						l_phrase_found[iel] = [rec_def_type.like, el_word, 1. - float(hd_max) / c_bitvec_size]
+					l_b_unbound[iel], l_i_unbound[iel] = iopt != -1, iopt
+
+				else:
+					src_pat = self.__mgr.get_el_bin(l_vars[iopt].val)
+					hd_max = 0
+					l_phrase_found[iel] = [rec_def_type.obj, l_vars[iopt].val]
+				if (iel+1)*c_bitvec_size > nd_story_bins.shape[1]:
+					m_match = np.zeros(nd_story_bins.shape[0], dtype=np.bool)
+					continue
+				el_story_bins = nd_story_bins[:, iel*c_bitvec_size:(iel+1)*c_bitvec_size]
+				nd_el_diffs = np.not_equal(src_pat, el_story_bins)
+				m_el_match = np.sum(nd_el_diffs, axis=1) <= hd_max
+				m_match = np.logical_and(m_match, m_el_match)
+			m_match = np.logical_and(m_match, m_mrks)
+			if not np.any(m_match):
+				l_matches.append(l_phrase_found)
+				l_b_phrases_matched.append(False)
+			elif np.count_nonzero(m_match) == 1:
+				l_phrase_found = self.__mgr.get_phrase(*l_story_rphrases[np.argmax(m_match)])
+				l_matches.append(l_phrase_found)
+				l_b_phrases_matched.append(True)
+				# The code here is not ccorrect. If you instantiate a var there is still a possibility that
+				# the un-instantiated version with further code would be better
+				for iel in range(phrase_len):
+					if l_b_unbound[iel]:
+						ivar = l_i_unbound[iel]
+						l_vars[ivar] = nt_vars(b_var_opt=False, loc=l_vars[ivar].loc, b_bound=True, val=l_phrase_found[iel])
+						for istage2, iel2 in l_var_all_locs[ivar]:
+							if istage2 < istage:
+								l_matches[istage2][iel2] = l_matches[-1][iel]
+
+				# for imatch, bmatch in enumerate(m_match):
+				# 	if not bmatch: continue
+		return l_matches, l_b_phrases_matched
+
 	def is_a_match_one_stage(self, ilen, iphrase):
 		if ilen != self.__ilen:
 			return False
@@ -833,6 +942,9 @@ class cl_bitvec_mgr(object):
 	def set_mpdb_mgr(self, mpdb_mgr):
 		self.__mpdb_mgr = mpdb_mgr
 
+	def get_mpdb_mgr(self):
+		return self.__mpdb_mgr
+
 	def add_fixed_rule(self, rule_rec, rule_category, rule_name):
 		if rule_rec == [] or rule_rec[0] == [] or rule_rec[0][1] != conn_type.IF:
 			raise ValueError('Error. Trying to add ill-formed rule to bitvec mgr')
@@ -959,6 +1071,9 @@ class cl_bitvec_mgr(object):
 
 	def get_el_db(self):
 		return self.__nd_el_bin_db
+
+	def get_el_bin(self, word):
+		return self.__nd_el_bin_db[self.__d_words[word]]
 
 	def get_word_by_id(self, iel):
 		return self.__l_els[iel]
