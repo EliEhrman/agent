@@ -366,3 +366,28 @@ def build_vars_dict(phrase_list):
 def convert_wlist_to_phrases(statement_list):
 	return [[[rec_def_type.obj, item] for item in statement] for statement in statement_list]
 
+def does_stmt_match_goal(stmt, goal, bitvec_mgr):
+	if len(goal) != len(stmt): return False
+	iel, bmatch = -1, True
+	for sel, gel in zip(stmt, goal):
+		# if el[0] == rec_def_type.conn:
+		# 	if el[1] in [conn_type.Insert, conn_type.Modify, conn_type.Unique]:
+		# 		continue
+		# 	else:
+		# 		bmatch = False
+		# 		break
+		# iel += 1
+		# if iel >= len(stmt):
+		# 	bmatch = False
+		# 	break
+		# if el[0] == rec_def_type.var:
+		# 	l_var_tbl += [(el[1], True, stmt[iel][1])]
+		if gel[0] == rec_def_type.obj:
+			if gel[1] != sel[1]:
+				bmatch = False
+				break
+		elif gel[0] == rec_def_type.like:
+			bmatch = bitvec_mgr.match_el_to_like(sel[1], gel[1], gel[2])
+			if not bmatch: break
+
+	return bmatch

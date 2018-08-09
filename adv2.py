@@ -25,7 +25,7 @@ __bitvec_mgr = None
 l_names = []
 l_countries = []
 l_objects = []
-c_b_learn_full_rules = True
+c_b_learn_full_rules = False
 c_b_save_freq_stats= False
 c_story_len = 200
 c_num_stories = 500
@@ -35,6 +35,7 @@ l_dummy_types = []
 l_dummy_events = []
 l_dummy_ruleid = []
 g_dummy_idx = -1
+c_b_gpsai = True
 
 e_player_decide = Enum('e_player_decide', 'goto pickup ask_where tell_where ask_give give')
 
@@ -75,8 +76,9 @@ def init_functions():
 				'create_initial_db':create_initial_db_dummy if c_b_dummy else create_initial_db,
 				 'get_num_decision_rules':get_num_decision_rules,
 				'init_per_story_sets':init_per_story_sets,
-				'set_player_goal':set_player_goal,
-				'get_decision_for_player':get_decision_for_player_dummy if c_b_dummy else get_decision_for_player}
+				# 'set_player_goal':set_player_goal,
+				'get_decision_for_player':get_decision_for_player_dummy if c_b_dummy
+						else (get_decision_by_goal if c_b_gpsai else get_decision_for_player)}
 	return d_fns
 
 def create_initial_db():
@@ -109,10 +111,13 @@ def create_initial_db_dummy():
 
 	return l_db
 
-def set_player_goal(player_name, phase_data, db_name):
+def get_decision_by_goal(player_name, phase_data, rule_stats):
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, [], ['get_goal_phrase'])[1][0]
-	__ai_mgr.set_player_goal(player_name, goal_stmt, db_name)
+	b_one_full_match, l_action_phrases, l_match_paths = \
+			__ai_mgr.set_player_goal(player_name, goal_stmt, 'main', phase_data)
+	if b_one_full_match:
+		return l_action_phrases[-1], 0
 
 def get_num_decision_rules():
 	return len(e_player_decide)

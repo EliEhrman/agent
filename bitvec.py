@@ -1078,6 +1078,11 @@ class cl_bitvec_mgr(object):
 	def get_word_by_id(self, iel):
 		return self.__l_els[iel]
 
+	def match_el_to_like(self, el, like_rep, cosine_dist):
+		hd_max = c_bitvec_size * (1.0 - cosine_dist)
+		el_bin, rep_bin = self.get_el_bin(el), self.get_el_bin(like_rep)
+		return np.sum(np.not_equal(el_bin, rep_bin)) <= hd_max
+
 	def add_phrase(self, phrase, phase_data):
 		ilen, iphrase = self.__add_phrase(phrase, phase_data)
 		# self.__l_all_phrases.append((phase_data, ilen, iphrase))
