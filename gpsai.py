@@ -57,7 +57,7 @@ class cl_gpsai_mgr(object):
 								else:
 									l_full_match_score_2.append(0.75)
 							else:
-								for iold, old_full_match_score, l_old_action_phrases in enumerate(l_full_match_score):
+								for iold, old_full_match_score in enumerate(l_full_match_score):
 									l_old_action_phrases , l_old_mathc_paths = ll_action_phrases[iold], ll_match_paths[iold]
 									if new_full_match_score > 0.:
 										l_full_match_score_2.append(old_full_match_score * new_full_match_score)

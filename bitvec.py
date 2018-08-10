@@ -463,7 +463,12 @@ class cl_bitvec_gg(object):
 				bmatch = False
 				break
 			if el[0] == rec_def_type.var:
-				l_var_tbl += [(el[1], True, stmt[iel][1])]
+				if stmt[iel][0] == rec_def_type.obj:
+					l_var_tbl += [(el[1], True, stmt[iel][1])]
+				elif stmt[iel][0] == rec_def_type.like:
+					l_var_tbl += [(el[1], False, stmt[iel][1], stmt[iel][2])]
+				else:
+					raise ValueError('Error. Code does not consider option of stmt el being neither obj nor like')
 			elif el[0] == rec_def_type.obj:
 				if el[1] != stmt[iel][1]:
 					bmatch = False
@@ -471,7 +476,7 @@ class cl_bitvec_gg(object):
 		return bmatch, l_var_tbl
 
 	def find_var_opts(self, l_var_opts, db_name):
-		nt_vars = collections.namedtuple('nt_vars', 'b_var_opt, loc, b_bound, val')
+		nt_vars = collections.namedtuple('nt_vars', 'b_var_opt, loc, b_bound, val, cd')
 		mpdb_mgr = self.__mgr.get_mpdb_mgr()
 		idb = mpdb_mgr.get_idb_from_db_name(db_name)
 		nd_story_bins = self.__mgr.get_mpdb_bins()
@@ -479,7 +484,7 @@ class cl_bitvec_gg(object):
 
 		# The tuple is interpreted as b_var_opt (not internal), first var loc, b_instantiated, val
 		l_vars = [[True] + list(vo) for vo in l_var_opts]
-		l_vars = [nt_vars(b_var_opt=True, loc=vo[0], b_bound=vo[1], val=vo[2]) for vo in l_var_opts]
+		l_vars = [nt_vars(b_var_opt=True, loc=vo[0], b_bound=vo[1], val=vo[2], cd=None if vo[1] else vo[3]) for vo in l_var_opts]
 
 		l_phrase_starts = [0]
 		for phrase_len in self.__l_phrases_len: l_phrase_starts.append(l_phrase_starts[-1]+phrase_len)
@@ -499,7 +504,7 @@ class cl_bitvec_gg(object):
 				iopt = len(l_vars)
 				d_var_opts[(src_istage, src_iel)] = iopt
 				d_var_opts[(dest_istage, dest_iel)] = iopt
-				l_vars.append(nt_vars(b_var_opt=False, loc=l_phrase_starts[src_istage]+src_iel, b_bound=False, val=None))
+				l_vars.append(nt_vars(b_var_opt=False, loc=l_phrase_starts[src_istage]+src_iel, b_bound=False, val=None, cd=None))
 				l_var_all_locs.append([(src_istage, src_iel), (dest_istage, dest_iel)])
 			else:
 				d_var_opts[(dest_istage, dest_iel)] = iopt
@@ -551,14 +556,15 @@ class cl_bitvec_gg(object):
 				for iel in range(phrase_len):
 					if l_b_unbound[iel]:
 						ivar = l_i_unbound[iel]
-						l_vars[ivar] = nt_vars(b_var_opt=False, loc=l_vars[ivar].loc, b_bound=True, val=l_phrase_found[iel])
+						l_vars[ivar] = nt_vars(b_var_opt=False, loc=l_vars[ivar].loc, b_bound=True,
+											   val=l_phrase_found[iel], cd=l_vars[ivar].cd)
 						for istage2, iel2 in l_var_all_locs[ivar]:
 							if istage2 < istage:
 								l_matches[istage2][iel2] = l_matches[-1][iel]
 
 				# for imatch, bmatch in enumerate(m_match):
 				# 	if not bmatch: continue
-		return l_matches, l_b_phrases_matched
+		return [l_matches], [l_b_phrases_matched]
 
 	def is_a_match_one_stage(self, ilen, iphrase):
 		if ilen != self.__ilen:
