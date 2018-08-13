@@ -2022,3 +2022,14 @@ duty stuff into C etc. we might get 100-1000x speedup. We are at around 1ms per 
 CIW
 
 Completed some timing and testing. Adv seems to be working.
+
+
+Friday 10th Aug 2018
+
+Important to do item. Working on find_var_opts(). Don't just accept binding from an earlier match. Different
+binding options could be interesting:
+1. Differentiate between external goal-derived binding as well as cd=1.0 internal bindings on the one hand
+	and regular db based internal bindings on the other
+	the first is not optional. The second type should not force itself against other options
+2. One option is always not binding at all. Going further down the tree to find an alternate way of doing it
+3.
