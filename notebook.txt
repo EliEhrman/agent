@@ -2033,3 +2033,32 @@ binding options could be interesting:
 	the first is not optional. The second type should not force itself against other options
 2. One option is always not binding at all. Going further down the tree to find an alternate way of doing it
 3.
+
+Tuesday 14th August 2018
+
+Not completed yet, but the unification engine is coming along nicely. I am creating all the options
+including options that are are only partially specified (i.e. have a like instead of an obj) and options
+that are exactly specified but do not exist in the DB (i.e. Daniel can pick up the camera which is in Fiji
+and Daniel is in Fiji... except that he is not) and now we need more planning as to how to mmake that last
+actually true.
+
+So find_var_opts is doing it's job but is not passing that information cleanly to its caller. So now I have
+to create an object containing find_var_opts 's conclusions and totally rewrite set_player_goal to
+take this output and process it.
+
+I think I will call it cl_var_opt. It will hold the phrases, the combos, a score for each phrase and a pointer
+to another cl_var_opt for each phrase or None if no such calculation has been made. It should also hold
+the score for each combo and a best score (with which combo achieves it... maybe)
+
+At present I envision the calling function taking each phrase that has no match (ie does not exits in the db)
+and call itself again with that phrase as the goal. The function should return the same object of class
+cl_var_opt.
+
+For taking action, a function should pick from the combos of the top level's cl_var_opt using a prob
+distribution based on the scores. It then works it's way down recursively till the bottom level. If there
+are actions to do, it executes that and closes up. It is sort of hoping that next time will be sufficiently
+similar to this time so that this last action will actually be a step towards its goal.
+
+CIW:
+
+find_var_opts doing its job on the way to unification which is not yet there.

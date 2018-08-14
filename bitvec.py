@@ -500,7 +500,7 @@ class cl_bitvec_gg(object):
 					l_var_all_locs.append([l_var_loc_pairs[-1]])
 					d_var_opts[l_var_loc_pairs[-1]] = iopt
 					break
-		l_matches, l_b_phrases_matched, l_match_phrases = [], [], []
+		l_matches, l_b_phrases_matched, l_match_phrases, l_match_bindings = [], [], [], []
 		for src_istage, src_iel, dest_istage, dest_iel in self.__l_wlist_vars:
 			iopt = d_var_opts.get((src_istage, src_iel), -1)
 			if iopt == -1:
@@ -510,13 +510,15 @@ class cl_bitvec_gg(object):
 				l_vars.append(nt_vars(	b_var_opt=False, loc=l_phrase_starts[src_istage]+src_iel, b_bound=False,
 										b_must_bind=False, val=None, cd=None))
 				l_var_all_locs.append([(src_istage, src_iel), (dest_istage, dest_iel)])
-				l_var_vals.append([])
+				l_var_vals.append([[]])
 			else:
 				d_var_opts[(dest_istage, dest_iel)] = iopt
 				l_var_all_locs[iopt].append((dest_istage, dest_iel))
 			# for one_var in l_var_all_locs:
 
 		nd_default_idb_mrk = mpdb_mgr.get_nd_idb_mrk(idb)
+		l_i_null_phrases = []
+		l_stage_ivars = [[] for _ in range(len(self.__l_phrases_len))]
 		for istage, phrase_len in enumerate(self.__l_phrases_len):
 			nd_ilen_mrk = np.array([ilen == self.__l_phrases_ilen[istage] for ilen, _ in l_story_rphrases], dtype=np.bool)
 			m_match = np.ones(nd_story_bins.shape[0], dtype=np.bool)
@@ -553,27 +555,103 @@ class cl_bitvec_gg(object):
 				m_el_match = np.sum(nd_el_diffs, axis=1) <= hd_max
 				m_match = np.logical_and(m_match, m_el_match)
 			m_match = np.logical_and(m_match, m_mrks)
+
+			for ivar, (var, var_all_locs) in enumerate(zip(l_vars, l_var_all_locs)):
+				if var.b_bound: continue
+				for var_loc in var_all_locs:
+					if var_loc[0] == istage:
+						l_stage_ivars[istage].append(ivar)
+
+			l_i_null_phrases.append(len(l_match_phrases))
 			l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=False, phrase=l_phrase_found))
+			l_match_bindings.append([istage] + [0 for _ in l_stage_ivars[istage]])
 			# keeping following two lines so that calling functions can keep working
 			l_matches.append(l_phrase_found)
 			l_b_phrases_matched.append(False)
 			for imatch, bmatch in enumerate(m_match):
 				if not bmatch: continue
 				l_phrase_found = self.__mgr.get_phrase(*l_story_rphrases[imatch])
-				l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=True, phrase=l_phrase_found))
+				l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=True,
+														phrase=rules2.convert_wlist_to_phrases([l_phrase_found])[0]))
+				l_match_bindings.append([istage]) # + [0 for _ in l_stage_ivars[istage]])
 				for iel in range(phrase_len):
 					if l_b_unbound[iel]:
 						ivar = l_i_unbound[iel]
 						l_bindings = l_var_vals[ivar]
 						var_binding = l_phrase_found[iel]
-						if var_binding not in l_bindings:
+						if var_binding in l_bindings:
+							ivar_val = l_bindings.index(var_binding)
+						else:
+							ivar_val = len(l_bindings)
 							l_bindings.append(var_binding)
-		for match_phrase in l_match_phrases:
-			istage = match_phrase.istage
+						l_match_bindings[-1].append(ivar_val)
+		# end loop over stages
+		# In the following block, the goal is to add match phrases that bind some of the variables
+		# but perhaps not all. These new phrases are extensions of the null phrase (that binds none
+		# of the variables). However, we check that the phrase is not actually already in the
+		# matched phrases.
+		# N.B. When I speak of unbound variables, I do not refer to the variables that MUST be bound.
+		# These are the var loc vars that ome from the goal external to the function and the internal
+		# vars that have cd of 1. that must have an exact value
+		for i_null_phrase in l_i_null_phrases:
+			null_match_phrase = l_match_phrases[i_null_phrase]
+			istage = null_match_phrase.istage
+			l_iopts, l_iel_of_binding, ll_bindings = [], [], []
 			for iel in range(self.__l_phrases_len[istage]):
 				iopt = d_var_opts.get((istage, iel), -1)
+				if iopt == -1 or l_vars[iopt].b_bound: continue
+				l_iopts.append(iopt)
+				ll_bindings.append([(i,v) for i,v in enumerate(l_var_vals[iopt])])
+				l_iel_of_binding.append(iel)
+			# null_match_phrase = l_match_phrases[l_i_null_phrases[istage]]
+			for comb in itertools.product(*ll_bindings):
+				new_match_phrase = copy.deepcopy(null_match_phrase.phrase)
+				b_change_made, l_new_match_bindings = False, [istage]
+				for ico, comb_opt in enumerate(comb):
+					if comb_opt[1] == []: continue
+					new_match_phrase[l_iel_of_binding[ico]] = [rec_def_type.obj, comb_opt[1]]
+					l_new_match_bindings.append(comb_opt[0])
+					b_change_made = True
+				if not b_change_made: continue
+				cand_match_phrase = null_match_phrase._replace(b_matched=True, phrase=new_match_phrase)
+				if cand_match_phrase in l_match_phrases: continue
+				l_match_phrases.append(cand_match_phrase._replace(b_matched=False))
+				l_match_bindings.append(l_new_match_bindings)
 
-			"""
+		# end of i_null_phr
+
+		# In the following block, I create the table of possible combinations (by index) of
+		# the match phrases. First I create a mapping from the general var index to the unbound var index
+
+		l_unbound_ivars = [ivar for ivar, var in enumerate(l_vars) if not var.b_bound]
+		l_ivar_unbound = [-1 for _ in l_vars]
+		for iunbound, unbound_ivar in enumerate(l_unbound_ivars):
+			l_ivar_unbound[unbound_ivar] = iunbound
+		# l_ivar_unbound = [-1 if var.b_bound else ivar for ivar, var in enumerate(l_vars)]
+
+		l_comb_ivals = [range(len(vals)) for vals, var in zip(l_var_vals, l_vars) if not var.b_bound]
+		ll_match_iphrase_combos = []
+		for comb_ivals in itertools.product(*l_comb_ivals):
+			l_phrase_found, l_match_iphrase_combo = [], []
+			for istage in range(len(self.__l_phrases_len)):
+				stage_ivars = l_stage_ivars[istage]
+				search_key = [istage]
+				if stage_ivars == []:
+					l_stage_match_iphrase = \
+						[match_iphrase for match_iphrase, match_bindings in enumerate(l_match_bindings)
+								if match_bindings[0] == search_key[0]]
+					assert len(l_stage_match_iphrase) == 1, 'There should only be one stage match if stage_ivars == []'
+					stage_match_iphrase = l_stage_match_iphrase[0]
+				else:
+					for ivar in stage_ivars:
+						search_key += [comb_ivals[l_ivar_unbound[ivar]]]
+					assert search_key in l_match_bindings, 'Error. Missing search key in l_match_bindings'
+					stage_match_iphrase = l_match_bindings.index(search_key)
+				l_phrase_found.append(l_match_phrases[stage_match_iphrase].phrase)
+				l_match_iphrase_combo += [stage_match_iphrase]
+			ll_match_iphrase_combos += [l_match_iphrase_combo]
+		return [l_matches], [l_b_phrases_matched]
+	"""
 			if not np.any(m_match):
 				# l_matches.append(l_phrase_found)
 				l_matches.append(nt_match_phrases(istage=istage, b_matched=False, phrase=l_phrase_found))
@@ -595,8 +673,7 @@ class cl_bitvec_gg(object):
 
 				# for imatch, bmatch in enumerate(m_match):
 				# 	if not bmatch: continue
-				"""
-		return [l_matches], [l_b_phrases_matched]
+	"""
 
 	def is_a_match_one_stage(self, ilen, iphrase):
 		if ilen != self.__ilen:
