@@ -4,6 +4,7 @@ import csv
 from enum import Enum
 from StringIO import StringIO
 import copy
+import collections
 
 # from rules import conn_type
 # from rules import rec_def_type
@@ -14,6 +15,9 @@ rec_def_type = Enum('rec_def_type', 'obj conn var error set like')
 # see notebook on 2nd Nov
 rule_type = Enum('rule_type', 'story_start event_from_decide state_from_state state_from_event '
 							  'event_from_event block_event knowledge_query query event_from_none')
+nt_vars = collections.namedtuple('nt_vars', 'loc, b_bound, b_must_bind, val, cd, iext_var, b_resolved')
+nt_vars.__new__.__defaults__ = (False, False, None, None, -1, False)
+nt_match_phrases = collections.namedtuple('nt_match_phrases', 'istage, b_matched, phrase')
 
 
 class cl_fixed_rules(object):
@@ -391,3 +395,44 @@ def does_stmt_match_goal(stmt, goal, bitvec_mgr):
 			if not bmatch: break
 
 	return bmatch
+
+
+
+
+class cl_var_match_opts(object):
+	def __init__(	self, parent_gg, l_match_phrases, ll_match_iphrase_combos, l_match_phrase_scores,
+					ll_var_match_opts, l_best_score):
+		self.__parent_gg = parent_gg
+		self.__l_match_phrases = l_match_phrases
+		self.__ll_match_iphrase_combos = ll_match_iphrase_combos
+		self.__l_match_phrase_scores = l_match_phrase_scores
+		self.__ll_var_match_opts = ll_var_match_opts # need a list for each iphrase, one for each matching rule
+		self.__l_best_score = l_best_score
+
+	def get_parent_gg(self):
+		return self.__parent_gg
+
+	def get_l_match_phrases(self):
+		return self.__l_match_phrases
+
+	def get_ll_match_iphrase_combos(self):
+		return self.__ll_match_iphrase_combos
+
+	def get_l_match_phrase_scores(self):
+		return self.__l_match_phrase_scores
+
+	def get_ll_var_match_opts(self):
+		return self.__ll_var_match_opts
+
+	def get_l_var_match_opts(self, iphrase):
+		return self.__ll_var_match_opts[iphrase]
+
+	def set_var_match_opts(self, iphrase, l_var_match_objs):
+		self.__ll_var_match_opts[iphrase] = l_var_match_objs
+
+	def get_l_best_score(self):
+		return self.__l_best_score
+
+	def get_gg_name(self):
+		return self.__parent_gg.get_name()
+

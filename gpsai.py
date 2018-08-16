@@ -26,6 +26,43 @@ class cl_gpsai_mgr(object):
 										player_name, ['get_player_action'])[1]
 		for action_stmt in l_action_stmts:
 			if self.__rule_mod.does_stmt_match_goal(goal_stmt, action_stmt, self.__bitvec_mgr):
+				var_phrase = self.__rule_mod.nt_match_phrases(istage=0, b_matched=True, phrase=action_stmt)
+				return [self.__rule_mod.cl_var_match_opts(None, [var_phrase], [[0]], [1.0], [[None]], 1.0)]
+				# return [1.0], [[self.__rule_mod.convert_phrase_to_word_list([goal_stmt])[0]]], [[]]
+
+		# l_action_rules, l_action_rule_names = \
+		# 		self.__bitvec_mgr.get_rules_by_cat(['get_player_action'])
+		# for gg in l_action_rules:
+		# 	bmatch, l_var_tbl = gg.does_stmt_match_result(goal_stmt)
+
+		l_options, l_irule_opts = [], []
+		l_rules, l_rule_names = self.__bitvec_mgr.get_rules_by_cat(['state_from_event', 'event_from_decide'])
+		for irule, gg in enumerate(l_rules):
+			bmatch, l_var_tbl = gg.does_stmt_match_result(goal_stmt)
+			if bmatch:
+				l_options.append(l_var_tbl)
+				l_irule_opts.append(irule)
+
+		l_var_opt_objs = []
+		for opt, irule in zip(l_options, l_irule_opts):
+			gg = l_rules[irule]
+			var_opt_obj = gg.find_var_opts(opt, db_name)
+			for iphrase, match_phrase_data in enumerate(var_opt_obj.get_l_match_phrases()):
+				if not match_phrase_data.b_matched:
+					l_var_opt_objs_child = self.set_player_goal(player_name,
+																match_phrase_data.phrase, db_name, phase_data)
+					var_opt_obj.set_var_match_opts(iphrase, l_var_opt_objs_child)
+
+			print('Need to add up scores from the best of each ')
+			l_var_opt_objs.append(var_opt_obj)
+
+		return l_var_opt_objs
+
+	def set_player_goal_old(self, player_name, goal_stmt, db_name, phase_data):
+		l_action_stmts = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
+										player_name, ['get_player_action'])[1]
+		for action_stmt in l_action_stmts:
+			if self.__rule_mod.does_stmt_match_goal(goal_stmt, action_stmt, self.__bitvec_mgr):
 				return [1.0], [[self.__rule_mod.convert_phrase_to_word_list([goal_stmt])[0]]], [[]]
 
 		l_options, l_irule_opts = [], []
