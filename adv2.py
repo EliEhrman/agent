@@ -14,6 +14,7 @@ c_num_agents_per_story = 5
 c_num_countries_per_story = 5
 c_num_objects_per_story = 5
 c_num_tries_per_player = 10
+c_goal_recurse_depth = 6
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
@@ -114,10 +115,10 @@ def create_initial_db_dummy():
 def get_decision_by_goal(player_name, phase_data, rule_stats):
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, [], ['get_goal_phrase'])[1][0]
-	b_one_full_match, l_action_phrases, l_match_paths = \
-			__ai_mgr.set_player_goal(player_name, goal_stmt, 'main', phase_data)
-	if b_one_full_match:
-		return l_action_phrases[-1], 0
+	l_var_opt_objs = __ai_mgr.set_player_goal(player_name, goal_stmt, 'main', phase_data, rec_left=c_goal_recurse_depth)
+	# for var_opt_obj in l_var_opt_objs: var_opt_obj.calc_best_score()
+	action_selected, action_id_selected = __ai_mgr.select_action(l_var_opt_objs)
+	return action_selected, action_id_selected
 
 def get_num_decision_rules():
 	return len(e_player_decide)

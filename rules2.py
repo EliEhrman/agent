@@ -5,6 +5,7 @@ from enum import Enum
 from StringIO import StringIO
 import copy
 import collections
+import numpy as np
 
 # from rules import conn_type
 # from rules import rec_def_type
@@ -400,14 +401,16 @@ def does_stmt_match_goal(stmt, goal, bitvec_mgr):
 
 
 class cl_var_match_opts(object):
-	def __init__(	self, parent_gg, l_match_phrases, ll_match_iphrase_combos, l_match_phrase_scores,
-					ll_var_match_opts, l_best_score):
+	def __init__(self, parent_gg, l_match_phrases, ll_match_iphrase_combos):
 		self.__parent_gg = parent_gg
 		self.__l_match_phrases = l_match_phrases
 		self.__ll_match_iphrase_combos = ll_match_iphrase_combos
-		self.__l_match_phrase_scores = l_match_phrase_scores
+		self.__l_match_phrase_scores = [] # l_match_phrase_scores
+		self.__l_combo_scores = []
+		ll_var_match_opts = [[] for _ in l_match_phrases] # for each match_phrase an array of cl_var_match_opts
 		self.__ll_var_match_opts = ll_var_match_opts # need a list for each iphrase, one for each matching rule
-		self.__l_best_score = l_best_score
+		self.__best_score = 0.
+		self.__b_score_valid = False
 
 	def get_parent_gg(self):
 		return self.__parent_gg
@@ -421,6 +424,12 @@ class cl_var_match_opts(object):
 	def get_l_match_phrase_scores(self):
 		return self.__l_match_phrase_scores
 
+	def get_match_phrase_score(self, iphrase):
+		return self.__l_match_phrase_scores[iphrase]
+
+	# def set_match_phrase_score(self, iphrase, score):
+	# 	self.__l_match_phrase_scores[iphrase] = score
+
 	def get_ll_var_match_opts(self):
 		return self.__ll_var_match_opts
 
@@ -429,10 +438,44 @@ class cl_var_match_opts(object):
 
 	def set_var_match_opts(self, iphrase, l_var_match_objs):
 		self.__ll_var_match_opts[iphrase] = l_var_match_objs
+		self.__b_score_valid = False
 
-	def get_l_best_score(self):
-		return self.__l_best_score
+	def get_best_score(self):
+		if not self.__b_score_valid:
+			self.calc_best_score()
+		return self.__best_score
+
+	def set_best_score(self, best_score):
+		self.__best_score = best_score
 
 	def get_gg_name(self):
 		return self.__parent_gg.get_name()
+
+	def calc_best_score(self):
+		for iphrase, match_phrase in enumerate(self.__l_match_phrases):
+			if match_phrase.b_matched:
+				self.__l_match_phrase_scores[iphrase] = 1.
+			elif self.__ll_var_match_opts[iphrase] == []:
+				self.__l_match_phrase_scores[iphrase] = 0.
+			else:
+				max_child_score = max(self.__ll_var_match_opts[iphrase], key=lambda x: x.get_best_score()).get_best_score()
+				self.__l_match_phrase_scores[iphrase] = max_child_score
+
+		l_match_phrase_scores = []
+		best_score = 0.
+		for l_match_iphrase_combo in self.__ll_match_iphrase_combos:
+			score, frac = 0., 1. / len(l_match_iphrase_combo)
+			for iphrase in l_match_iphrase_combo:
+				score += self.__l_match_phrase_scores[iphrase] * frac
+			if score > best_score: best_score = score
+			self.__l_combo_scores.append(score)
+		self.__best_score = best_score
+		self.__b_score_valid = True
+
+	def select_combo(self):
+		if not self.__b_score_valid:
+			self.calc_best_score()
+		return np.random.choice(self.__ll_match_iphrase_combos, 1, p=self.__l_combo_scores)
+
+
 

@@ -487,12 +487,23 @@ class cl_bitvec_gg(object):
 		nd_story_bins = self.__mgr.get_mpdb_bins()
 		l_story_rphrases = mpdb_mgr.get_rphrases()
 
-		# The tuple is interpreted as b_var_opt (not internal), first var loc, b_instantiated, val
-		# l_vars = [[True] + list(vo) for vo in l_var_opts]
+		# The first part of this function builds the var tables.
+		# Some els have no vars, either external or intenal.
+		# Some els are vars but have no reuse of the var except in a THEN claause. The are external,
+		# Some els are vars only for internal (re)use.
+		# Of the internal and external, some are instantiated by the rules requiring exact matches and some by
+		#     matches of the tule cluases with phrases in the database
+
+		# Start with table entry for the external vars. Not all of these are bound
+
 		l_vars = [	nt_vars(loc=vo[0], b_bound=vo[1], b_must_bind=vo[1],
 							val=vo[2], cd=None if vo[1] else vo[3], iext_var=ivo)
 					for ivo, vo in enumerate(l_var_opts)]
-		l_var_vals = [[vo[2]] if vo[1] else [] for vo in l_var_opts]
+		l_var_vals = [[vo[2]] if vo[1] else [[]] for vo in l_var_opts]
+
+		# The table of vars is supplemented with pair-based locations (istage and iel instead of of since int loc)
+		# It is also supplemented with tables for listing all locations of the var as well as a dict to get from
+		#    a given location to an entry in the var table
 
 		l_phrase_starts = [0]
 		for phrase_len in self.__l_phrases_len: l_phrase_starts.append(l_phrase_starts[-1]+phrase_len)
@@ -505,6 +516,11 @@ class cl_bitvec_gg(object):
 					l_var_all_locs.append([l_var_loc_pairs[-1]])
 					d_var_opts[l_var_loc_pairs[-1]] = iopt
 					break
+
+		# bin patterns and and max hds are addded. These are set from the binding of the excternal l_var_opts
+		# or from the rule, whichever is tighter. If the hd max requirements mean they do not match, the rule fails
+		# right here and an None (Null) object is returned.
+		# The main loop in this blocks iters over the var table of the rule itself, not the tables we just built
 		l_matches, l_b_phrases_matched, l_match_phrases, l_match_bindings = [], [], [], []
 		ll_src_pat = [	[self.__l_els_rep[l_phrase_starts[istage]+iel] for iel in range(stage_len)]
 						for istage, stage_len in enumerate(self.__l_phrases_len)]
@@ -531,11 +547,11 @@ class cl_bitvec_gg(object):
 					ext_var_opt = l_var_opts[var_opt.iext_var]
 					ext_els_rep = self.__mgr.get_el_bin(ext_var_opt[2])
 					ext_hd_max = 0 if len(ext_var_opt) <= 3 else c_bitvec_size * (1. - ext_var_opt[3])
-					min_hd = min(int_hd_max, ext_hd_max)
+					max_of_max_hd = max(int_hd_max, ext_hd_max)
 					bin_diff = np.sum(np.not_equal(int_els_rep, ext_els_rep))
-					if bin_diff > min_hd:
+					if bin_diff > max_of_max_hd:
 						return None
-					if int_hd_max <= ext_hd_max:
+					if int_hd_max > ext_hd_max:
 						ll_src_pat[src_istage][src_iel], ll_hd_max[src_istage][src_iel] = ext_els_rep, ext_hd_max
 						b_set_by_int = False
 						l_vars[iopt] = var_opt._replace(b_resolved=True)
@@ -545,13 +561,17 @@ class cl_bitvec_gg(object):
 					el_word = self.__mgr.get_word_by_id(nd_el_match_idx)
 					b_exact = ll_hd_max[src_istage][src_iel] == 0
 					l_vars[iopt] = l_vars[iopt]._replace(	b_bound=b_exact, b_must_bind=b_exact,
-															val=el_word, b_resolved=True)
+															val=el_word, b_resolved=True,
+															cd=1.-(float(ll_hd_max[src_istage][src_iel]) / c_bitvec_size))
 					if b_exact: l_var_vals[iopt] = [[el_word]]
 			# end if not b_resolved
 			ll_src_pat[dest_istage][dest_iel] = ll_src_pat[src_istage][src_iel]
 			ll_hd_max[dest_istage][dest_iel] = ll_hd_max[src_istage][src_iel]
 		# end loop for var in self.__l_wlist_vars
 
+		# It is possible for the external var not to appear in the rule var table so they are dealt with here.
+		# Every var starts with a definition in the rule and the external with its hd_max must match the def with its
+		#    requirements
 		for iopt, (var_all_locs, one_var) in enumerate(zip(l_var_all_locs, l_vars)):
 			if one_var.iext_var == -1 or one_var.b_resolved: continue
 			src_istage, src_iel = var_all_locs[0]
@@ -560,14 +580,38 @@ class cl_bitvec_gg(object):
 			if one_var.b_bound:
 				ll_hd_max[src_istage][src_iel] = 0
 			else:
-				assert len(ext_var_opt > 3), 'if the var loc is not bound, a cd must be provided'
-				ll_hd_max[src_istage][src_iel] = c_bitvec_size * (1. - ext_var_opt[3])
+				assert len(ext_var_opt) > 3, 'if the var loc is not bound, a cd must be provided'
+				ll_hd_max[src_istage][src_iel] = int(c_bitvec_size * (1. - ext_var_opt[3]))
 			l_vars[iopt] = one_var._replace(b_resolved=True)
 
+		# This block aims to finish the job of building the var table by looking for any element not in the
+		# var table already that has non-exact value
 
+		for istage, phrase_len in enumerate(self.__l_phrases_len):
+			for iel in range(phrase_len):
+				ivar = d_var_opts.get((istage, iel), -1)
+				if ivar != -1 or ll_hd_max[istage][iel] == 0: continue
+				iopt = len(l_vars)
+				d_var_opts[(istage, iel)] = iopt
+				nd_el_match_idx = np.argmax(np.sum(np.equal(self.__mgr.get_el_db(), ll_src_pat[istage][iel]), axis=1))
+				el_word = self.__mgr.get_word_by_id(nd_el_match_idx)
+				l_vars.append(nt_vars(	loc=l_phrase_starts[istage]+iel, b_bound=False,
+										b_must_bind=False, val=el_word, b_resolved=True,
+										cd=1. - (float(ll_hd_max[istage][iel]) / c_bitvec_size)))
+				l_var_all_locs.append([(istage, iel)])
+				l_var_vals.append([[]])
+
+
+
+		# In this block I find the matches and build the options for l_vars
+		# This block also contains two stages of building the list of match phrases - the possibilities of a
+		# phrase that matches the rules. This contains both phrases found in the db with no open vars as well as
+		# phrases with open vars or no open vars neither of which are actually in the db
+		# Within this block there is creation of the parts of the phrase that do not depend on db matches and those that do
 		nd_default_idb_mrk = mpdb_mgr.get_nd_idb_mrk(idb)
 		l_i_null_phrases = []
 		l_stage_ivars = [[] for _ in range(len(self.__l_phrases_len))]
+		# The stages are the different clauses (phrases) in the rule
 		for istage, phrase_len in enumerate(self.__l_phrases_len):
 			nd_ilen_mrk = np.array([ilen == self.__l_phrases_ilen[istage] for ilen, _ in l_story_rphrases], dtype=np.bool)
 			m_match = np.ones(nd_story_bins.shape[0], dtype=np.bool)
@@ -575,6 +619,8 @@ class cl_bitvec_gg(object):
 			m_match = np.logical_and(m_mrks, m_match)
 			l_phrase_found = [[] for _ in range(phrase_len)]
 			l_b_unbound, l_i_unbound = [False for _ in range(phrase_len)], [-1 for _ in range(phrase_len)]
+			# loop through filling in els that do not require a match. Some of the els in this loop will be replaced
+			# by other els if a match is actually found, That way we can complete the loop before getting to the matches
 			for iel in range(phrase_len):
 				# The following slows things downn. Besides the l_b_unbound can be removed once the ascii scaffoldin is removed
 				iopt = d_var_opts.get((istage, iel), -1)
@@ -609,9 +655,13 @@ class cl_bitvec_gg(object):
 				# 	src_pat = self.__mgr.get_el_bin(l_vars[iopt].val)
 				# 	hd_max = 0
 				# 	l_phrase_found[iel] = [rec_def_type.obj, l_vars[iopt].val]
+
+				# Check for the phrase of the rule being longer than the size of the vector in the db
+				# Certainly there will noth be any matches in this case
 				if (iel+1)*c_bitvec_size > nd_story_bins.shape[1]:
 					m_match = np.zeros(nd_story_bins.shape[0], dtype=np.bool)
 					continue
+				# Build the actual matches
 				el_story_bins = nd_story_bins[:, iel*c_bitvec_size:(iel+1)*c_bitvec_size]
 				nd_el_diffs = np.not_equal(src_pat, el_story_bins)
 				m_el_match = np.sum(nd_el_diffs, axis=1) <= hd_max
@@ -619,12 +669,16 @@ class cl_bitvec_gg(object):
 			# end loop for iel in range(phrase_len)
 			m_match = np.logical_and(m_match, m_mrks)
 
+			# one extra piece. Build a table of var idxs that are used for each el of the stage. At this point
+			# even though we are in the middle of the stages loop we can say that we know the var table for this stage
 			for ivar, (var, var_all_locs) in enumerate(zip(l_vars, l_var_all_locs)):
 				if var.b_bound: continue
 				for var_loc in var_all_locs:
 					if var_loc[0] == istage:
 						l_stage_ivars[istage].append(ivar)
 
+			# The match marker vectors have been built but here we actually go through the success cases building match
+			# phrases for each match
 			l_i_null_phrases.append(len(l_match_phrases))
 			l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=False, phrase=l_phrase_found))
 			l_match_bindings.append([istage] + [0 for _ in l_stage_ivars[istage]])
@@ -654,7 +708,7 @@ class cl_bitvec_gg(object):
 		# of the variables). However, we check that the phrase is not actually already in the
 		# matched phrases.
 		# N.B. When I speak of unbound variables, I do not refer to the variables that MUST be bound.
-		# These are the var loc vars that ome from the goal external to the function and the internal
+		# These are the var loc vars that come from the goal external to the function and the internal
 		# vars that have cd of 1. that must have an exact value
 		for i_null_phrase in l_i_null_phrases:
 			null_match_phrase = l_match_phrases[i_null_phrase]
@@ -714,19 +768,18 @@ class cl_bitvec_gg(object):
 				l_match_iphrase_combo += [stage_match_iphrase]
 			ll_match_iphrase_combos += [l_match_iphrase_combo]
 
-		l_match_phrase_scores = []
-		best_score = 0.
-		for l_match_iphrase_combo in ll_match_iphrase_combos:
-			score, frac = 0., 1. / len(l_match_iphrase_combo)
-			for iphrase in l_match_iphrase_combo:
-				if l_match_phrases[iphrase].b_matched: score += frac
-			if score > best_score: best_score = score
-			l_match_phrase_scores.append(score)
+		# Finally create the scores for combos of match phrases
+		# l_match_phrase_scores = []
+		# best_score = 0.
+		# for l_match_iphrase_combo in ll_match_iphrase_combos:
+		# 	score, frac = 0., 1. / len(l_match_iphrase_combo)
+		# 	for iphrase in l_match_iphrase_combo:
+		# 		if l_match_phrases[iphrase].b_matched: score += frac
+		# 	if score > best_score: best_score = score
+		# 	l_match_phrase_scores.append(score)
 
 		# return [l_matches], [l_b_phrases_matched]
-		ll_var_match_opts = [[] for _ in l_match_phrases] # for each match_phrase an array of cl_var_match_opts
-		return rules2.cl_var_match_opts(self, l_match_phrases, ll_match_iphrase_combos,
-										l_match_phrase_scores, ll_var_match_opts, best_score)
+		return rules2.cl_var_match_opts(self, l_match_phrases, ll_match_iphrase_combos)
 
 	def is_a_match_one_stage(self, ilen, iphrase):
 		if ilen != self.__ilen:

@@ -8,6 +8,7 @@ In our case, the rules are learned so this is a General GPS. Moreover we can lea
 short-cut across the branches of the tree
 """
 from __future__ import print_function
+import random
 import numpy as np
 
 class cl_gpsai_mgr(object):
@@ -21,7 +22,9 @@ class cl_gpsai_mgr(object):
 		self.__bitvec_mgr = bitvec_mgr
 		self.__rule_mod = rule_mod
 
-	def set_player_goal(self, player_name, goal_stmt, db_name, phase_data):
+	def set_player_goal(self, player_name, goal_stmt, db_name, phase_data,  rec_left):
+		if rec_left <= 0: return []
+
 		l_action_stmts = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 										player_name, ['get_player_action'])[1]
 		for action_stmt in l_action_stmts:
@@ -47,16 +50,40 @@ class cl_gpsai_mgr(object):
 		for opt, irule in zip(l_options, l_irule_opts):
 			gg = l_rules[irule]
 			var_opt_obj = gg.find_var_opts(opt, db_name)
+			if var_opt_obj == None: continue
 			for iphrase, match_phrase_data in enumerate(var_opt_obj.get_l_match_phrases()):
 				if not match_phrase_data.b_matched:
 					l_var_opt_objs_child = self.set_player_goal(player_name,
-																match_phrase_data.phrase, db_name, phase_data)
+																match_phrase_data.phrase, db_name,
+																phase_data, rec_left-1)
+					# max_child_score = max(l_var_opt_objs_child, key=lambda x: x.get_best_score()).get_best_score()
+					# var_opt_obj.set_match_phrase_score(iphrase, max_child_score)
 					var_opt_obj.set_var_match_opts(iphrase, l_var_opt_objs_child)
 
-			print('Need to add up scores from the best of each ')
+			# print('Need to add up scores from the best of each ')
 			l_var_opt_objs.append(var_opt_obj)
 
 		return l_var_opt_objs
+
+	def select_action(self, l_var_opt_objs):
+		action_selected, action_id_selected = [], -1
+		l_opt_scores = [var_opt_obj.get_best_score() for var_opt_obj in l_var_opt_objs]
+		var_opt_obj = np.random.choice(l_var_opt_objs, 1, p=l_opt_scores)
+		if var_opt_obj.get_parent_gg():
+			print('TBD. Need to calc an action id')
+			return var_opt_obj.get_l_match_phrases()[0].phrase, 0
+		l_combo = var_opt_obj.select_combo()
+		for iphrase in random.shuffle(l_combo):
+			# pick a phrase that isnt a b_matched, if its an action return it otherwise dig deeper
+			match_phrase,  = var_opt_obj.get_l_match_phrases()[iphrase]
+			if match_phrase.b_matched: continue
+			l_var_match_opt = var_opt_obj.get_ll_var_match_opts()[iphrase]
+			if l_var_match_opt == []: continue
+			action_selected, action_id_selected = self.select_action(l_var_match_opt)
+			if action_selected == []: continue
+			break
+
+		return action_selected, action_id_selected
 
 	def set_player_goal_old(self, player_name, goal_stmt, db_name, phase_data):
 		l_action_stmts = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,

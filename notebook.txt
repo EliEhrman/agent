@@ -2062,3 +2062,10 @@ similar to this time so that this last action will actually be a step towards it
 CIW:
 
 find_var_opts doing its job on the way to unification which is not yet there.
+
+Sunday 19th August 2018
+
+There are a number of problems to be solved:
+
+1. When the goal has an unbound variable, subsidiary goals must be able to bubble up their binding of that var
+2. There is no check in the combos that a new var has not been created by repetition of a bound val
