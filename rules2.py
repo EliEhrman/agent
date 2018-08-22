@@ -348,6 +348,16 @@ def replace_with_vars_in_wlist(l_wlist_src, l_phrase_result):
 def convert_phrase_to_word_list(statement_list):
 	return [[el[1] for el in statement] for statement in statement_list]
 
+def convert_single_bound_phrase_to_wlist(stmt):
+	ret = []
+	for el in stmt:
+		if el[0] == rec_def_type.obj:
+			ret.append(el[1])
+		else:
+			return []
+	return ret
+
+
 def build_vars_dict(phrase_list):
 	new_phrase_list, vars_dict = [], dict()
 	for iel, el in enumerate(phrase_list):

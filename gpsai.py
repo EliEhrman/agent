@@ -25,13 +25,19 @@ class cl_gpsai_mgr(object):
 	def set_player_goal(self, player_name, goal_stmt, db_name, phase_data,  rec_left):
 		if rec_left <= 0: return []
 
-		l_action_stmts = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
-										player_name, ['get_player_action'])[1]
-		for action_stmt in l_action_stmts:
-			if self.__rule_mod.does_stmt_match_goal(goal_stmt, action_stmt, self.__bitvec_mgr):
-				var_phrase = self.__rule_mod.nt_match_phrases(istage=0, b_matched=True, phrase=action_stmt)
-				return [self.__rule_mod.cl_var_match_opts(None, [var_phrase], [[0]], [1.0], [[None]], 1.0)]
-				# return [1.0], [[self.__rule_mod.convert_phrase_to_word_list([goal_stmt])[0]]], [[]]
+		goal_phrase = self.__rule_mod.convert_single_bound_phrase_to_wlist(goal_stmt)
+		if goal_phrase != []:
+			l_action_stmts = self.__mpdb_mgr.run_rule(	goal_phrase, phase_data,
+														player_name, ['get_player_action'])[1]
+			if l_action_stmts != []:
+				assert len(l_action_stmts) == 1, 'Error. get_player_action should not produce more than one result.'
+				return [self.__rule_mod.cl_var_match_opts(None, [l_action_stmts[0]], [[0]])]
+			# The rest should be deleted
+		# for action_stmt in l_action_stmts:
+		# 	if self.__rule_mod.does_stmt_match_goal(goal_stmt, action_stmt, self.__bitvec_mgr):
+		# 		var_phrase = self.__rule_mod.nt_match_phrases(istage=0, b_matched=True, phrase=action_stmt)
+		# 		return [self.__rule_mod.cl_var_match_opts(None, [var_phrase], [[0]])]
+		# 		# return [1.0], [[self.__rule_mod.convert_phrase_to_word_list([goal_stmt])[0]]], [[]]
 
 		# l_action_rules, l_action_rule_names = \
 		# 		self.__bitvec_mgr.get_rules_by_cat(['get_player_action'])
