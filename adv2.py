@@ -14,7 +14,7 @@ c_num_agents_per_story = 5
 c_num_countries_per_story = 5
 c_num_objects_per_story = 5
 c_num_tries_per_player = 10
-c_goal_recurse_depth = 6
+c_goal_recurse_depth = 5
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
@@ -83,13 +83,18 @@ def init_functions():
 	return d_fns
 
 def create_initial_db():
-	l_db = []
+	l_db, l_db_names = [], []
 
 	l_db += [[name, 'is located in', random.choice(l_countries)] for name in l_names]
 	l_db += [[o, 'is free in', random.choice(l_countries)] for o in l_objects]
 	l_db += [[name, 'wants', random.choice(l_objects)] for name in l_names]
+	l_db_names += ['main' for _ in l_db]
+	l_db += [['I', 'am', name] for name in l_names]
+	l_db_names += l_names
 
-	return l_db
+
+
+	return l_db_names, l_db
 
 def create_initial_db_dummy():
 	global l_dummy_types, l_dummy_events, l_dummy_ruleid, g_dummy_idx
@@ -118,7 +123,7 @@ def get_decision_by_goal(player_name, phase_data, rule_stats):
 	l_var_opt_objs = __ai_mgr.set_player_goal(player_name, goal_stmt, 'main', phase_data, rec_left=c_goal_recurse_depth)
 	# for var_opt_obj in l_var_opt_objs: var_opt_obj.calc_best_score()
 	action_selected, action_id_selected = __ai_mgr.select_action(l_var_opt_objs)
-	return action_selected, action_id_selected
+	return __rules_mod.convert_single_bound_phrase_to_wlist(action_selected), 0 # action_id_selected
 
 def get_num_decision_rules():
 	return len(e_player_decide)

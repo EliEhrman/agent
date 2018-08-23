@@ -2069,3 +2069,17 @@ There are a number of problems to be solved:
 
 1. When the goal has an unbound variable, subsidiary goals must be able to bubble up their binding of that var
 2. There is no check in the combos that a new var has not been created by repetition of a bound val
+
+Thursday 23rd August 2018
+
+OK. The basic unification engine gpsai is working on a simple example of universal knowledge, where all the player has
+to do is go to the place where the object is free and pick it up. Issues:
+1. If the object is no longer free, there is no random movement. Why not
+2. Make the knowledge individually limited
+3. There is no prevention of solutions where els repeat without being part of the same var
+4. The depth of var_action is not guided by the chances of success. We just go 5 levels down for everybody then choose a move
+5. Expand to all the actions
+
+CIW:
+
+First version of gspai working on simple move and pick up.

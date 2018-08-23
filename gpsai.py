@@ -31,7 +31,8 @@ class cl_gpsai_mgr(object):
 														player_name, ['get_player_action'])[1]
 			if l_action_stmts != []:
 				assert len(l_action_stmts) == 1, 'Error. get_player_action should not produce more than one result.'
-				return [self.__rule_mod.cl_var_match_opts(None, [l_action_stmts[0]], [[0]])]
+				var_phrase = self.__rule_mod.nt_match_phrases(istage=0, b_matched=True, phrase=l_action_stmts[0])
+				return [self.__rule_mod.cl_var_match_opts(None, [var_phrase], [[0]])]
 			# The rest should be deleted
 		# for action_stmt in l_action_stmts:
 		# 	if self.__rule_mod.does_stmt_match_goal(goal_stmt, action_stmt, self.__bitvec_mgr):
@@ -74,22 +75,38 @@ class cl_gpsai_mgr(object):
 	def select_action(self, l_var_opt_objs):
 		action_selected, action_id_selected = [], -1
 		l_opt_scores = [var_opt_obj.get_best_score() for var_opt_obj in l_var_opt_objs]
-		var_opt_obj = np.random.choice(l_var_opt_objs, 1, p=l_opt_scores)
-		if var_opt_obj.get_parent_gg():
-			print('TBD. Need to calc an action id')
-			return var_opt_obj.get_l_match_phrases()[0].phrase, 0
-		l_combo = var_opt_obj.select_combo()
-		for iphrase in random.shuffle(l_combo):
-			# pick a phrase that isnt a b_matched, if its an action return it otherwise dig deeper
-			match_phrase,  = var_opt_obj.get_l_match_phrases()[iphrase]
-			if match_phrase.b_matched: continue
-			l_var_match_opt = var_opt_obj.get_ll_var_match_opts()[iphrase]
-			if l_var_match_opt == []: continue
-			action_selected, action_id_selected = self.select_action(l_var_match_opt)
-			if action_selected == []: continue
-			break
+		for var_opt_obj in sorted(l_var_opt_objs, key=lambda x: x.get_best_score() * (1. - (random.random()/3.)), reverse=True):
+			# var_opt_obj = np.random.choice(l_var_opt_objs, 1, p=l_opt_scores)[0]
+			ll_combo = var_opt_obj.get_sorted_l_combo()
+			for l_combo in ll_combo:
+				iphrase_action, l_iphrase_not_matched = -1, []
+				# Step 1. make sure that we don't have combo with one action and all the rest matched
+				# Priority for that to return
+				for iphrase in l_combo:
+					match_phrase = var_opt_obj.get_l_match_phrases()[iphrase]
+					l_var_match_opt = var_opt_obj.get_ll_var_match_opts()[iphrase]
+					if l_var_match_opt != []:
+						child_match_phrase = l_var_match_opt[0].get_l_match_phrases()[0]
+						if not match_phrase.b_matched and child_match_phrase.b_matched \
+								and l_var_match_opt[0].get_parent_gg() == None:
+							assert iphrase_action == -1, 'Rule error. There should only be one action phrase in a rule'
+							iphrase_action = iphrase
+					if iphrase_action != iphrase and not match_phrase.b_matched:
+						l_iphrase_not_matched += [iphrase]
+				if iphrase_action != -1 and l_iphrase_not_matched == []:
+					return var_opt_obj.get_l_match_phrases()[iphrase_action].phrase, action_id_selected
+				# Step 2. Dig deeper
+				for iphrase in random.sample(l_iphrase_not_matched, len(l_iphrase_not_matched)):
+					# pick a phrase that isnt a b_matched, if its an action return it otherwise dig deeper
+					match_phrase = var_opt_obj.get_l_match_phrases()[iphrase]
+					# if match_phrase.b_matched or iphrase == iphrase_action: continue
+					l_var_match_opt = var_opt_obj.get_ll_var_match_opts()[iphrase]
+					if l_var_match_opt == []: continue
+					action_selected, action_id_selected = self.select_action(l_var_match_opt)
+					if action_selected != []:
+						return action_selected, action_id_selected
 
-		return action_selected, action_id_selected
+		return [], -1
 
 	def set_player_goal_old(self, player_name, goal_stmt, db_name, phase_data):
 		l_action_stmts = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,

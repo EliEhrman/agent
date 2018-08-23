@@ -5,6 +5,7 @@ from enum import Enum
 from StringIO import StringIO
 import copy
 import collections
+import random
 import numpy as np
 
 # from rules import conn_type
@@ -415,10 +416,9 @@ class cl_var_match_opts(object):
 		self.__parent_gg = parent_gg
 		self.__l_match_phrases = l_match_phrases
 		self.__ll_match_iphrase_combos = ll_match_iphrase_combos
-		self.__l_match_phrase_scores = [] # l_match_phrase_scores
-		self.__l_combo_scores = []
-		ll_var_match_opts = [[] for _ in l_match_phrases] # for each match_phrase an array of cl_var_match_opts
-		self.__ll_var_match_opts = ll_var_match_opts # need a list for each iphrase, one for each matching rule
+		self.__l_match_phrase_scores =  [0. for _ in l_match_phrases] # l_match_phrase_scores
+		self.__l_combo_scores =  [0. for _ in ll_match_iphrase_combos]
+		self.__ll_var_match_opts = [[] for _ in l_match_phrases]  # for each match_phrase an array of cl_var_match_opts # need a list for each iphrase, one for each matching rule
 		self.__best_score = 0.
 		self.__b_score_valid = False
 
@@ -473,12 +473,12 @@ class cl_var_match_opts(object):
 
 		l_match_phrase_scores = []
 		best_score = 0.
-		for l_match_iphrase_combo in self.__ll_match_iphrase_combos:
+		for icombo, l_match_iphrase_combo in enumerate(self.__ll_match_iphrase_combos):
 			score, frac = 0., 1. / len(l_match_iphrase_combo)
 			for iphrase in l_match_iphrase_combo:
 				score += self.__l_match_phrase_scores[iphrase] * frac
 			if score > best_score: best_score = score
-			self.__l_combo_scores.append(score)
+			self.__l_combo_scores[icombo] = score
 		self.__best_score = best_score
 		self.__b_score_valid = True
 
@@ -486,6 +486,14 @@ class cl_var_match_opts(object):
 		if not self.__b_score_valid:
 			self.calc_best_score()
 		return np.random.choice(self.__ll_match_iphrase_combos, 1, p=self.__l_combo_scores)
+
+	def get_sorted_l_combo(self):
+		if not self.__b_score_valid:
+			self.calc_best_score()
+		return [match_iphrase_combo for _,match_iphrase_combo in
+				sorted(zip([r * (1. - (random.random()/5.)) for r in self.__l_combo_scores],
+						   self.__ll_match_iphrase_combos), reverse=True)]
+
 
 
 

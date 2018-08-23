@@ -521,6 +521,7 @@ class cl_bitvec_gg(object):
 		# or from the rule, whichever is tighter. If the hd max requirements mean they do not match, the rule fails
 		# right here and an None (Null) object is returned.
 		# The main loop in this blocks iters over the var table of the rule itself, not the tables we just built
+		print('TBD: Must make sure that when creating a match phrase there are no repeated els. See comment 6666')
 		l_matches, l_b_phrases_matched, l_match_phrases, l_match_bindings = [], [], [], []
 		ll_src_pat = [	[self.__l_els_rep[l_phrase_starts[istage]+iel] for iel in range(stage_len)]
 						for istage, stage_len in enumerate(self.__l_phrases_len)]
@@ -563,7 +564,7 @@ class cl_bitvec_gg(object):
 					l_vars[iopt] = l_vars[iopt]._replace(	b_bound=b_exact, b_must_bind=b_exact,
 															val=el_word, b_resolved=True,
 															cd=1.-(float(ll_hd_max[src_istage][src_iel]) / c_bitvec_size))
-					if b_exact: l_var_vals[iopt] = [[el_word]]
+					if b_exact: l_var_vals[iopt] = [el_word]
 			# end if not b_resolved
 			ll_src_pat[dest_istage][dest_iel] = ll_src_pat[src_istage][src_iel]
 			ll_hd_max[dest_istage][dest_iel] = ll_hd_max[src_istage][src_iel]
@@ -723,14 +724,18 @@ class cl_bitvec_gg(object):
 			# null_match_phrase = l_match_phrases[l_i_null_phrases[istage]]
 			for comb in itertools.product(*ll_bindings):
 				new_match_phrase = copy.deepcopy(null_match_phrase.phrase)
-				b_change_made, l_new_match_bindings = False, [istage]
+				b_change_made, b_change_missed, l_new_match_bindings = False, False, [istage]
 				for ico, comb_opt in enumerate(comb):
-					if comb_opt[1] == []: continue
+					if comb_opt[1] == []:
+						l_new_match_bindings.append(comb_opt[0])
+						b_change_missed = True
+						continue
+					# 6666 Here is where the check for el repeat should happen
 					new_match_phrase[l_iel_of_binding[ico]] = [rec_def_type.obj, comb_opt[1]]
 					l_new_match_bindings.append(comb_opt[0])
 					b_change_made = True
 				if not b_change_made: continue
-				cand_match_phrase = null_match_phrase._replace(b_matched=True, phrase=new_match_phrase)
+				cand_match_phrase = null_match_phrase._replace(b_matched=not b_change_missed, phrase=new_match_phrase)
 				if cand_match_phrase in l_match_phrases: continue
 				l_match_phrases.append(cand_match_phrase._replace(b_matched=False))
 				l_match_bindings.append(l_new_match_bindings)
@@ -746,6 +751,7 @@ class cl_bitvec_gg(object):
 			l_ivar_unbound[unbound_ivar] = iunbound
 		# l_ivar_unbound = [-1 if var.b_bound else ivar for ivar, var in enumerate(l_vars)]
 
+		print('TBD: You must make sure no var combo creates an el repeat othe that the var repeat itself')
 		l_comb_ivals = [range(len(vals)) for vals, var in zip(l_var_vals, l_vars) if not var.b_bound]
 		ll_match_iphrase_combos = []
 		for comb_ivals in itertools.product(*l_comb_ivals):

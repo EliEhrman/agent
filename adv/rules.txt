@@ -1,8 +1,10 @@
 adv rules	version	1
 rules start
-player_action_goto..	get_player_action	ml,c:f,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:go to:1.:3,l:Finland:0.:4,c:e,
+player_action_goto..	get_player_action	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:go to:1.:3,l:Finland:0.:4,c:e,
+											c:s,l:I:1.,l:am:1.,v:1,c:e,c:e,
 											c:t,v:1,v:2,v:3,v:4,mle
-player_action_pickup	get_player_action	ml,c:f,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:pick up:1.:3,l:chair:0.:4,c:e,
+player_action_pickup	get_player_action	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:pick up:1.:3,l:chair:0.:4,c:e,
+											c:s,l:I:1.,l:am:1.,v:1,c:e,c:e,
 											c:t,v:1,v:2,v:3,v:4,mle
 get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
 											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,c:e,
@@ -109,8 +111,6 @@ gen_tell_where_end..	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:
 											c:t,c:d,v:1:r,o:asked to:r,o:tell:r,v:4:r,o:where is:r,v:5:r,mle
 gen_ask_give........	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:asked:1.:2,l:Roy:0.:3,l:for:1.:4,l:chair:0.:5,c:e,
 											c:t,c:u,v:3:r,o:asked to:r,o:give:r,v:1:r,v:5:r,mle
-gen_gave............	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:gave:1.:2,l:Roy:0.:3,l:chair:0.:4,c:e,
-											c:t,c:u,v:3,o:has:r,v:4:r,mle
 knows_I_located.....	state_from_start	c:f,c:s,l:Edgar:0.:1,l:is located in:1.:2,l:Belgium:0.:3,c:e,c:t,c:i:1,v:1,v:2,v:3
 knows_located.......	state_from_start	c:f,c:a,c:s,l:Edgar:0.:1,l:is located in:1.:2,l:Belgium:0.:3,c:e,c:s,l:Roy:0.:4,v:2,v:3,c:e,c:e,c:t,c:i:4,v:1,v:2,v:3
 knows_free..........	state_from_start	c:f,c:a,c:s,l:chair:0.:1,l:is free in:1.:2,l:Belgium:0.:3,c:e,c:s,l:Edgar:0.:4,l:is located in:1.:5,v:3,c:e,c:e,c:t,c:i:4,v:1,v:2,v:3
@@ -217,3 +217,5 @@ knows_pickup........	distr_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:picked up:1.
 											c:t,c:b:7,v:1,v:2,v:3,mle
 rules end
 
+gen_gave............	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:gave:1.:2,l:Roy:0.:3,l:chair:0.:4,c:e,
+											c:t,c:u,v:3,o:has:r,v:4:r,mle

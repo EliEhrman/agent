@@ -62,12 +62,12 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 
 		# l_story_db_event_refs = []
 		# story_db = []
-		l_story_phrases = d_mod_fns['create_initial_db']()
-		for story_phrase in l_story_phrases:
+		l_db_names, l_story_phrases = d_mod_fns['create_initial_db']()
+		for db_name, story_phrase in zip(l_db_names, l_story_phrases):
 			ilen, iphrase = bitvec_mgr.add_phrase(story_phrase,
 												  (i_one_story, e_story_loop_stage.story_init,
 												   event_step_id[0]))
-			mpdb_mgr.insert(['main'], (ilen, iphrase))
+			mpdb_mgr.insert([db_name], (ilen, iphrase))
 
 		db_transfrs =  mpdb_mgr.infer(['main'], (i_one_story, story_loop_stage, event_step_id[0]),
 												['state_from_start'])
