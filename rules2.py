@@ -382,6 +382,9 @@ def build_vars_dict(phrase_list):
 def convert_wlist_to_phrases(statement_list):
 	return [[[rec_def_type.obj, item] for item in statement] for statement in statement_list]
 
+def convert_wlist_to_phrase(phrase):
+	return [[rec_def_type.obj, item] for item in phrase]
+
 def does_stmt_match_goal(stmt, goal, bitvec_mgr):
 	if len(goal) != len(stmt): return False
 	iel, bmatch = -1, True

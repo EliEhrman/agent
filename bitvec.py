@@ -480,6 +480,36 @@ class cl_bitvec_gg(object):
 					break
 		return bmatch, l_var_tbl
 
+	@staticmethod
+	def test_for_unexpected_double(l_test_phrases, d_var_opts, l_var_all_locs, l_istage):
+		d_els, btrouble = dict(), False
+		make sure the checking is on loc pairs and not iel of a single stage
+		for test_phrase in l_test_phrases:
+			for iel, full_el in enumerate(test_phrase):
+				if full_el[0] != rec_def_type.obj: continue
+				l_pos = d_els.get(full_el[1], [])
+				if l_pos == []:
+					d_els[full_el[1]] = [iel]
+				else:
+					print('Warning. Code here never tested. Please debug carefully')
+					for pos in l_pos:
+						ivar = d_var_opts.get((istage, pos), -1)
+						if ivar == -1:
+							# m_match[imatch] = False
+							return True
+							# btrouble = True
+							# break
+						else:
+							var_all_locs = l_var_all_locs[ivar]
+							if (istage, iel) not in var_all_locs:
+								# m_match[imatch] = False
+								return True
+								# btrouble = True
+								# break
+					# if btrouble:
+					# 	return True
+					d_els[full_el[1]] += [iel]
+		return btrouble
 
 	def find_var_opts(self, l_var_opts, db_name):
 		mpdb_mgr = self.__mgr.get_mpdb_mgr()
@@ -689,6 +719,11 @@ class cl_bitvec_gg(object):
 			for imatch, bmatch in enumerate(m_match):
 				if not bmatch: continue
 				l_phrase_found = self.__mgr.get_phrase(*l_story_rphrases[imatch])
+				if self.test_for_unexpected_double(rules2.convert_wlist_to_phrase(l_phrase_found), d_var_opts,
+												   l_var_all_locs, istage):
+					m_match[imatch] = False
+					continue
+				# if btrouble: continue
 				l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=True,
 														phrase=rules2.convert_wlist_to_phrases([l_phrase_found])[0]))
 				l_match_bindings.append([istage]) # + [0 for _ in l_stage_ivars[istage]])
@@ -724,7 +759,7 @@ class cl_bitvec_gg(object):
 			# null_match_phrase = l_match_phrases[l_i_null_phrases[istage]]
 			for comb in itertools.product(*ll_bindings):
 				new_match_phrase = copy.deepcopy(null_match_phrase.phrase)
-				b_change_made, b_change_missed, l_new_match_bindings = False, False, [istage]
+				b_change_made, b_change_missed, l_new_match_bindings, b_trouble = False, False, [istage], False
 				for ico, comb_opt in enumerate(comb):
 					if comb_opt[1] == []:
 						l_new_match_bindings.append(comb_opt[0])
@@ -732,9 +767,13 @@ class cl_bitvec_gg(object):
 						continue
 					# 6666 Here is where the check for el repeat should happen
 					new_match_phrase[l_iel_of_binding[ico]] = [rec_def_type.obj, comb_opt[1]]
+					if self.test_for_unexpected_double(	new_match_phrase, d_var_opts,
+														l_var_all_locs, istage):
+						b_trouble = True
+						break
 					l_new_match_bindings.append(comb_opt[0])
 					b_change_made = True
-				if not b_change_made: continue
+				if b_trouble or not b_change_made: continue
 				cand_match_phrase = null_match_phrase._replace(b_matched=not b_change_missed, phrase=new_match_phrase)
 				if cand_match_phrase in l_match_phrases: continue
 				l_match_phrases.append(cand_match_phrase._replace(b_matched=False))

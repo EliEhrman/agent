@@ -3,15 +3,13 @@
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="57" mnemonic="1" />
     <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="62" mnemonic="2" />
+    <bookmark url="file://$PROJECT_DIR$/bitvec.py" line="721" mnemonic="3" />
+    <bookmark url="file://$PROJECT_DIR$/bitvec.py" line="483" mnemonic="4" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60b20013-eebf-4dd4-a709-0b01b1d10aab" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/adv/rules.txt" beforeDir="false" afterPath="$PROJECT_DIR$/adv/rules.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/adv2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/adv_main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv_main2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvec.py" beforeDir="false" afterPath="$PROJECT_DIR$/bitvec.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gpsai.py" beforeDir="false" afterPath="$PROJECT_DIR$/gpsai.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebook.txt" beforeDir="false" afterPath="$PROJECT_DIR$/notebook.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rules2.py" beforeDir="false" afterPath="$PROJECT_DIR$/rules2.py" afterDir="false" />
     </list>
@@ -65,24 +63,26 @@
     <session id="-1833554563">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="2" />
+          <entry key="project.closed" value="4" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.5" value="1" />
+          <entry key="project.open.time.7" value="1" />
+          <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="3" />
+          <entry key="project.opened" value="5" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="Python Console" value="418" />
-          <entry key="py" value="2928" />
-          <entry key="txt" value="760" />
+          <entry key="py" value="3777" />
+          <entry key="txt" value="1830" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="760" />
-          <entry key="Python" value="3346" />
+          <entry key="PLAIN_TEXT" value="1830" />
+          <entry key="Python" value="4195" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -102,8 +102,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/adv_main2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="489">
-              <caret line="166" selection-start-line="166" selection-end-line="166" />
+            <state relative-caret-position="867">
+              <caret line="64" selection-start-line="64" selection-end-line="64" />
             </state>
           </provider>
         </entry>
@@ -120,8 +120,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/adv2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="196">
-              <caret line="125" selection-start-line="125" selection-end-line="125" />
+            <state relative-caret-position="2193">
+              <caret line="133" column="14" selection-start-line="133" selection-start-column="14" selection-end-line="133" selection-end-column="14" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -129,11 +129,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/bitvec.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="189">
-              <caret line="1320" selection-start-line="1320" selection-end-line="1320" />
+            <state relative-caret-position="90">
+              <caret line="483" column="81" selection-start-line="483" selection-start-column="81" selection-end-line="483" selection-end-column="81" />
               <folding>
                 <element signature="e#193#230#0" expanded="true" />
               </folding>
@@ -141,11 +141,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/notebook.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="591">
-              <caret line="2084" selection-start-line="2084" selection-end-line="2084" selection-end-column="58" />
+            <state relative-caret-position="35649">
+              <caret line="2097" column="109" selection-start-line="2097" selection-start-column="109" selection-end-line="2097" selection-end-column="109" />
             </state>
           </provider>
         </entry>
@@ -153,8 +153,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gpsai.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="200">
-              <caret line="108" selection-start-line="108" selection-end-line="108" />
+            <state relative-caret-position="1666">
+              <caret line="100" column="27" selection-start-line="100" selection-start-column="27" selection-end-line="100" selection-end-column="27" />
               <folding>
                 <element signature="e#430#467#0" expanded="true" />
               </folding>
@@ -165,11 +165,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rules2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="367">
-              <caret line="494" selection-start-line="494" selection-end-line="494" />
+            <state relative-caret-position="6392">
+              <caret line="384" column="27" selection-start-line="384" selection-start-column="4" selection-end-line="384" selection-end-column="27" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
-                <marker date="1535000279854" expanded="true" signature="13211:13247" ph="..." />
+                <marker date="1535116053996" expanded="true" signature="13303:13339" ph="..." />
               </folding>
             </state>
           </provider>
@@ -188,8 +188,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>l_i_unbound</find>
-      <find>\	\	\	l_match_bindings\.append\(\[istage\] \+ \[0 for _ in l_stage_ivars\[istage\]\]\)\n</find>
       <find>l_match_bindings</find>
       <find>l_phrase_found</find>
       <find>self.__name</find>
@@ -218,6 +216,8 @@
       <find>init_fun</find>
       <find>l_match_phrases</find>
       <find>conver</find>
+      <find>See comment 6666</find>
+      <find>6666</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -228,11 +228,11 @@
       <list>
         <option value="$PROJECT_DIR$/adv/rules.txt" />
         <option value="$PROJECT_DIR$/adv_main2.py" />
-        <option value="$PROJECT_DIR$/bitvec.py" />
-        <option value="$PROJECT_DIR$/rules2.py" />
         <option value="$PROJECT_DIR$/gpsai.py" />
         <option value="$PROJECT_DIR$/adv2.py" />
         <option value="$PROJECT_DIR$/notebook.txt" />
+        <option value="$PROJECT_DIR$/rules2.py" />
+        <option value="$PROJECT_DIR$/bitvec.py" />
       </list>
     </option>
   </component>
@@ -374,19 +374,26 @@
       <option name="project" value="LOCAL" />
       <updated>1534248959133</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="First version of gspai working on simple move and pick up.">
+      <created>1535016076589</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1535016076589</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="64" y="-11" width="1857" height="1092" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.1959607" />
-      <window_info id="Structure" order="1" sideWeight="0.50053704" weight="0.1959607" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49946293" weight="0.1959607" />
+      <window_info active="true" id="Structure" order="1" sideWeight="0.50053704" visible="true" weight="0.1959607" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32938644" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Debug" order="3" visible="true" weight="0.29278794" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.27664155" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -404,7 +411,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="find_var_opts doing its job on the way to unification which is not yet there." />
-    <option name="LAST_COMMIT_MESSAGE" value="find_var_opts doing its job on the way to unification which is not yet there." />
+    <MESSAGE value="First version of gspai working on simple move and pick up." />
+    <option name="LAST_COMMIT_MESSAGE" value="First version of gspai working on simple move and pick up." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -416,12 +424,12 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/bitvec.py</url>
-          <line>787</line>
+          <line>826</line>
           <option name="timeStamp" value="69" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules2.py</url>
-          <line>485</line>
+          <line>488</line>
           <option name="timeStamp" value="76" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -441,7 +449,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/bitvec.py</url>
-          <line>714</line>
+          <line>749</line>
           <option name="timeStamp" value="108" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -456,7 +464,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules2.py</url>
-          <line>481</line>
+          <line>484</line>
           <option name="timeStamp" value="137" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -473,6 +481,36 @@
           <url>file://$PROJECT_DIR$/adv_main2.py</url>
           <line>166</line>
           <option name="timeStamp" value="153" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>768</line>
+          <option name="timeStamp" value="155" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>727</line>
+          <option name="timeStamp" value="156" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>484</line>
+          <option name="timeStamp" value="158" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>489</line>
+          <option name="timeStamp" value="159" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>493</line>
+          <option name="timeStamp" value="160" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>491</line>
+          <option name="timeStamp" value="161" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -525,10 +563,55 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/adv_main2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="867">
+          <caret line="64" selection-start-line="64" selection-end-line="64" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/mpdb.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2822">
           <caret line="169" selection-start-line="169" selection-end-line="169" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2193">
+          <caret line="133" column="14" selection-start-line="133" selection-start-column="14" selection-end-line="133" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/notebook.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="35649">
+          <caret line="2097" column="109" selection-start-line="2097" selection-start-column="109" selection-end-line="2097" selection-end-column="109" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gpsai.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1666">
+          <caret line="100" column="27" selection-start-line="100" selection-start-column="27" selection-end-line="100" selection-end-column="27" />
+          <folding>
+            <element signature="e#430#467#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rules2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6392">
+          <caret line="384" column="27" selection-start-line="384" selection-start-column="4" selection-end-line="384" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+            <marker date="1535116053996" expanded="true" signature="13303:13339" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -541,56 +624,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/bitvec.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="189">
-          <caret line="1320" selection-start-line="1320" selection-end-line="1320" />
+        <state relative-caret-position="90">
+          <caret line="483" column="81" selection-start-line="483" selection-start-column="81" selection-end-line="483" selection-end-column="81" />
           <folding>
             <element signature="e#193#230#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rules2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="367">
-          <caret line="494" selection-start-line="494" selection-end-line="494" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <marker date="1535000279854" expanded="true" signature="13211:13247" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv_main2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="489">
-          <caret line="166" selection-start-line="166" selection-end-line="166" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gpsai.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="108" selection-start-line="108" selection-end-line="108" />
-          <folding>
-            <element signature="e#430#467#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="196">
-          <caret line="125" selection-start-line="125" selection-end-line="125" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/notebook.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="591">
-          <caret line="2084" selection-start-line="2084" selection-end-line="2084" selection-end-column="58" />
         </state>
       </provider>
     </entry>

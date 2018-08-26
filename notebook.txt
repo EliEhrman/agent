@@ -2083,3 +2083,16 @@ to do is go to the place where the object is free and pick it up. Issues:
 CIW:
 
 First version of gspai working on simple move and pick up.
+
+The sulution to 1,, above, is imgination. This will apply to 2. as well. If the player does not know where the desired object
+is, there will be no suggestion for where it is and hence no creation of a sub-goal to go there. The player must create
+hypotheses. This will get him moving. This will also create a way to learn rules based on such hypotheses.
+
+In the WebDiplomacy effort, we used a history of previous moves. This could be done here. However, in this specific
+case, the history of other games will include people, places and objects not allowed in this game.
+
+One, relatively generic solution, is for a game at startup to create a cloud of possible phrases. This could be whole
+phrases, individual word-sets or a middle solution of partial phrases.
+
+Meanwhile, I need to deal with 3 first for correctness. Then, I think 4 is correct, especially since imagination will create
+ever more combinatorial branching. Best to control it and use imagination whhen things are looking grim only.
