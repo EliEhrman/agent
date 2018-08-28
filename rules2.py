@@ -415,7 +415,7 @@ def does_stmt_match_goal(stmt, goal, bitvec_mgr):
 
 
 class cl_var_match_opts(object):
-	def __init__(self, parent_gg, l_match_phrases, ll_match_iphrase_combos):
+	def __init__(self, parent_gg, l_match_phrases, ll_match_iphrase_combos, parent_obj, calc_level):
 		self.__parent_gg = parent_gg
 		self.__l_match_phrases = l_match_phrases
 		self.__ll_match_iphrase_combos = ll_match_iphrase_combos
@@ -424,6 +424,14 @@ class cl_var_match_opts(object):
 		self.__ll_var_match_opts = [[] for _ in l_match_phrases]  # for each match_phrase an array of cl_var_match_opts # need a list for each iphrase, one for each matching rule
 		self.__best_score = 0.
 		self.__b_score_valid = False
+		self.__parent_obj = parent_obj
+		self.__calc_level = calc_level
+
+	def get_calc_level(self):
+		return self.__calc_level
+
+	def get_parent_obj(self):
+		return self.__parent_obj
 
 	def get_parent_gg(self):
 		return self.__parent_gg
@@ -449,9 +457,14 @@ class cl_var_match_opts(object):
 	def get_l_var_match_opts(self, iphrase):
 		return self.__ll_var_match_opts[iphrase]
 
+	def set_score_invalid(self):
+		self.__b_score_valid = False
+		if self.__parent_obj != None:
+			self.__parent_obj.set_score_invalid()
+
 	def set_var_match_opts(self, iphrase, l_var_match_objs):
 		self.__ll_var_match_opts[iphrase] = l_var_match_objs
-		self.__b_score_valid = False
+		self.set_score_invalid()
 
 	def get_best_score(self):
 		if not self.__b_score_valid:

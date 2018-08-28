@@ -482,18 +482,18 @@ class cl_bitvec_gg(object):
 
 	@staticmethod
 	def test_for_unexpected_double(l_test_phrases, d_var_opts, l_var_all_locs, l_istage):
-		d_els, btrouble = dict(), False
-		make sure the checking is on loc pairs and not iel of a single stage
-		for test_phrase in l_test_phrases:
+		d_els = dict()
+		# make sure the checking is on loc pairs and not iel of a single stage
+		for istage, test_phrase in zip(l_istage, l_test_phrases):
 			for iel, full_el in enumerate(test_phrase):
 				if full_el[0] != rec_def_type.obj: continue
 				l_pos = d_els.get(full_el[1], [])
 				if l_pos == []:
-					d_els[full_el[1]] = [iel]
+					d_els[full_el[1]] = [(istage, iel)]
 				else:
-					print('Warning. Code here never tested. Please debug carefully')
+					# print('Warning. Code here never tested. Please debug carefully')
 					for pos in l_pos:
-						ivar = d_var_opts.get((istage, pos), -1)
+						ivar = d_var_opts.get(pos, -1)
 						if ivar == -1:
 							# m_match[imatch] = False
 							return True
@@ -508,10 +508,10 @@ class cl_bitvec_gg(object):
 								# break
 					# if btrouble:
 					# 	return True
-					d_els[full_el[1]] += [iel]
-		return btrouble
+					d_els[full_el[1]] += [(istage, iel)]
+		return False
 
-	def find_var_opts(self, l_var_opts, db_name):
+	def find_var_opts(self, l_var_opts, db_name, var_obj_parent, calc_level):
 		mpdb_mgr = self.__mgr.get_mpdb_mgr()
 		idb = mpdb_mgr.get_idb_from_db_name(db_name)
 		nd_story_bins = self.__mgr.get_mpdb_bins()
@@ -551,7 +551,7 @@ class cl_bitvec_gg(object):
 		# or from the rule, whichever is tighter. If the hd max requirements mean they do not match, the rule fails
 		# right here and an None (Null) object is returned.
 		# The main loop in this blocks iters over the var table of the rule itself, not the tables we just built
-		print('TBD: Must make sure that when creating a match phrase there are no repeated els. See comment 6666')
+		# print('TBD: Must make sure that when creating a match phrase there are no repeated els. See comment 6666')
 		l_matches, l_b_phrases_matched, l_match_phrases, l_match_bindings = [], [], [], []
 		ll_src_pat = [	[self.__l_els_rep[l_phrase_starts[istage]+iel] for iel in range(stage_len)]
 						for istage, stage_len in enumerate(self.__l_phrases_len)]
@@ -719,8 +719,8 @@ class cl_bitvec_gg(object):
 			for imatch, bmatch in enumerate(m_match):
 				if not bmatch: continue
 				l_phrase_found = self.__mgr.get_phrase(*l_story_rphrases[imatch])
-				if self.test_for_unexpected_double(rules2.convert_wlist_to_phrase(l_phrase_found), d_var_opts,
-												   l_var_all_locs, istage):
+				if self.test_for_unexpected_double([rules2.convert_wlist_to_phrase(l_phrase_found)], d_var_opts,
+												   l_var_all_locs, [istage]):
 					m_match[imatch] = False
 					continue
 				# if btrouble: continue
@@ -767,8 +767,8 @@ class cl_bitvec_gg(object):
 						continue
 					# 6666 Here is where the check for el repeat should happen
 					new_match_phrase[l_iel_of_binding[ico]] = [rec_def_type.obj, comb_opt[1]]
-					if self.test_for_unexpected_double(	new_match_phrase, d_var_opts,
-														l_var_all_locs, istage):
+					if self.test_for_unexpected_double(	[new_match_phrase], d_var_opts,
+														l_var_all_locs, [istage]):
 						b_trouble = True
 						break
 					l_new_match_bindings.append(comb_opt[0])
@@ -790,11 +790,11 @@ class cl_bitvec_gg(object):
 			l_ivar_unbound[unbound_ivar] = iunbound
 		# l_ivar_unbound = [-1 if var.b_bound else ivar for ivar, var in enumerate(l_vars)]
 
-		print('TBD: You must make sure no var combo creates an el repeat othe that the var repeat itself')
+		# print('TBD: You must make sure no var combo creates an el repeat othe that the var repeat itself')
 		l_comb_ivals = [range(len(vals)) for vals, var in zip(l_var_vals, l_vars) if not var.b_bound]
 		ll_match_iphrase_combos = []
 		for comb_ivals in itertools.product(*l_comb_ivals):
-			l_phrase_found, l_match_iphrase_combo = [], []
+			l_phrases_found, l_match_iphrase_combo, btrouble = [], [], False
 			for istage in range(len(self.__l_phrases_len)):
 				stage_ivars = l_stage_ivars[istage]
 				search_key = [istage]
@@ -807,10 +807,18 @@ class cl_bitvec_gg(object):
 				else:
 					for ivar in stage_ivars:
 						search_key += [comb_ivals[l_ivar_unbound[ivar]]]
-					assert search_key in l_match_bindings, 'Error. Missing search key in l_match_bindings'
+					# assert search_key in l_match_bindings, 'Error. Missing search key in l_match_bindings'
+					if search_key not in l_match_bindings:
+						btrouble = True
+						break
 					stage_match_iphrase = l_match_bindings.index(search_key)
-				l_phrase_found.append(l_match_phrases[stage_match_iphrase].phrase)
+				l_phrases_found.append(l_match_phrases[stage_match_iphrase].phrase)
 				l_match_iphrase_combo += [stage_match_iphrase]
+				if self.test_for_unexpected_double(l_phrases_found, d_var_opts,
+												   l_var_all_locs, range(istage+1)):
+					btrouble = True
+					break
+			if btrouble: continue
 			ll_match_iphrase_combos += [l_match_iphrase_combo]
 
 		# Finally create the scores for combos of match phrases
@@ -824,7 +832,8 @@ class cl_bitvec_gg(object):
 		# 	l_match_phrase_scores.append(score)
 
 		# return [l_matches], [l_b_phrases_matched]
-		return rules2.cl_var_match_opts(self, l_match_phrases, ll_match_iphrase_combos)
+		return rules2.cl_var_match_opts(self, l_match_phrases, ll_match_iphrase_combos,
+										var_obj_parent, calc_level+1)
 
 	def is_a_match_one_stage(self, ilen, iphrase):
 		if ilen != self.__ilen:

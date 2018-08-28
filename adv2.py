@@ -14,7 +14,7 @@ c_num_agents_per_story = 5
 c_num_countries_per_story = 5
 c_num_objects_per_story = 5
 c_num_tries_per_player = 10
-c_goal_recurse_depth = 5
+c_goal_init_level_limit = 3
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
@@ -120,9 +120,13 @@ def create_initial_db_dummy():
 def get_decision_by_goal(player_name, phase_data, rule_stats):
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, [], ['get_goal_phrase'])[1][0]
-	l_var_opt_objs = __ai_mgr.set_player_goal(player_name, goal_stmt, 'main', phase_data, rec_left=c_goal_recurse_depth)
+	db_name, goal_init_level_limit = 'main', c_goal_init_level_limit
+	l_var_opt_objs = __ai_mgr.set_player_goal(	player_name, goal_stmt, db_name, phase_data,
+												var_obj_parent=None, calc_level=0,
+												calc_level_limit=goal_init_level_limit)
 	# for var_opt_obj in l_var_opt_objs: var_opt_obj.calc_best_score()
-	action_selected, action_id_selected = __ai_mgr.select_action(l_var_opt_objs)
+	action_selected, action_id_selected = \
+		__ai_mgr.select_action(l_var_opt_objs, player_name, db_name, phase_data, goal_init_level_limit)
 	return __rules_mod.convert_single_bound_phrase_to_wlist(action_selected), 0 # action_id_selected
 
 def get_num_decision_rules():
