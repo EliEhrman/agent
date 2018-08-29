@@ -100,6 +100,8 @@ gen_rule_went_to....	state_from_event	c:f,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finl
 gen_rule_now_held_in	state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:picked up:1.:2,l:chair:0.:3,c:e,
 											c:s,v:3,l:is free in:1.:5,l:Belgium:0.:6,c:e,c:e,
 											c:t,c:m,v:3,v:5:r,o:is held in,v:6,mle
+gen_gave............	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:gave:1.:2,l:Roy:0.:3,l:chair:0.:4,c:e,
+											c:t,c:u,v:3,o:has:r,v:4:r,mle
 gen_rule_now_has....	state_from_event	c:f,c:s,l:Edgar:0.:1,l:picked up:1.:2,l:chair:0.:3,c:e,c:t,c:i,v:1,o:has,v:3
 gen_has_went........	state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finland:0.:3,c:e,
 											c:s,v:1,l:has:1.:5,l:chair:0.:6,c:e,
@@ -217,5 +219,3 @@ knows_pickup........	distr_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:picked up:1.
 											c:t,c:b:7,v:1,v:2,v:3,mle
 rules end
 
-gen_gave............	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:gave:1.:2,l:Roy:0.:3,l:chair:0.:4,c:e,
-											c:t,c:u,v:3,o:has:r,v:4:r,mle

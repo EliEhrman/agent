@@ -15,6 +15,7 @@ c_num_countries_per_story = 5
 c_num_objects_per_story = 5
 c_num_tries_per_player = 10
 c_goal_init_level_limit = 3
+c_goal_max_level_limit = 7
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
@@ -125,8 +126,12 @@ def get_decision_by_goal(player_name, phase_data, rule_stats):
 												var_obj_parent=None, calc_level=0,
 												calc_level_limit=goal_init_level_limit)
 	# for var_opt_obj in l_var_opt_objs: var_opt_obj.calc_best_score()
-	action_selected, action_id_selected = \
-		__ai_mgr.select_action(l_var_opt_objs, player_name, db_name, phase_data, goal_init_level_limit)
+	for goal_level_limit in range(goal_init_level_limit, c_goal_max_level_limit+1, 2):
+		__ai_mgr.set_calc_level(goal_init_level_limit, goal_level_limit)
+		action_selected, action_id_selected = \
+			__ai_mgr.select_action(l_var_opt_objs, player_name, db_name, phase_data, goal_init_level_limit)
+		if action_selected != []:
+			break
 	return __rules_mod.convert_single_bound_phrase_to_wlist(action_selected), 0 # action_id_selected
 
 def get_num_decision_rules():
