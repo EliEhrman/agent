@@ -84,7 +84,7 @@ def init_functions():
 	return d_fns
 
 def create_initial_db():
-	l_db, l_db_names = [], []
+	l_db, l_db_names, l_db_poss = [], [], []
 
 	l_db += [[name, 'is located in', random.choice(l_countries)] for name in l_names]
 	l_db += [[o, 'is free in', random.choice(l_countries)] for o in l_objects]
@@ -93,6 +93,11 @@ def create_initial_db():
 	l_db += [['I', 'am', name] for name in l_names]
 	l_db_names += l_names
 
+	l_db_poss += [[name, 'is located in', place] for place in l_countries for name in l_names ]
+	l_db_poss += [[o, 'is free in', place] for place in l_countries for o in l_objects ]
+	l_db_poss += [[o, 'is held in', place] for place in l_countries for o in l_objects ]
+	l_db_poss += [[name, 'has', o] for o in l_objects for name in l_names ]
+	# l_db_poss += [[o, 'is free in', random.sample(l_countries, len(l_countries))] for o in l_objects]
 
 
 	return l_db_names, l_db

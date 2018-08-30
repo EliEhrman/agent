@@ -2096,3 +2096,8 @@ phrases, individual word-sets or a middle solution of partial phrases.
 
 Meanwhile, I need to deal with 3 first for correctness. Then, I think 4 is correct, especially since imagination will create
 ever more combinatorial branching. Best to control it and use imagination whhen things are looking grim only.
+
+Wednesday 29th August 2018
+
+I have done 3 and 4 above. Before doing 2., I want to implement the solution to 1. i.e. Imagination in some
+apps and history in others, This is simply a database of possible facts.
