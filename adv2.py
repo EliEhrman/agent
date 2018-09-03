@@ -93,12 +93,14 @@ def create_initial_db():
 	l_db += [['I', 'am', name] for name in l_names]
 	l_db_names += l_names
 
-	l_db_poss += [[name, 'is located in', place] for place in l_countries for name in l_names ]
-	l_db_poss += [[o, 'is free in', place] for place in l_countries for o in l_objects ]
-	l_db_poss += [[o, 'is held in', place] for place in l_countries for o in l_objects ]
-	l_db_poss += [[name, 'has', o] for o in l_objects for name in l_names ]
-	# l_db_poss += [[o, 'is free in', random.sample(l_countries, len(l_countries))] for o in l_objects]
-
+	# l_db_poss += [[name, 'is located in', place] for place in l_countries for name in l_names ]
+	# l_db_poss += [[o, 'is free in', place] for place in l_countries for o in l_objects ]
+	# l_db_poss += [[o, 'is held in', place] for place in l_countries for o in l_objects ]
+	# l_db_poss += [[name, 'has', o] for o in l_objects for name in l_names ]
+	# # l_db_poss += [[o, 'is free in', random.sample(l_countries, len(l_countries))] for o in l_objects]
+	#
+	# l_db_names += ['poss' for _ in l_db_poss]
+	# l_db += l_db_poss
 
 	return l_db_names, l_db
 
@@ -126,7 +128,7 @@ def create_initial_db_dummy():
 def get_decision_by_goal(player_name, phase_data, rule_stats):
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, [], ['get_goal_phrase'])[1][0]
-	db_name, goal_init_level_limit = 'main', c_goal_init_level_limit
+	db_name, goal_init_level_limit = player_name, c_goal_init_level_limit
 	l_var_opt_objs = __ai_mgr.set_player_goal(	player_name, goal_stmt, db_name, phase_data,
 												var_obj_parent=None, calc_level=0,
 												calc_level_limit=goal_init_level_limit)
@@ -137,6 +139,10 @@ def get_decision_by_goal(player_name, phase_data, rule_stats):
 			__ai_mgr.select_action(l_var_opt_objs, player_name, db_name, phase_data, goal_init_level_limit)
 		if action_selected != []:
 			break
+
+	if action_selected == []:
+		l_unmatched_match_phrases = []
+		__ai_mgr.get_unmatch_opts(l_var_opt_objs, player_name, db_name, l_unmatched_match_phrases)
 	return __rules_mod.convert_single_bound_phrase_to_wlist(action_selected), 0 # action_id_selected
 
 def get_num_decision_rules():

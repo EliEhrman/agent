@@ -84,6 +84,44 @@ class cl_gpsai_mgr(object):
 
 		return l_var_opt_objs
 
+	def get_unmatch_opts(self, l_var_opt_objs, player_name, db_name, l_unmatched_match_phrases):
+		# l_unmatched_match_phrases_new = []
+		l_opt_scores = [var_opt_obj.get_best_score() for var_opt_obj in l_var_opt_objs]
+		l_var_opt_objs_sorted = \
+			sorted(l_var_opt_objs, key=lambda x: x.get_best_score() * (1. - (random.random() / 3.)), reverse=True)
+		for var_opt_obj in l_var_opt_objs_sorted:
+			match_phrase_scores = var_opt_obj.get_l_match_phrase_scores()
+			l_iphrase_sorted = [sc for sc, _ in
+								sorted(	enumerate(match_phrase_scores),
+										key=lambda pair: pair[1] * (1. - (random.random() / 30.)), reverse=True)]
+			for iphrase in l_iphrase_sorted:
+				match_phrase = var_opt_obj.get_match_phrase(iphrase)
+				if match_phrase.b_matched or match_phrase.phrase in l_unmatched_match_phrases: continue
+				l_unmatched_match_phrases.append(match_phrase.phrase)
+				l_child_var_opts = var_opt_obj.get_l_var_match_opts(iphrase)
+				if l_child_var_opts == []: continue
+				self.get_unmatch_opts(l_child_var_opts, player_name, db_name, l_unmatched_match_phrases)
+
+				# for match_phrase in var_opt_obj.get_l_match_phrases():
+				# if not match_phrase.b_matched:
+				# 	if match_phrase.phrase not in l_unmatched_match_phrases:
+				# 		l_unmatched_match_phrases_new.append(match_phrase.phrase)
+				#
+				# for var_opt_obj in l_var_opt_objs_sorted:
+				# 	for l_child_var_opt_pair in var_opt_obj.get_sorted_ll_opts():
+				# 		if l_child_var_opt_pair[1] == []: continue
+				# 		if l_child_var_opt_pair[0].phrase in l_unmatched_match_phrases: continue
+				# 		if l_child_var_opt_pair[0].phrase in l_unmatched_match_phrases_new:
+				# 			# The assumption is that if it in the list, someone else has already looked at the same var_opts. No point repeating.
+				# 			l_unmatched_match_phrases.append(l_child_var_opt_pair[0].phrase)
+				# 			l_unmatched_match_phrases_new.remove(l_child_var_opt_pair[0].phrase)
+				# 		self.get_unmatch_opts(l_child_var_opt_pair[1], player_name, db_name, l_unmatched_match_phrases)
+				#
+				# l_unmatched_match_phrases += l_unmatched_match_phrases_new
+				#
+				# # extra_calc_levels = itry * 2
+				# for l_combo in ll_combo:
+
 	def select_action(self, l_var_opt_objs, player_name, db_name, phase_data, calc_level_limit_src):
 		action_selected, action_id_selected = [], -1
 		l_opt_scores = [var_opt_obj.get_best_score() for var_opt_obj in l_var_opt_objs]

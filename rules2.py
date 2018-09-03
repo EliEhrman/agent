@@ -439,6 +439,9 @@ class cl_var_match_opts(object):
 	def get_l_match_phrases(self):
 		return self.__l_match_phrases
 
+	def get_match_phrase(self, iphrase):
+		return self.__l_match_phrases[iphrase]
+
 	def get_ll_match_iphrase_combos(self):
 		return self.__ll_match_iphrase_combos
 
@@ -509,6 +512,13 @@ class cl_var_match_opts(object):
 		return [match_iphrase_combo for _,match_iphrase_combo in
 				sorted(zip([r * (1. - (random.random()/5.)) for r in self.__l_combo_scores],
 						   self.__ll_match_iphrase_combos), reverse=True)]
+
+	def get_sorted_ll_opts(self):
+		if not self.__b_score_valid:
+			self.calc_best_score()
+		return [match_phrase_with_opt for _,match_phrase_with_opt in
+				sorted(zip([r * (1. - (random.random()/5.)) for r in self.__l_match_phrase_scores],
+						   zip(self.__l_match_phrases, self.__ll_var_match_opts)), key=lambda pair: pair[0], reverse=True)]
 
 
 

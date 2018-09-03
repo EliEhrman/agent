@@ -666,26 +666,6 @@ class cl_bitvec_gg(object):
 				else:
 					l_phrase_found[iel] = [rec_def_type.like, el_word, 1. - float(hd_max) / c_bitvec_size]
 					l_b_unbound[iel], l_i_unbound[iel] = iopt != -1, iopt
-				# iopt = d_var_opts.get((istage, iel), -1)
-				# if iopt == -1 or not l_vars[iopt].b_bound:
-				# 	src_pat = self.__l_els_rep[l_phrase_starts[istage]+iel]
-				# 	hd_max = self.__l_hd_max[l_phrase_starts[istage]+iel]
-				# 	# nd_el_match_idx = np.sum(np.equal(self.__mgr.get_el_db(), src_pat), axis=1)
-				# 	nd_el_match_idx = np.argmax(np.sum(np.equal(self.__mgr.get_el_db(), src_pat), axis=1))
-				# 	el_word = self.__mgr.get_word_by_id(nd_el_match_idx)
-				# 	if hd_max == 0:
-				# 		l_phrase_found[iel] = [rec_def_type.obj, el_word]
-				# 		if iopt != -1:
-				# 			l_vars[iopt] = l_vars[iopt]._replace(b_bound=True, b_must_bind=True, val=el_word)
-				# 			l_var_vals[iopt] = [[el_word]]
-				# 	else:
-				# 		l_phrase_found[iel] = [rec_def_type.like, el_word, 1. - float(hd_max) / c_bitvec_size]
-				# 		l_b_unbound[iel], l_i_unbound[iel] = iopt != -1, iopt
-				#
-				# elif iopt != -1 and l_vars[iopt].b_bound == True and l_vars[iopt].b_must_bind == True:
-				# 	src_pat = self.__mgr.get_el_bin(l_vars[iopt].val)
-				# 	hd_max = 0
-				# 	l_phrase_found[iel] = [rec_def_type.obj, l_vars[iopt].val]
 
 				# Check for the phrase of the rule being longer than the size of the vector in the db
 				# Certainly there will noth be any matches in this case
