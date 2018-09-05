@@ -2101,3 +2101,9 @@ Wednesday 29th August 2018
 
 I have done 3 and 4 above. Before doing 2., I want to implement the solution to 1. i.e. Imagination in some
 apps and history in others, This is simply a database of possible facts.
+
+Wednesday 5th September
+
+CIW:
+
+First testing indicates imagined location working.

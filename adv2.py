@@ -24,6 +24,7 @@ __mpdb_mgr = None
 __rules_mod = None
 __ai_mgr = None
 __bitvec_mgr = None
+__rec_def_type = None
 l_names = []
 l_countries = []
 l_objects = []
@@ -55,8 +56,9 @@ def mod_init():
 	return els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt
 
 def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
-	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod
+	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod, __rec_def_type
 	__rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod = rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod
+	__rec_def_type = rules_mod.rec_def_type
 
 def get_mpdb_mgr():
 	return __mpdb_mgr
@@ -93,6 +95,22 @@ def create_initial_db():
 	l_db += [['I', 'am', name] for name in l_names]
 	l_db_names += l_names
 
+	l_db_poss += [	[	[__rec_def_type.obj, name],
+						[__rec_def_type.obj, 'is located in'],
+						[__rec_def_type.like, l_countries[0], 0.]
+					] for name in l_names ]
+	l_db_poss += [	[	[__rec_def_type.like, l_names[0], 0.],
+						[__rec_def_type.obj, 'is located in'],
+						[__rec_def_type.obj, place]
+					] for place in l_countries ]
+	l_db_poss += [	[	[__rec_def_type.obj, o],
+						[__rec_def_type.obj, 'is free in'],
+						[__rec_def_type.like, l_countries[0], 0.]
+					] for o in l_objects ]
+	l_db_poss += [	[	[__rec_def_type.like, l_objects[0], 0.],
+						[__rec_def_type.obj, 'is free in'],
+						[__rec_def_type.obj, place]
+					] for place in l_countries ]
 	# l_db_poss += [[name, 'is located in', place] for place in l_countries for name in l_names ]
 	# l_db_poss += [[o, 'is free in', place] for place in l_countries for o in l_objects ]
 	# l_db_poss += [[o, 'is held in', place] for place in l_countries for o in l_objects ]
@@ -102,7 +120,7 @@ def create_initial_db():
 	# l_db_names += ['poss' for _ in l_db_poss]
 	# l_db += l_db_poss
 
-	return l_db_names, l_db
+	return l_db_names, l_db, l_db_poss
 
 def create_initial_db_dummy():
 	global l_dummy_types, l_dummy_events, l_dummy_ruleid, g_dummy_idx
@@ -125,7 +143,7 @@ def create_initial_db_dummy():
 
 	return l_db
 
-def get_decision_by_goal(player_name, phase_data, rule_stats):
+def make_decision_by_goal(player_name, phase_data, rule_stats):
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, [], ['get_goal_phrase'])[1][0]
 	db_name, goal_init_level_limit = player_name, c_goal_init_level_limit
@@ -134,15 +152,34 @@ def get_decision_by_goal(player_name, phase_data, rule_stats):
 												calc_level_limit=goal_init_level_limit)
 	# for var_opt_obj in l_var_opt_objs: var_opt_obj.calc_best_score()
 	for goal_level_limit in range(goal_init_level_limit, c_goal_max_level_limit+1, 2):
+		l_phrase_actions_tried, l_calc_level_tried = [], []
 		__ai_mgr.set_calc_level(goal_init_level_limit, goal_level_limit)
 		action_selected, action_id_selected = \
-			__ai_mgr.select_action(l_var_opt_objs, player_name, db_name, phase_data, goal_init_level_limit)
+			__ai_mgr.select_action(	l_var_opt_objs, player_name, db_name, phase_data,
+									goal_init_level_limit, l_phrase_actions_tried, l_calc_level_tried)
 		if action_selected != []:
 			break
 
+	return l_var_opt_objs, action_selected
+
+def add_phrase_to_get_decision(player_name, phase_data, rule_stats, new_phrase):
+	__mpdb_mgr.add_phrase_text(player_name, new_phrase, phase_data)
+	_, action_selected = make_decision_by_goal(player_name, phase_data, rule_stats)
+	if action_selected == []:
+		__mpdb_mgr.remove_phrase_text(player_name, new_phrase, phase_data)
+	return action_selected
+
+
+def get_decision_by_goal(player_name, phase_data, rule_stats):
+	l_var_opt_objs, action_selected = make_decision_by_goal(player_name, phase_data, rule_stats)
+
 	if action_selected == []:
 		l_unmatched_match_phrases = []
-		__ai_mgr.get_unmatch_opts(l_var_opt_objs, player_name, db_name, l_unmatched_match_phrases)
+		__ai_mgr.get_unmatch_opts(l_var_opt_objs, player_name, player_name, l_unmatched_match_phrases)
+		if l_unmatched_match_phrases != []:
+			action_selected = \
+				__ai_mgr.add_poss_stmt(	l_unmatched_match_phrases, player_name, player_name,
+										phase_data, rule_stats, add_phrase_to_get_decision)
 	return __rules_mod.convert_single_bound_phrase_to_wlist(action_selected), 0 # action_id_selected
 
 def get_num_decision_rules():

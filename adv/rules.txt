@@ -1,5 +1,9 @@
 adv rules	version	1
 rules start
+foolme_obj_free.....	foolme_fact_test	ml,c:f,c:a,c:s,l:chair:0.:1,l:is free in:1.:2,l:Finland:0.:3,c:e,
+											c:s,l:I:1.,l:am:1.,l:Edgar:0.:6,c:e,
+											c:s,v:6,l:is located in:1.,l:Belgium:0.,c:e,c:e,
+											c:t,v:1,v:2,v:3,mle
 player_action_goto..	get_player_action	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:go to:1.:3,l:Finland:0.:4,c:e,
 											c:s,l:I:1.,l:am:1.,v:1,c:e,c:e,
 											c:t,v:1,v:2,v:3,v:4,mle

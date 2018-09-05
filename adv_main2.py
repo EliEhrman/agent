@@ -62,7 +62,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 
 		# l_story_db_event_refs = []
 		# story_db = []
-		l_db_names, l_story_phrases = d_mod_fns['create_initial_db']()
+		l_db_names, l_story_phrases, l_poss_stmts = d_mod_fns['create_initial_db']()
 		for db_name, story_phrase in zip(l_db_names, l_story_phrases):
 			ilen, iphrase = bitvec_mgr.add_phrase(story_phrase,
 												  (i_one_story, e_story_loop_stage.story_init,
@@ -78,6 +78,8 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				ilen, iphrase = bitvec_mgr.add_phrase(added_wlist,
 													  (i_one_story, story_loop_stage, event_step_id[0]))
 				mpdb_mgr.insert([db_name], (ilen, iphrase))
+
+		mpdb_mgr.set_poss_db(l_poss_stmts)
 
 		localtime = time.asctime(time.localtime(time.time()))
 

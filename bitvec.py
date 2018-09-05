@@ -1147,6 +1147,34 @@ class cl_bitvec_mgr(object):
 		self.__mpdb_mgr = None
 		self.__mpdb_bins = [] # np.zeros(shape=(0, 0),dtype=np.uint8)  # 2D np array holding all bitvecs for all phrases in story held by mpdb
 
+	def combine_templates(self, templ1, templ2):
+		if len(templ2) != len(templ2): return []
+		ret = []
+		for el1, el2 in zip(templ1, templ2):
+			if el1[0] not in [rec_def_type.obj, rec_def_type.like]: return []
+			if el2[0] not in [rec_def_type.obj, rec_def_type.like]: return []
+			if el1[0] == el2[0] and el1[0] == rec_def_type.like: return []
+			if el1[0] == el2[0] and el1[0] == rec_def_type.obj:
+				if el1[1] != el2[1]:
+					return []
+				ret.append(el1[1])
+				continue
+
+			if el1[0] == rec_def_type.like:
+				tel, el, cd_max = el1[1], el2[1], el1[2]
+			else:
+				tel, el, cd_max = el2[1], el1[1], el2[2]
+
+			hd_max = int(c_bitvec_size * (1. - cd_max))
+
+			el_bin = self.__nd_el_bin_db[self.__d_words[el]]
+			tel_bin = self.__nd_el_bin_db[self.__d_words[tel]]
+			if np.sum(np.not_equal(el_bin, tel_bin)) <= hd_max:
+				ret.append(el)
+
+		return ret
+
+
 	def add_mpdb_bins(self, ilen, iphrase):
 		bin_db = self.get_phrase_bin_db(ilen)
 		bins = bin_db[iphrase]

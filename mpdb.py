@@ -26,6 +26,7 @@ class cl_mpdb_mgr(object):
 		rule_mgr.add_to_bitvec_mgr(bitvec_mgr)
 		bitvec_mgr.set_mpdb_mgr(self)
 		self.add_db('main')
+		self.__l_poss_stmts = []
 		pass
 
 	def get_bitvec_mgr(self):
@@ -41,6 +42,7 @@ class cl_mpdb_mgr(object):
 		self.__l_srphrases = []
 		self.__ll_idb_mrks = []
 		self.add_db('main')
+		self.__l_poss_stmts = []
 
 	def add_db(self, db_name):
 		idb = len(self.__l_dbs)
@@ -53,6 +55,12 @@ class cl_mpdb_mgr(object):
 			self.__ll_idb_mrks.append([False for _ in self.__ll_idb_mrks[0]])
 
 		return idb
+
+	def set_poss_db(self, l_poss_stmts):
+		self.__l_poss_stmts = l_poss_stmts
+
+	def get_poss_db(self):
+		return self.__l_poss_stmts
 
 	def get_story_refs(self, db_name, stg_ilen):
 		idb = self.__d_dn_names.get(db_name, -1)
@@ -217,6 +225,18 @@ class cl_mpdb_mgr(object):
 			print('Warning. mpdb requested to learn rule on db', db_name, 'which doesnt exist.')
 			return
 		return self.__bitvec_mgr.learn_rule(stmt, l_results, phase_data, idb)
+
+	def add_phrase_text(self, db_name, phrase, phase_data):
+		idb = self.__d_dn_names.get(db_name, -1)
+		if idb == -1: raise ValueError('add_phrase should only be called when the db_name has already been added')
+		ilen, iphrase = self.__bitvec_mgr.add_phrase(phrase, phase_data)
+		self.insert([db_name], (ilen, iphrase), bdelay=False)
+
+	def remove_phrase_text(self, db_name, phrase, phase_data):
+		idb = self.__d_dn_names.get(db_name, -1)
+		if idb == -1: raise ValueError('add_phrase should only be called when the db_name has already been added')
+		ilen, iphrase = self.__bitvec_mgr.add_phrase(phrase, phase_data)
+		self.remove_phrase([db_name], (ilen, iphrase))
 
 	def apply_mods(self, db_name, phrase, phase_data):
 		insert_phrase, remove_phrase, m_unique_bels = self.__rules_mgr.parse_phrase_for_mod(phrase)
