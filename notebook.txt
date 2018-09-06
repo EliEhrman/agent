@@ -2107,3 +2107,7 @@ Wednesday 5th September
 CIW:
 
 First testing indicates imagined location working.
+
+From the list from Aug 23rd, done the first four. THis is left:
+
+5. Expand to all the actions
