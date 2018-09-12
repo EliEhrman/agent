@@ -80,7 +80,7 @@ class cl_gpsai_mgr(object):
 		# 	bmatch, l_var_tbl = gg.does_stmt_match_result(goal_stmt)
 
 		l_options, l_irule_opts = [], []
-		l_rules, l_rule_names = self.__bitvec_mgr.get_rules_by_cat(['state_from_event', 'event_from_decide'])
+		l_rules, l_rule_names = self.__bitvec_mgr.get_rules_by_cat(['state_from_event', 'event_from_decide', 'br_state_from_event'])
 		for irule, gg in enumerate(l_rules):
 			bmatch, l_var_tbl = gg.does_stmt_match_result(goal_stmt)
 			if bmatch:

@@ -10,6 +10,12 @@ player_action_goto..	get_player_action	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:
 player_action_pickup	get_player_action	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:pick up:1.:3,l:chair:0.:4,c:e,
 											c:s,l:I:1.,l:am:1.,v:1,c:e,c:e,
 											c:t,v:1,v:2,v:3,v:4,mle
+plyr_actn_ask_where.	get_player_action	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:ask:1.:3,l:Roy:0.:4,l:where is:1.:5,l:chair:0.:6,c:e,
+											c:s,l:I:1.,l:am:1.,v:1,c:e,c:e,
+											c:t,v:1,v:2,v:3,v:4,v:5,v:6,mle
+plyr_actn_tell_where	get_player_action	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:1.:2,l:tell:1.:3,l:Roy:0.:4,l:where is:1.:5,l:chair:0.:6,c:e,
+											c:s,l:I:1.,l:am:1.,v:1,c:e,c:e,
+											c:t,v:1,v:2,v:3,v:4,v:5,v:6,mle
 get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
 											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,c:e,
 											c:t,v:3,o:has,v:6,mle
@@ -104,7 +110,7 @@ gen_rule_went_to....	state_from_event	c:f,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finl
 gen_rule_now_held_in	state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:picked up:1.:2,l:chair:0.:3,c:e,
 											c:s,v:3,l:is free in:1.:5,l:Belgium:0.:6,c:e,c:e,
 											c:t,c:m,v:3,v:5:r,o:is held in,v:6,mle
-gen_gave............	state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:gave:1.:2,l:Roy:0.:3,l:chair:0.:4,c:e,
+gen_gave............	state_from_event_hide	ml,c:f,c:s,l:Edgar:0.:1,l:gave:1.:2,l:Roy:0.:3,l:chair:0.:4,c:e,
 											c:t,c:u,v:3,o:has:r,v:4:r,mle
 gen_rule_now_has....	state_from_event	c:f,c:s,l:Edgar:0.:1,l:picked up:1.:2,l:chair:0.:3,c:e,c:t,c:i,v:1,o:has,v:3
 gen_has_went........	state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finland:0.:3,c:e,
