@@ -570,7 +570,10 @@ class cl_bitvec_gg(object):
 			else:
 				d_var_opts[(dest_istage, dest_iel)] = iopt
 				l_var_all_locs[iopt].append((dest_istage, dest_iel))
-			var_opt = l_vars[iopt]
+
+		for iopt, var_opt in enumerate(l_vars):
+			# var_opt = l_vars[iopt]
+			src_istage, src_iel =  l_var_all_locs[iopt][0]
 			if not var_opt.b_resolved:
 				b_set_by_int = True
 				int_els_rep, int_hd_max = ll_src_pat[src_istage][src_iel], ll_hd_max[src_istage][src_iel]
@@ -596,6 +599,7 @@ class cl_bitvec_gg(object):
 															cd=1.-(float(ll_hd_max[src_istage][src_iel]) / c_bitvec_size))
 					if b_exact: l_var_vals[iopt] = [el_word]
 			# end if not b_resolved
+		for src_istage, src_iel, dest_istage, dest_iel in self.__l_wlist_vars:
 			ll_src_pat[dest_istage][dest_iel] = ll_src_pat[src_istage][src_iel]
 			ll_hd_max[dest_istage][dest_iel] = ll_hd_max[src_istage][src_iel]
 		# end loop for var in self.__l_wlist_vars
