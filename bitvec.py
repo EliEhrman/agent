@@ -710,7 +710,7 @@ class cl_bitvec_gg(object):
 				# if btrouble: continue
 				l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=True,
 														phrase=rules2.convert_wlist_to_phrases([l_phrase_found])[0]))
-				l_match_bindings.append([istage]) # + [0 for _ in l_stage_ivars[istage]])
+				l_match_bindings.append([istage]+ [0 for _ in l_stage_ivars[istage]])
 				for iel in range(phrase_len):
 					if l_b_unbound[iel]:
 						ivar = l_i_unbound[iel]
@@ -721,7 +721,8 @@ class cl_bitvec_gg(object):
 						else:
 							ivar_val = len(l_bindings)
 							l_bindings.append(var_binding)
-						l_match_bindings[-1].append(ivar_val)
+						# l_match_bindings[-1].append(ivar_val)
+						l_match_bindings[-1][1+l_stage_ivars[istage].index(ivar)] = ivar_val
 		# end loop over stages
 		# In the following block, the goal is to add match phrases that bind some of the variables
 		# but perhaps not all. These new phrases are extensions of the null phrase (that binds none
@@ -733,20 +734,23 @@ class cl_bitvec_gg(object):
 		for i_null_phrase in l_i_null_phrases:
 			null_match_phrase = l_match_phrases[i_null_phrase]
 			istage = null_match_phrase.istage
-			l_iopts, l_iel_of_binding, ll_bindings = [], [], []
+			l_iopts, l_iel_of_binding, ll_bindings, l_stage_ivar_of_pos = [], [], [], []
 			for iel in range(self.__l_phrases_len[istage]):
 				iopt = d_var_opts.get((istage, iel), -1)
 				if iopt == -1 or l_vars[iopt].b_bound: continue
 				l_iopts.append(iopt)
 				ll_bindings.append([(i,v) for i,v in enumerate(l_var_vals[iopt])])
 				l_iel_of_binding.append(iel)
+				l_stage_ivar_of_pos.append(l_stage_ivars[istage].index(iopt))
 			# null_match_phrase = l_match_phrases[l_i_null_phrases[istage]]
 			for comb in itertools.product(*ll_bindings):
 				new_match_phrase = copy.deepcopy(null_match_phrase.phrase)
-				b_change_made, b_change_missed, l_new_match_bindings, b_trouble = False, False, [istage], False
+				b_change_made, b_change_missed, b_trouble = False, False, False
+				l_new_match_bindings = [istage] + [-1 for _ in l_stage_ivars[istage]]
 				for ico, comb_opt in enumerate(comb):
 					if comb_opt[1] == []:
-						l_new_match_bindings.append(comb_opt[0])
+						# l_new_match_bindings.append(comb_opt[0])
+						l_new_match_bindings[1+l_stage_ivar_of_pos[ico]] = comb_opt[0]
 						b_change_missed = True
 						continue
 					# 6666 Here is where the check for el repeat should happen
@@ -755,7 +759,8 @@ class cl_bitvec_gg(object):
 														l_var_all_locs, [istage]):
 						b_trouble = True
 						break
-					l_new_match_bindings.append(comb_opt[0])
+					# l_new_match_bindings.append(comb_opt[0])
+					l_new_match_bindings[1 + l_stage_ivar_of_pos[ico]] = comb_opt[0]
 					b_change_made = True
 				if b_trouble or not b_change_made: continue
 				cand_match_phrase = null_match_phrase._replace(b_matched=not b_change_missed, phrase=new_match_phrase)
