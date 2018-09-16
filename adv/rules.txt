@@ -180,27 +180,27 @@ know_where_told3a...	br_state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:told:1.:2,l:R
 know_where_told4....	br_state_from_event	ml,c:f,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:0.:4,l:chair:0.:5,l:is free in:1.:6,l:Belgium:0.:7,c:e,
 											c:t,c:i:4,v:5,v:6,v:7,mle
 know_where_told5....	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:0.:4,l:chair:0.:5,l:is held in:1.:6,l:Belgium:0.:7,c:e,
-											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,
+											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,c:e,
 											c:s,l:Lee:0.:11,v:9,v:10,c:e,c:e,
 											c:t,c:d:11,v:5:r,v:6:r,v:7,mle
 know_where_told5b...	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:0.:4,l:chair:0.:5,l:is held in:1.:6,l:Belgium:0.:7,c:e,
-											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,
+											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,c:e,
 											c:s,l:Lee:0.:11,v:9,v:10,c:e,c:e,
 											c:t,c:d:11,v:5:r,o:is free in:r,v:7,mle
 know_where_told6....	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:0.:4,l:chair:0.:5,l:is held in:1.:6,l:Belgium:0.:7,c:e,
-											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,
+											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,c:e,
 											c:s,l:Lee:0.:11,v:9,v:10,c:e,c:e,
 											c:t,c:i:11,v:5:r,v:6:r,v:7,mle
 know_where_told7....	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:0.:4,l:chair:0.:5,l:is free in:1.:6,l:Belgium:0.:7,c:e,
-											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,
+											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,c:e,
 											c:s,l:Lee:0.:11,v:9,v:10,c:e,c:e,
 											c:t,c:d:11,v:5:r,v:6:r,v:7,mle
 know_where_told7b...	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:0.:4,l:chair:0.:5,l:is free in:1.:6,l:Belgium:0.:7,c:e,
-											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,
+											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,c:e,
 											c:s,l:Lee:0.:11,v:9,v:10,c:e,c:e,
 											c:t,c:d:11,v:5:r,o:is held in:r,v:7,mle
 know_where_told8....	br_state_from_event	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:told:1.:2,l:Roy:0.:4,l:chair:0.:5,l:is free in:1.:6,l:Belgium:0.:7,c:e,
-											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,
+											c:s,v:1,l:is located in:1.:9,l:Finland:0.:10,c:e,
 											c:s,l:Lee:0.:11,v:9,v:10,c:e,c:e,
 											c:t,c:i:11,v:5:r,v:6:r,v:7,mle
 knows_went_to.......	distr_from_event	c:f,c:a,c:s,l:Edgar:0.:1,l:went to:1.:2,l:Finland:0.:3,c:e,c:s,l:Roy:0.:4,l:is located in:1.:5,v:3,c:e,c:e,c:t,c:b:4,v:1,v:2,v:3
