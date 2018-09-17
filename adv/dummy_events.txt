@@ -1,5 +1,10 @@
 #	comment
-e	John	decided to	pick up	chair	pickup
+#	e	John	decided to	pick up	chair	pickup
+#	e	John	decided to	go to	Canada	goto
+#	e	James	decided to	ask	John	for	chair	ask_give
+#	d	James	give
 e	John	decided to	go to	Canada	goto
-e	James	decided to	ask	John	for	chair	ask_give
-d	John	give
+e	James	decided to	ask	John	where is	chair	ask_where
+g	John	tell_where
+g	James	goto
+g	James	pickup

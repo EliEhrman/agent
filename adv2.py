@@ -33,7 +33,7 @@ c_b_save_freq_stats= False
 c_story_len = 200
 c_num_stories = 500
 c_num_plays = 100
-c_b_dummy = False
+c_b_dummy = True # False
 l_dummy_types = []
 l_dummy_events = []
 l_dummy_ruleid = []
@@ -124,13 +124,18 @@ def create_initial_db():
 
 def create_initial_db_dummy():
 	global l_dummy_types, l_dummy_events, l_dummy_ruleid, g_dummy_idx
-	l_db = []
+	l_db, l_db_names = [], []
 
 	fh = open(c_dummy_init_fn, 'rb')
 	fr = csv.reader(fh, delimiter='\t')
 	for row in fr:
-		l_db += [row]
+		l_db += [row[1:]]
+		l_db_names += [row[0]]
 	fh.close()
+	# l_db_names += ['main' for _ in l_db]
+	# l_db += [['I', 'am', name] for name in l_names]
+	# l_db_names += l_names
+
 	fh = open(c_dummy_events_fn, 'rb')
 	fr = csv.reader(fh, delimiter='\t')
 	for row in fr:
@@ -141,9 +146,17 @@ def create_initial_db_dummy():
 		l_dummy_ruleid += [e_player_decide[row[-1]]]
 		g_dummy_idx = -1
 
-	return l_db
+	return l_db_names, l_db, []
 
 def make_decision_by_goal(player_name, phase_data, rule_stats):
+	l_compul_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
+								   player_name, ['compul_goal_actv'])[1]
+	for compul_stmt in l_compul_stmt:
+		l_poss_action = __mpdb_mgr.run_rule(__rules_mod.convert_single_bound_phrase_to_wlist(compul_stmt), phase_data,
+								   player_name, ['event_from_decide'])
+		if l_poss_action != []:
+			return [], compul_stmt
+
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, [], ['get_goal_phrase'])[1][0]
 	db_name, goal_init_level_limit = player_name, c_goal_init_level_limit
@@ -193,6 +206,9 @@ def get_decision_for_player_dummy(player_name, phase_data, rule_stats):
 		exit()
 	if l_dummy_types[g_dummy_idx] == 'e':
 		return l_dummy_events[g_dummy_idx], l_dummy_ruleid[g_dummy_idx].value-1
+
+	if l_dummy_types[g_dummy_idx] == 'g':
+		return get_decision_by_goal(l_dummy_events[g_dummy_idx][0], phase_data, rule_stats)
 
 	return get_decision_for_player(	l_dummy_events[g_dummy_idx][0], phase_data,
 									rule_stats, l_dummy_ruleid[g_dummy_idx])

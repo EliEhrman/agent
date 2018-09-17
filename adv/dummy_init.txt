@@ -1,15 +1,20 @@
-James	is located in	Canada
-John	is located in	Fiji
-Robert	is located in	Chad
-Michael	is located in	Chad
-William	is located in	Cuba
-chair	is free in	Fiji
-light	is free in	Egypt
-shoe	is free in	Chad
-bowl	is free in	Canada
-dog	is free in	Fiji
-James	wants	chair
-John	wants	light
-Robert	wants	shoe
-Michael	wants	chair
-William	wants	light
+main	James	is located in	Canada
+main	John	is located in	Fiji
+main	Robert	is located in	Chad
+main	Michael	is located in	Chad
+main	William	is located in	Cuba
+main	chair	is free in	Fiji
+main	light	is free in	Egypt
+main	shoe	is free in	Chad
+main	bowl	is free in	Canada
+main	dog	is free in	Fiji
+main	James	wants	chair
+main	John	wants	light
+main	Robert	wants	shoe
+main	Michael	wants	chair
+main	William	wants	light
+James	I	am	James
+John	I	am	John
+Robert	I	am	Robert
+Michael	I	am	Michael
+William	I	am	William

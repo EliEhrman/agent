@@ -2111,3 +2111,26 @@ First testing indicates imagined location working.
 From the list from Aug 23rd, done the first four. THis is left:
 
 5. Expand to all the actions
+
+Sunday 16th September
+
+The current path to being told is:
+l_var_opts: gg from list [0, 0] gen_rule_now_has (has) := picked up
+var_match_opts: gg from list [0, 1] pickup_decide up (picked up) : decided to
+	var_match_opts: 1 - Second phrase camera is free in Belgium
+list: match_phrase from list: [6, 0]  knows_where_told4
+	#	 tell_where_decide2 1, 13 Edgar asked to tell Daniel where is the camera
+tell_where_decide2 [1, 22 or 26] Edgar asked to tell Daniel where is the camera
+gen_ask_where [0, 0]
+ask_where_decide [0, 0]
+
+Monday 17th September
+
+Almost Erev Yom Kippur
+
+Done some tight scripted testing that creates goal-based actions including asking others where an obect is and then
+going there and then picking it up
+
+CIW
+
+Goal based actions including asking passes tight script based test.

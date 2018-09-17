@@ -88,11 +88,15 @@ class cl_gpsai_mgr(object):
 				l_irule_opts.append(irule)
 
 		l_var_opt_objs = []
-		for opt, irule in zip(l_options, l_irule_opts):
+		# dbg_sel_irule = -1
+		for iirule, (opt, irule) in enumerate(zip(l_options, l_irule_opts)):
+			# if iirule != dbg_sel_irule: continue
 			gg = l_rules[irule]
 			var_opt_obj = gg.find_var_opts(opt, db_name, var_obj_parent, calc_level)
 			if var_opt_obj == None: continue
+			# dbg_sel_iphrase = -1
 			for iphrase, match_phrase_data in enumerate(var_opt_obj.get_l_match_phrases()):
+				# if iphrase != dbg_sel_iphrase: continue
 				if not match_phrase_data.b_matched:
 					l_var_opt_objs_child = self.set_player_goal(player_name,
 																match_phrase_data.phrase, db_name,
