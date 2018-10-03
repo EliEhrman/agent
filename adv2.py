@@ -16,6 +16,7 @@ c_num_objects_per_story = 5
 c_num_tries_per_player = 10
 c_goal_init_level_limit = 3
 c_goal_max_level_limit = 7
+c_max_story_time_to_repeat = 25 # ignore the fact that an action has already be done after this much time and random when less
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
@@ -33,7 +34,7 @@ c_b_save_freq_stats= False
 c_story_len = 200
 c_num_stories = 500
 c_num_plays = 100
-c_b_dummy = True # False
+c_b_dummy = False
 l_dummy_types = []
 l_dummy_events = []
 l_dummy_ruleid = []
@@ -59,6 +60,8 @@ def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
 	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod, __rec_def_type
 	__rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod = rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod
 	__rec_def_type = rules_mod.rec_def_type
+
+	__ai_mgr.set_constants(c_goal_init_level_limit, c_goal_max_level_limit, c_max_story_time_to_repeat)
 
 def get_mpdb_mgr():
 	return __mpdb_mgr
@@ -154,7 +157,7 @@ def make_decision_by_goal(player_name, phase_data, rule_stats):
 	for compul_stmt in l_compul_stmt:
 		l_poss_action = __mpdb_mgr.run_rule(__rules_mod.convert_single_bound_phrase_to_wlist(compul_stmt), phase_data,
 								   player_name, ['event_from_decide'])
-		if l_poss_action != []:
+		if l_poss_action[1] != []:
 			return [], compul_stmt
 
 	goal_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
@@ -183,7 +186,7 @@ def add_phrase_to_get_decision(player_name, phase_data, rule_stats, new_phrase):
 	return action_selected
 
 
-def get_decision_by_goal(player_name, phase_data, rule_stats):
+def get_decision_by_goal_old(player_name, phase_data, rule_stats):
 	l_var_opt_objs, action_selected = make_decision_by_goal(player_name, phase_data, rule_stats)
 
 	if action_selected == []:
@@ -194,6 +197,9 @@ def get_decision_by_goal(player_name, phase_data, rule_stats):
 				__ai_mgr.add_poss_stmt(	l_unmatched_match_phrases, player_name, player_name,
 										phase_data, rule_stats, add_phrase_to_get_decision)
 	return __rules_mod.convert_single_bound_phrase_to_wlist(action_selected), 0 # action_id_selected
+
+def get_decision_by_goal(player_name, phase_data, rule_stats):
+	return __ai_mgr.get_decision_by_goal(player_name, phase_data, rule_stats)
 
 def get_num_decision_rules():
 	return len(e_player_decide)

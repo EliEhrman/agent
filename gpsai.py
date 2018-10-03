@@ -10,7 +10,10 @@ short-cut across the branches of the tree
 from __future__ import print_function
 import random
 import timeit
+import collections
 import numpy as np
+
+nt_past_action = collections.namedtuple('nt_past_action', 'l_phrase, last_time')
 
 total_time = 0.
 num_calls = 0
@@ -33,10 +36,21 @@ def gpsai_time_decor(fn):
 
 	return wr
 
+atime_tot, btime_tot, ctime_tot = 0,0,0
 
 class cl_gpsai_mgr(object):
 	def __init__(self):
+		self.__goal_init_level_limit = -1
+		self.__goal_max_level_limit = -1
+		self.__l_action_history = []
+		self.__curr_story_id = -1
+		self.__max_story_time_to_repeat = 1
 		pass
+
+	def set_constants(self, goal_init_level_limit, goal_max_level_limit, max_story_time_to_repeat):
+		self.__goal_init_level_limit = goal_init_level_limit
+		self.__goal_max_level_limit = goal_max_level_limit
+		self.__max_story_time_to_repeat = max_story_time_to_repeat
 
 	def set_mgrs(self, fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rule_mod):
 		self.__mpdb_mgr = mpdb_mgr
@@ -49,6 +63,7 @@ class cl_gpsai_mgr(object):
 		self.__min_calc_level = min_calc_level
 		self.__max_calc_level = max_calc_level
 
+	@gpsai_time_decor
 	def set_player_goal(self, player_name, goal_stmt, db_name, phase_data, var_obj_parent,
 						calc_level, calc_level_limit):
 		# if var_obj_parent == None:
@@ -88,7 +103,7 @@ class cl_gpsai_mgr(object):
 				l_irule_opts.append(irule)
 
 		l_var_opt_objs = []
-		# dbg_sel_irule = -1
+		# dbg_sel_irule = -1ctime
 		for iirule, (opt, irule) in enumerate(zip(l_options, l_irule_opts)):
 			# if iirule != dbg_sel_irule: continue
 			gg = l_rules[irule]
@@ -111,8 +126,8 @@ class cl_gpsai_mgr(object):
 
 		return l_var_opt_objs
 
-	def add_poss_stmt(	self, l_unmatched_match_stmts, player_name, db_name, phase_data, rule_stats,
-						decision_on_new_phrase_fn):
+	def add_poss_stmt(	self, l_unmatched_match_stmts, player_name, db_name, phase_data, rule_stats):
+						# decision_on_new_phrase_fn):
 		for stmt in l_unmatched_match_stmts:
 			poss_db = self.__mpdb_mgr.get_poss_db()
 			for poss in random.sample(poss_db, len(poss_db)) :
@@ -122,7 +137,7 @@ class cl_gpsai_mgr(object):
 														player_name, ['foolme_fact_test'])
 				if l_poss_phrases[1] != []:
 					poss_phrase = self.__rule_mod.convert_single_bound_phrase_to_wlist(l_poss_phrases[1][0])
-					action_selected = decision_on_new_phrase_fn(player_name, phase_data, rule_stats, poss_phrase)
+					action_selected = self.add_phrase_to_get_decision(player_name, phase_data, rule_stats, poss_phrase)
 					if action_selected != []: return action_selected
 
 		return []
@@ -165,9 +180,11 @@ class cl_gpsai_mgr(object):
 				# # extra_calc_levels = itry * 2
 				# for l_combo in ll_combo:
 
-	@gpsai_time_decor
+	# @gpsai_time_decor
 	def select_action(	self, l_var_opt_objs, player_name, db_name, phase_data,
 						calc_level_limit_src, l_phrases_tried, l_calc_level_tried):
+		# global atime_tot, btime_tot, ctime_tot
+		story_id, story_time, story_loop_stage, eid = phase_data
 		action_selected, action_id_selected = [], -1
 		l_opt_scores = [var_opt_obj.get_best_score() for var_opt_obj in l_var_opt_objs]
 		unrealistic_num_tries = 200
@@ -182,6 +199,8 @@ class cl_gpsai_mgr(object):
 			# extra_calc_levels = itry * 2
 			for l_combo in ll_combo:
 				iphrase_action, l_iphrase_not_matched = -1, []
+				# atime = timeit.default_timer()
+
 				# Step 1. make sure that we don't have combo with one action and all the rest matched
 				# Priority for that to return
 				for iphrase in l_combo:
@@ -196,7 +215,24 @@ class cl_gpsai_mgr(object):
 					if iphrase_action != iphrase and not match_phrase.b_matched:
 						l_iphrase_not_matched += [iphrase]
 				if iphrase_action != -1 and l_iphrase_not_matched == []:
-					return var_opt_obj.get_l_match_phrases()[iphrase_action].phrase, action_id_selected
+					selected_action_phrase = var_opt_obj.get_l_match_phrases()[iphrase_action].phrase
+					# selected_action_phrase = self.__rule_mod.convert_single_bound_phrase_to_wlist(action_selected)
+						# reject action if already in history with random
+					for past_action in self.__l_action_history:
+						if selected_action_phrase == past_action.l_phrase:
+							time_passed = story_time - past_action.last_time
+							if time_passed > self.__max_story_time_to_repeat:
+								break
+							if random.random() > (story_time - time_passed) / float(
+									self.__max_story_time_to_repeat):
+								selected_action_phrase = []
+								break
+
+					if selected_action_phrase != []:
+						self.__l_action_history.append(
+								nt_past_action(l_phrase=selected_action_phrase, last_time=story_time))
+						return selected_action_phrase, action_id_selected
+
 				# Step 2. Dig deeper
 				for iphrase in random.sample(l_iphrase_not_matched, len(l_iphrase_not_matched)):
 					# pick a phrase that isnt a b_matched, if its an action return it otherwise dig deeper
@@ -213,6 +249,7 @@ class cl_gpsai_mgr(object):
 						l_phrases_tried.append(match_phrase.phrase)
 					# if match_phrase.b_matched or iphrase == iphrase_action: continue
 					l_var_match_opt = var_opt_obj.get_ll_var_match_opts()[iphrase]
+					# atime = timeit.default_timer()
 					# go deeper if failed already
 					if l_var_match_opt == []: # and itry > 0: #
 						l_var_match_opt = self.set_player_goal(	player_name, match_phrase.phrase, db_name,
@@ -221,6 +258,8 @@ class cl_gpsai_mgr(object):
 																calc_level_limit)
 						var_opt_obj.set_var_match_opts(iphrase, l_var_match_opt)
 						# l_var_match_opt = var_opt_obj.get_ll_var_match_opts()[iphrase]
+					# btime = timeit.default_timer()
+					# atime_tot += btime - atime
 					if l_var_match_opt == []: continue
 					action_selected, action_id_selected = \
 						self.select_action(	l_var_match_opt, player_name, db_name, phase_data,
@@ -230,4 +269,87 @@ class cl_gpsai_mgr(object):
 		# end itry loop
 		return [], -1
 
+
+	# @gpsai_time_decor
+	def make_decision_by_goal(self, player_name, phase_data, rule_stats):
+		l_compul_stmt = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
+									   player_name, ['compul_goal_actv'])[1]
+		for compul_stmt in l_compul_stmt:
+			l_poss_action = self.__mpdb_mgr.run_rule(self.__rule_mod.convert_single_bound_phrase_to_wlist(compul_stmt), phase_data,
+									   player_name, ['event_from_decide'])
+			if l_poss_action[1] != []:
+				return [], compul_stmt
+
+		goal_stmt = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
+									   player_name, [], ['get_goal_phrase'])[1][0]
+		db_name = player_name
+		l_var_opt_objs = self.set_player_goal(	player_name, goal_stmt, db_name, phase_data,
+													var_obj_parent=None, calc_level=0,
+													calc_level_limit=self.__goal_init_level_limit)
+		# for var_opt_obj in l_var_opt_objs: var_opt_obj.calc_best_score()
+		for goal_level_limit in range(self.__goal_init_level_limit, self.__goal_max_level_limit+1, 2):
+			l_phrase_actions_tried, l_calc_level_tried = [], []
+			self.set_calc_level(self.__goal_init_level_limit, goal_level_limit)
+			action_selected, action_id_selected = \
+				self.select_action(	l_var_opt_objs, player_name, db_name, phase_data,
+									   self.__goal_init_level_limit, l_phrase_actions_tried, l_calc_level_tried)
+			if action_selected != []:
+				break
+
+		return l_var_opt_objs, action_selected
+
+	def add_phrase_to_get_decision(self, player_name, phase_data, rule_stats, new_phrase):
+		self.__mpdb_mgr.add_phrase_text(player_name, new_phrase, phase_data)
+		self.__bitvec_mgr.clear_all_db_arg_caches()
+		_, action_selected = self.make_decision_by_goal(player_name, phase_data, rule_stats)
+		if action_selected == []:
+			self.__mpdb_mgr.remove_phrase_text(player_name, new_phrase, phase_data)
+			self.__bitvec_mgr.clear_all_db_arg_caches()
+		return action_selected
+
+
+	def get_decision_by_goal(self, player_name, phase_data, rule_stats):
+		global atime_tot, btime_tot, ctime_tot
+		story_id, story_time, story_loop_stage, eid = phase_data
+		if story_id != self.__curr_story_id:
+			self.__curr_story_id = story_id
+			self.__l_action_history = []
+
+		atime = timeit.default_timer()
+
+		selected_action_phrase = []
+		l_var_opt_objs, action_selected = self.make_decision_by_goal(player_name, phase_data, rule_stats)
+
+		btime = timeit.default_timer()
+		atime_tot += btime - atime
+
+		if action_selected == []:
+			l_unmatched_match_phrases = []
+			self.get_unmatch_opts(l_var_opt_objs, player_name, player_name, l_unmatched_match_phrases)
+			if l_unmatched_match_phrases != []:
+				action_selected = \
+					self.add_poss_stmt(	l_unmatched_match_phrases, player_name, player_name,
+											phase_data, rule_stats) #, self.add_phrase_to_get_decision)
+
+		ctime = timeit.default_timer()
+		btime_tot += ctime - btime
+
+		if action_selected != []:
+			selected_action_phrase = self.__rule_mod.convert_single_bound_phrase_to_wlist(action_selected)
+		# 	# reject action if already in history with random
+		# 	for past_action in self.__l_action_history:
+		# 		if selected_action_phrase == past_action.l_phrase:
+		# 			time_passed = story_time - past_action.last_time
+		# 			if time_passed > self.__max_story_time_to_repeat:
+		# 				break
+		# 			if random.random() < (story_time - time_passed) / float(self.__max_story_time_to_repeat):
+		# 				selected_action_phrase = []
+		# 				break
+		#
+		# if selected_action_phrase != []:
+		# 	self.__l_action_history.append(nt_past_action(l_phrase=selected_action_phrase, last_time=story_time))
+
+		ctime_tot += timeit.default_timer()- ctime
+
+		return selected_action_phrase, 0 # action_id_selected
 

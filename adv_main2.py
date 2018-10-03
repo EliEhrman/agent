@@ -65,18 +65,18 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 		l_db_names, l_story_phrases, l_poss_stmts = d_mod_fns['create_initial_db']()
 		for db_name, story_phrase in zip(l_db_names, l_story_phrases):
 			ilen, iphrase = bitvec_mgr.add_phrase(story_phrase,
-												  (i_one_story, e_story_loop_stage.story_init,
+												  (i_one_story, -1, e_story_loop_stage.story_init,
 												   event_step_id[0]))
 			mpdb_mgr.insert([db_name], (ilen, iphrase))
 
-		db_transfrs =  mpdb_mgr.infer(['main'], (i_one_story, story_loop_stage, event_step_id[0]),
+		db_transfrs =  mpdb_mgr.infer(['main'], (i_one_story, -1, story_loop_stage, event_step_id[0]),
 												['state_from_start'])
 		for one_transfer in db_transfrs:
 			if one_transfer[0][1] == conn_type.Insert:
 				db_name = one_transfer[0][2]
 				added_wlist = rules2.convert_phrase_to_word_list([one_transfer[1:]])[0]
 				ilen, iphrase = bitvec_mgr.add_phrase(added_wlist,
-													  (i_one_story, story_loop_stage, event_step_id[0]))
+													  (i_one_story, -1, story_loop_stage, event_step_id[0]))
 				mpdb_mgr.insert([db_name], (ilen, iphrase))
 
 		mpdb_mgr.set_poss_db(l_poss_stmts)
@@ -142,7 +142,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				# 										 event_step_id[0]), rule_stats)
 				one_decide, ruleid = \
 					d_mod_fns['get_decision_for_player'](story_player_name,
-														(i_one_story, story_loop_stage,
+														(i_one_story, i_story_step, story_loop_stage,
 														 event_step_id[0]), rule_stats)
 				if one_decide == []:
 					story_loop_stage = e_story_loop_stage.decision_init
@@ -156,7 +156,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				# 											 story_step=one_decide,
 				# 											 step_effect_rules=event_from_decide_rules,
 				# 											 b_remove_mod_hdr=False)
-				_, event_as_decided =  mpdb_mgr.run_rule(one_decide, (i_one_story, story_loop_stage, event_step_id[0]),
+				_, event_as_decided =  mpdb_mgr.run_rule(one_decide, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 														'main', ['event_from_decide'])
 				if event_as_decided != []:
 					print(one_decide)
@@ -167,7 +167,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					out_str += ' **** '
 					print(out_str)
 					l_player_events.append(player_event_phrase)
-					ilen, iphrase = bitvec_mgr.add_phrase(l_player_events[-1], (i_one_story, story_loop_stage, event_step_id[0]))
+					ilen, iphrase = bitvec_mgr.add_phrase(l_player_events[-1], (i_one_story, i_story_step, story_loop_stage, event_step_id[0]))
 					#handle deletes and modifies
 					story_loop_stage = e_story_loop_stage.state1
 					# else:
@@ -190,7 +190,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					# 									gg_cont, db_cont_mgr)
 					# unindent the following to go back to rule learning
 					mpdb_mgr.learn_rule(one_decide, event_as_decided,
-										  (i_one_story, story_loop_stage, event_step_id[0]),
+										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 										  'main')
 
 
@@ -223,10 +223,10 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				learning. From the player/agent's perspective, there is no event followed by a consequence!    
 				"""
 				the_main_event = rules2.convert_phrase_to_word_list([player_event[1:]])[0]
-				_, events_transfrs =  mpdb_mgr.run_rule(the_main_event, (i_one_story, story_loop_stage, event_step_id[0]),
+				_, events_transfrs =  mpdb_mgr.run_rule(the_main_event, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 														'main', ['distr_from_event'])
 				l_dbs_to_mod, events_to_queue =  mpdb_mgr.run_rule(	the_main_event,
-																	(i_one_story, story_loop_stage, event_step_id[0]),
+																	(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 																	'main', ['state_from_event', 'br_state_from_event'])
 				mpdb_mgr.extract_mod_db(l_dbs_to_mod, events_to_queue)
 				for trnsfr in events_transfrs:
@@ -235,7 +235,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					for db_name in trnsfr[0][2:]:
 						# db_name = trnsfr[0][2]
 						trnsfr_phrase = rules2.convert_phrase_to_word_list([trnsfr[1:]])[0]
-						l_new_dbs, new_mods = mpdb_mgr.run_rule(trnsfr_phrase, (i_one_story, story_loop_stage, event_step_id[0]),
+						l_new_dbs, new_mods = mpdb_mgr.run_rule(trnsfr_phrase, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 																db_name, ['state_from_event'])
 						events_to_queue += new_mods
 						l_dbs_to_mod += l_new_dbs
@@ -251,8 +251,9 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				global complete_time
 				s = timeit.default_timer()
 				for db_name, event_result in zip(l_dbs_to_mod, events_to_queue):
-					mpdb_mgr.apply_mods(db_name, event_result, (i_one_story, story_loop_stage, event_step_id[0]))
+					mpdb_mgr.apply_mods(db_name, event_result, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]))
 				mpdb_mgr.apply_delayed_inserts()
+				bitvec_mgr.clear_all_db_arg_caches()
 					# story_db, iremoved, iadded, added_phrase = \
 					# 	rules.apply_mods(story_db, [rules.C_phrase_rec(event_result)], i_story_step)
 					# if iremoved != -1:
@@ -260,7 +261,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					# if iadded != -1:
 					# 	added_wlist = els.convert_phrase_to_word_list([added_phrase])[0]
 					# 	ilen, iphrase = bitvec_mgr.add_phrase(added_wlist,
-					# 										  (i_one_story, story_loop_stage, event_step_id[0]))
+					# 										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]))
 					# 	l_story_db_event_refs.append((ilen, iphrase))
 				print('All dbs for step', event_step_id[0], 'in story num', i_one_story, ':')
 				mpdb_mgr.show_dbs()

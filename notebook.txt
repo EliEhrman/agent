@@ -2134,3 +2134,46 @@ going there and then picking it up
 CIW
 
 Goal based actions including asking passes tight script based test.
+
+Sunday 23rd September
+
+Functionality looking correct. GPSAI guiding correctly to goto, pick up, ask if you don't know, don't keept doing the same
+thing, and invent facts if you are left with no other course of action
+
+However, it's quite slow.
+
+Narrowed the cause down to gg.find_var_opts. Which can get called 2k-20k times per decision
+
+Options:
+1. Make sure it is not called for duplicates but rather caches a precious answer
+2. Speed up the function
+
+So far, it seems that while the fn does do a search against the db, of the 7s for ~3000 calls, the db search is only 1s
+The weight of the functions (4+ s) is taken deciding that the result isn't really a match for the rule
+
+If we cache, we should consider results that depend on the db amd clear them each time the db might change and those that
+are just rule and result
+
+Tuesday 2nd September
+
+Back to work
+
+split gg from bitvec, because it got too big, was no longer focused on bitvec and gg now needs to grow caching elements
+
+Wednesday 3rd September
+
+Added caches for cl_bitvec_gg::find_var_opts. The time for 38000 calls is 8s instead of 28.
+
+Two caches. One does not depend on the db or its state and simply caches whether the match fails before the db is checked.
+The second stores the results of the function and can retrieve it from the cache if the arguments are identical. This
+cache is cleared whenever any db changes.
+
+This produced the 28->8 improvement. My intention is now to improve the set_player_goal function of gpsai.
+A cache will be used to store the tree result. However, a function must be created to apply a copy of the tree - not
+the original result.
+
+There is a known assertion failure, that a player, after picking up his objects starts creating double phrases.
+
+CIW:
+
+chaches added to find_var_opts.
