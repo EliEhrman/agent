@@ -152,6 +152,7 @@ def create_initial_db_dummy():
 	return l_db_names, l_db, []
 
 def make_decision_by_goal(player_name, phase_data, rule_stats):
+	assert False, 'Old code?'
 	l_compul_stmt = __mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 								   player_name, ['compul_goal_actv'])[1]
 	for compul_stmt in l_compul_stmt:
@@ -179,6 +180,7 @@ def make_decision_by_goal(player_name, phase_data, rule_stats):
 	return l_var_opt_objs, action_selected
 
 def add_phrase_to_get_decision(player_name, phase_data, rule_stats, new_phrase):
+	assert False, 'Old code?'
 	__mpdb_mgr.add_phrase_text(player_name, new_phrase, phase_data)
 	_, action_selected = make_decision_by_goal(player_name, phase_data, rule_stats)
 	if action_selected == []:

@@ -2154,13 +2154,13 @@ The weight of the functions (4+ s) is taken deciding that the result isn't reall
 If we cache, we should consider results that depend on the db amd clear them each time the db might change and those that
 are just rule and result
 
-Tuesday 2nd September
+Tuesday 2nd October
 
 Back to work
 
 split gg from bitvec, because it got too big, was no longer focused on bitvec and gg now needs to grow caching elements
 
-Wednesday 3rd September
+Wednesday 3rd October
 
 Added caches for cl_bitvec_gg::find_var_opts. The time for 38000 calls is 8s instead of 28.
 
@@ -2177,3 +2177,35 @@ There is a known assertion failure, that a player, after picking up his objects 
 CIW:
 
 chaches added to find_var_opts.
+
+Wednesday 10th October
+
+The creating a copy of cache entries as described above may have worked but cost a lot of time. Out of the 5s or so
+remaining (I may be counting one extra iteration so the original 28 may be 32 or so), half was creating a copy of the
+cache entry.
+
+I tried using the cache entry as is. Problem now was that the cl_var_obj tree wan no longer acyclic and infinite
+recursions were the result.
+
+Spent a lot of time trying to make sure I don't add a link that results in cyclicity. Never managed really. Perhaps
+with more effort. However, decided that whoever already has a cache entry remains null instead of adding the copy.
+
+Great! I'm down to 2.3s. Way down from ~30s. The remaining time may start closing in on real db searching. Yay!
+
+Even works. Players start moving and asking each other for stuff. All for under 300 ms per decision.
+
+However. No happy. I see no justification for having a null node in the tree because some other loser already
+created a similar node.
+
+Next attempt is to return the cache link with all its inherent cyclic graph structure. A link is always added
+even if it's a repeat or cloces a loop. Sorry.
+
+Now instead of relying on null nodes to end recursions, all recursive functions will include a recursion level and
+stop when they're allowed to go no further. Cleaning out scores in the up direction of the tree, will not go
+beyond any nodes that have invalid scores.
+
+Anyway will check in before I do this, in case I have to give up
+
+CIW:
+
+No repeated nodes. Very fast. Culling too aggressive.

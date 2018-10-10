@@ -254,6 +254,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					mpdb_mgr.apply_mods(db_name, event_result, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]))
 				mpdb_mgr.apply_delayed_inserts()
 				bitvec_mgr.clear_all_db_arg_caches()
+				gpsai_mgr.db_changed()
 					# story_db, iremoved, iadded, added_phrase = \
 					# 	rules.apply_mods(story_db, [rules.C_phrase_rec(event_result)], i_story_step)
 					# if iremoved != -1:

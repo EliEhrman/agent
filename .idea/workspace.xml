@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="106" mnemonic="1" />
-    <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="113" mnemonic="2" />
+    <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="129" mnemonic="1" />
+    <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="139" mnemonic="2" />
     <bookmark url="file://$PROJECT_DIR$/bitvec.py" line="79" mnemonic="3" />
-    <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="228" mnemonic="5" />
+    <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="257" mnemonic="5" />
+    <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="89" mnemonic="4" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60b20013-eebf-4dd4-a709-0b01b1d10aab" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/gg.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/adv2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/adv_main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv_main2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bitvec.py" beforeDir="false" afterPath="$PROJECT_DIR$/bitvec.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gpsai.py" beforeDir="false" afterPath="$PROJECT_DIR$/gpsai.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebook.txt" beforeDir="false" afterPath="$PROJECT_DIR$/notebook.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rules2.py" beforeDir="false" afterPath="$PROJECT_DIR$/rules2.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -69,30 +69,30 @@
     <session id="-1833554563">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="16" />
+          <entry key="project.closed" value="21" />
           <entry key="project.open.time.1" value="1" />
-          <entry key="project.open.time.10" value="2" />
+          <entry key="project.open.time.10" value="3" />
           <entry key="project.open.time.11" value="1" />
           <entry key="project.open.time.12" value="1" />
           <entry key="project.open.time.5" value="1" />
-          <entry key="project.open.time.6" value="1" />
-          <entry key="project.open.time.7" value="5" />
+          <entry key="project.open.time.6" value="4" />
+          <entry key="project.open.time.7" value="6" />
           <entry key="project.open.time.8" value="3" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="16" />
+          <entry key="project.opened" value="21" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="Python Console" value="841" />
-          <entry key="py" value="7731" />
-          <entry key="txt" value="4838" />
+          <entry key="Python Console" value="846" />
+          <entry key="py" value="10155" />
+          <entry key="txt" value="6533" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="4838" />
-          <entry key="Python" value="8572" />
+          <entry key="PLAIN_TEXT" value="6533" />
+          <entry key="Python" value="11001" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -115,7 +115,7 @@
         <entry file="file://$PROJECT_DIR$/adv_main2.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="178">
-              <caret line="145" selection-start-line="145" selection-end-line="145" />
+              <caret line="168" selection-start-line="168" selection-end-line="168" />
             </state>
           </provider>
         </entry>
@@ -124,10 +124,10 @@
         <entry file="file://$PROJECT_DIR$/adv2.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="178">
-              <caret line="201" selection-start-line="201" selection-end-line="201" />
+              <caret line="203" selection-start-line="203" selection-end-line="203" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1537519833027" expanded="true" signature="7684:7761" ph="..." />
+                <marker date="1539000106500" expanded="true" signature="7738:7815" ph="..." />
               </folding>
             </state>
           </provider>
@@ -149,8 +149,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/mpdb.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="527">
-              <caret line="34" column="13" selection-start-line="34" selection-start-column="13" selection-end-line="34" selection-end-column="13" />
+            <state relative-caret-position="1785">
+              <caret line="108" selection-start-line="108" selection-end-line="108" />
             </state>
           </provider>
         </entry>
@@ -158,8 +158,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gg.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="229">
-              <caret line="477" selection-start-line="477" selection-end-line="477" />
+            <state relative-caret-position="500">
+              <caret line="836" selection-start-line="836" selection-end-line="836" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
                 <marker date="1538493839515" expanded="true" signature="3350:3386" ph="..." />
@@ -172,7 +172,7 @@
         <entry file="file://$PROJECT_DIR$/notebook.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="525">
-              <caret line="2178" selection-start-line="2178" selection-end-line="2178" selection-end-column="31" />
+              <caret line="2210" selection-start-line="2210" selection-end-line="2210" selection-end-column="53" />
             </state>
           </provider>
         </entry>
@@ -180,20 +180,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gpsai.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="269">
-              <caret line="117" column="90" lean-forward="true" selection-start-line="117" selection-start-column="90" selection-end-line="117" selection-end-column="90" />
+            <state relative-caret-position="366">
+              <caret line="417" selection-start-line="417" selection-end-line="417" />
               <folding>
                 <element signature="e#430#467#0" expanded="true" />
+                <marker date="1539158941534" expanded="true" signature="2060:2103" ph="..." />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/adv/dummy_events.txt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="10" selection-start-line="10" selection-end-line="10" />
             </state>
           </provider>
         </entry>
@@ -201,11 +193,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rules2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="347">
-              <caret line="467" column="8" selection-start-line="467" selection-start-column="8" selection-end-line="467" selection-end-column="8" />
+            <state relative-caret-position="178">
+              <caret line="416" selection-start-line="416" selection-end-line="416" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
-                <marker date="1535961280885" expanded="true" signature="13714:13750" ph="..." />
+                <marker date="1539164672940" expanded="true" signature="11792:12642" ph="..." />
+                <marker date="1539164672940" expanded="true" signature="14643:14774" ph="..." />
               </folding>
             </state>
           </provider>
@@ -231,36 +224,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>wli</find>
-      <find>add_phrase_to_get_decision</find>
-      <find>make_decision_by_goal</find>
-      <find>goal_init_level_limit</find>
-      <find>c_goal_init_level_limit</find>
-      <find>phase_data</find>
-      <find>(i_one_story,</find>
-      <find>l_match_bindings</find>
-      <find>gpsai_time_decor</find>
-      <find>bv_time_decor</find>
-      <find>_tot</find>
-      <find>atime</find>
-      <find>test_start_time</find>
-      <find>rule_st</find>
-      <find>c_bitvec_gg_learn_min</find>
-      <find>c_bitvec_size</find>
-      <find>'Warning! Attempting to add a phrase twice'</find>
-      <find>calc_level</find>
-      <find>ctime_tot</find>
-      <find>ctime</find>
-      <find>gg_time_decor</find>
-      <find>var_obj_parent</find>
-      <find>db_name</find>
       <find>idb</find>
       <find>assert</find>
       <find>return</find>
       <find>atim</find>
       <find>total_time</find>
-      <find>set_player_goal</find>
+      <find>var_obj_parent</find>
       <find>atime_tot</find>
+      <find>__parent_obj</find>
+      <find>ctime_tot</find>
+      <find>get_unmatch_opts</find>
+      <find>__player_goal_arg_cache</find>
+      <find>cl_var</find>
+      <find>set_l_var_match_opts</find>
+      <find>__ll_var_match_opts</find>
+      <find>get_sorted_ll_opts</find>
+      <find>set_score_invalid</find>
+      <find>make_decision_by_goal</find>
+      <find>add_phrase_to_get_decision</find>
+      <find>get_ll_var_match_opts</find>
+      <find>set_player_goal</find>
+      <find>l_var_match_opt</find>
+      <find>cl_var_match_opt_cont</find>
+      <find>__l_var_match_opt_conts</find>
+      <find>get_l_var_match_opt_conts</find>
+      <find>get_var_match_opt_conts</find>
+      <find>set_cont</find>
+      <find>add_parent_obj</find>
+      <find>__l_parent_objs</find>
+      <find>get_l_var_match_opts</find>
+      <find>l_calc_level_tried</find>
     </findStrings>
     <replaceStrings>
       <replace>self.bitvec_size</replace>
@@ -272,16 +265,16 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/rules2.py" />
         <option value="$PROJECT_DIR$/mpdb.py" />
         <option value="$PROJECT_DIR$/adv/dummy_init.txt" />
         <option value="$PROJECT_DIR$/adv/rules.txt" />
         <option value="$PROJECT_DIR$/adv/dummy_events.txt" />
         <option value="$PROJECT_DIR$/adv2.py" />
-        <option value="$PROJECT_DIR$/adv_main2.py" />
         <option value="$PROJECT_DIR$/bitvec.py" />
         <option value="$PROJECT_DIR$/gg.py" />
+        <option value="$PROJECT_DIR$/adv_main2.py" />
         <option value="$PROJECT_DIR$/gpsai.py" />
+        <option value="$PROJECT_DIR$/rules2.py" />
         <option value="$PROJECT_DIR$/notebook.txt" />
       </list>
     </option>
@@ -440,7 +433,14 @@
       <option name="project" value="LOCAL" />
       <updated>1537193439802</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="chaches added to find_var_opts.">
+      <created>1538560941306</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1538560941306</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -473,20 +473,21 @@
     <MESSAGE value="First version of gspai working on simple move and pick up." />
     <MESSAGE value="First testing indicates imagined location working." />
     <MESSAGE value="Goal based actions including asking passes tight script based test." />
-    <option name="LAST_COMMIT_MESSAGE" value="Goal based actions including asking passes tight script based test." />
+    <MESSAGE value="chaches added to find_var_opts." />
+    <option name="LAST_COMMIT_MESSAGE" value="chaches added to find_var_opts." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules2.py</url>
-          <line>504</line>
+          <line>581</line>
           <option name="timeStamp" value="76" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="calc_level == 0" language="Python" />
           <url>file://$PROJECT_DIR$/gpsai.py</url>
-          <line>126</line>
+          <line>176</line>
           <option name="timeStamp" value="107" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -496,17 +497,17 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules2.py</url>
-          <line>500</line>
+          <line>577</line>
           <option name="timeStamp" value="137" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>198</line>
+          <line>200</line>
           <option name="timeStamp" value="138" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/gpsai.py</url>
-          <line>233</line>
+          <line>286</line>
           <option name="timeStamp" value="147" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -516,42 +517,42 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>193</line>
+          <line>195</line>
           <option name="timeStamp" value="188" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/gpsai.py</url>
-          <line>142</line>
+          <line>192</line>
           <option name="timeStamp" value="227" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>184</line>
+          <line>186</line>
           <option name="timeStamp" value="230" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>185</line>
+          <line>187</line>
           <option name="timeStamp" value="231" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>178</line>
+          <line>179</line>
           <option name="timeStamp" value="233" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>189</line>
+          <line>191</line>
           <option name="timeStamp" value="234" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>162</line>
+          <line>163</line>
           <option name="timeStamp" value="235" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>197</line>
+          <line>199</line>
           <option name="timeStamp" value="236" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -567,33 +568,33 @@
         <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="gg.get_name() == 'ask_where_decide'" language="Python" />
           <url>file://$PROJECT_DIR$/gpsai.py</url>
-          <line>109</line>
+          <line>150</line>
           <option name="timeStamp" value="272" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <condition expression="goal_phrase[:3] == ['James', 'decided to', 'ask']" language="Python" />
           <url>file://$PROJECT_DIR$/gpsai.py</url>
-          <line>77</line>
+          <line>108</line>
           <option name="timeStamp" value="277" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>158</line>
+          <line>159</line>
           <option name="timeStamp" value="278" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>216</line>
+          <line>218</line>
           <option name="timeStamp" value="279" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/gpsai.py</url>
-          <line>353</line>
+          <line>417</line>
           <option name="timeStamp" value="290" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/gpsai.py</url>
-          <line>217</line>
+          <line>270</line>
           <option name="timeStamp" value="292" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -613,8 +614,19 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/gpsai.py</url>
-          <line>317</line>
+          <line>381</line>
           <option name="timeStamp" value="350" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules2.py</url>
+          <line>534</line>
+          <option name="timeStamp" value="353" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <condition expression="parent_obj._cl_var_match_opts__obj_id == 9" language="Python" />
+          <url>file://$PROJECT_DIR$/rules2.py</url>
+          <line>426</line>
+          <option name="timeStamp" value="363" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -625,6 +637,7 @@
         <watch expression="total_time" />
         <watch expression="num_calls" />
         <watch expression="atime_tot" />
+        <watch expression="parent_var_obj._cl_var_match_opts__obj_id" />
       </configuration>
     </watches-manager>
   </component>
@@ -655,52 +668,62 @@
     </expressions>
     <expressions id="breakpointCondition">
       <expression>
-        <expression-string>calc_level == 0</expression-string>
+        <expression-string>first_parent_obj == None</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>gg.get_name() == 'ask_where_decide'</expression-string>
+        <expression-string>first_parent_obj != None and first_parent_obj._cl_var_match_opts__obj_id == 9</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>goal_phrase[:3] == ['James', 'decided to', 'ask']</expression-string>
+        <expression-string>var_opt_obj!= None and var_opt_obj._cl_var_match_opts__obj_id == 43</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>goal_phrase[:3]</expression-string>
+        <expression-string>var_opt_obj._cl_var_match_opts__obj_id == 43</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>irule==3</expression-string>
+        <expression-string>_cl_var_match_opts__obj_id == 43</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>irule==16</expression-string>
+        <expression-string>parent_obj._cl_var_match_opts__obj_id == 9</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>stmt[0][1] == 'camera'</expression-string>
+        <expression-string>first_parent_obj._cl_var_match_opts__obj_id == 9</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>calc_level_limit &gt; 3</expression-string>
+        <expression-string>first_parent_obj.__obj_id == 9</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>c</expression-string>
+        <expression-string>parent_obj.__obj_id == 9</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>parent_obj == None</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
     </expressions>
     <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>cl_var_match_opts.num_apply_cache_calls</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>l_match_phrases_che</expression-string>
         <language-id>Python</language-id>
@@ -741,11 +764,6 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>random.sample(poss_db, len(poss_db))</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
@@ -776,6 +794,13 @@
     <entry file="file:///usr/lib/python2.7/timeit.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/adv/dummy_events.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" selection-start-line="10" selection-end-line="10" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/bitvec.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2958">
@@ -789,15 +814,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/mpdb.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="527">
-          <caret line="34" column="13" selection-start-line="34" selection-start-column="13" selection-end-line="34" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv/dummy_events.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="10" selection-start-line="10" selection-end-line="10" />
+        <state relative-caret-position="1785">
+          <caret line="108" selection-start-line="108" selection-end-line="108" />
         </state>
       </provider>
     </entry>
@@ -808,39 +826,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/adv_main2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="178">
-          <caret line="145" selection-start-line="145" selection-end-line="145" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="178">
-          <caret line="201" selection-start-line="201" selection-end-line="201" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-            <marker date="1537519833027" expanded="true" signature="7684:7761" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rules2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="347">
-          <caret line="467" column="8" selection-start-line="467" selection-start-column="8" selection-end-line="467" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-            <marker date="1535961280885" expanded="true" signature="13714:13750" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gg.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="229">
-          <caret line="477" selection-start-line="477" selection-end-line="477" />
+        <state relative-caret-position="500">
+          <caret line="836" selection-start-line="836" selection-end-line="836" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
             <marker date="1538493839515" expanded="true" signature="3350:3386" ph="..." />
@@ -848,12 +837,43 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/adv2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="203" selection-start-line="203" selection-end-line="203" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+            <marker date="1539000106500" expanded="true" signature="7738:7815" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rules2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="416" selection-start-line="416" selection-end-line="416" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+            <marker date="1539164672940" expanded="true" signature="11792:12642" ph="..." />
+            <marker date="1539164672940" expanded="true" signature="14643:14774" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv_main2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="168" selection-start-line="168" selection-end-line="168" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/gpsai.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="269">
-          <caret line="117" column="90" lean-forward="true" selection-start-line="117" selection-start-column="90" selection-end-line="117" selection-end-column="90" />
+        <state relative-caret-position="366">
+          <caret line="417" selection-start-line="417" selection-end-line="417" />
           <folding>
             <element signature="e#430#467#0" expanded="true" />
+            <marker date="1539158941534" expanded="true" signature="2060:2103" ph="..." />
           </folding>
         </state>
       </provider>
@@ -861,7 +881,7 @@
     <entry file="file://$PROJECT_DIR$/notebook.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="525">
-          <caret line="2178" selection-start-line="2178" selection-end-line="2178" selection-end-column="31" />
+          <caret line="2210" selection-start-line="2210" selection-end-line="2210" selection-end-column="53" />
         </state>
       </provider>
     </entry>

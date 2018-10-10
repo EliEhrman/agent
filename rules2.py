@@ -412,20 +412,56 @@ def does_stmt_match_goal(stmt, goal, bitvec_mgr):
 	return bmatch
 
 
+class cl_var_match_opt_cont(object):
+	def __init__(self, l_var_match_opt_objs, calc_level, first_parent_obj):
+		self.__l_var_match_opt_objs = l_var_match_opt_objs
+		self.__calc_level = calc_level
+		self.__l_parent_objs = [first_parent_obj]
+		for var_opt_obj in l_var_match_opt_objs:
+			var_opt_obj.set_cont(self)
+
+	def get_calc_level(self):
+		return self.__calc_level
+
+	def add_parent_obj(self, parent_obj):
+		self.__l_parent_objs.append(parent_obj)
+
+	def get_var_match_opt_objs(self):
+		return self.__l_var_match_opt_objs
+
+	def set_score_invalid(self):
+		for parent_var_obj in self.__l_parent_objs:
+			if parent_var_obj != None:
+				parent_var_obj.set_score_invalid()
+
+	def loop_check(self, test_cont):
+		for parent_var_obj in self.__l_parent_objs:
+			if parent_var_obj == None: continue
+			elif parent_var_obj.loop_check(test_cont):
+				return True
+			else: continue
+		return False
 
 
 class cl_var_match_opts(object):
+	num_apply_cache_calls = 0
+	max_obj_id = 0
+
 	def __init__(self, parent_gg, l_match_phrases, ll_match_iphrase_combos, parent_obj, calc_level):
 		self.__parent_gg = parent_gg
 		self.__l_match_phrases = l_match_phrases
 		self.__ll_match_iphrase_combos = ll_match_iphrase_combos
 		self.__l_match_phrase_scores =  [0. for _ in l_match_phrases] # l_match_phrase_scores
 		self.__l_combo_scores =  [0. for _ in ll_match_iphrase_combos]
-		self.__ll_var_match_opts = [[] for _ in l_match_phrases]  # for each match_phrase an array of cl_var_match_opts # need a list for each iphrase, one for each matching rule
+		# self.__ll_var_match_opts = [[] for _ in l_match_phrases]  # for each match_phrase an array of cl_var_match_opts
+		self.__l_var_match_opt_conts = [[] for _ in l_match_phrases]  # for each match_phrase an cl_var_match_opt_cont # need a list of var_match_objs for each iphrase, one for each matching rule
 		self.__best_score = 0.
 		self.__b_score_valid = False
-		self.__parent_obj = parent_obj
+		# self.__parent_obj = parent_obj
 		self.__calc_level = calc_level
+		self.__cont = []
+		self.__obj_id = cl_var_match_opts.max_obj_id
+		cl_var_match_opts.max_obj_id += 1
 
 	def get_calc_level(self):
 		return self.__calc_level
@@ -451,23 +487,63 @@ class cl_var_match_opts(object):
 	def get_match_phrase_score(self, iphrase):
 		return self.__l_match_phrase_scores[iphrase]
 
+	def set_cont(self, cont):
+		assert self.__cont == [], 'Warning. Setting a cont where there is already one set.'
+		self.__cont = cont
 	# def set_match_phrase_score(self, iphrase, score):
 	# 	self.__l_match_phrase_scores[iphrase] = score
 
-	def get_ll_var_match_opts(self):
-		return self.__ll_var_match_opts
+	def get_l_var_match_opt_conts(self):
+		return self.__l_var_match_opt_conts
+
+	def get_var_match_opt_conts(self, iphrase):
+		return self.__l_var_match_opt_conts[iphrase]
 
 	def get_l_var_match_opts(self, iphrase):
-		return self.__ll_var_match_opts[iphrase]
+		cont = self.__l_var_match_opt_conts[iphrase]
+		if cont == [] or cont == None: return []
+		return cont.get_var_match_opt_objs()
+	# def get_cont_var_match_opts(self, iphrase):
 
 	def set_score_invalid(self):
 		self.__b_score_valid = False
-		if self.__parent_obj != None:
-			self.__parent_obj.set_score_invalid()
+		if self.__cont != []:
+			self.__cont.set_score_invalid()
 
-	def set_var_match_opts(self, iphrase, l_var_match_objs):
-		self.__ll_var_match_opts[iphrase] = l_var_match_objs
-		self.set_score_invalid()
+	def loop_check(self, test_cont):
+		if self.__cont == []:
+			return False
+		elif self.__cont == test_cont:
+			return True
+		else:
+			return self.__cont.loop_check(test_cont)
+
+	def set_var_match_opts(self, iphrase, var_match_obj_cont):
+		# self.__ll_var_match_opts[iphrase] = l_var_match_objs
+		if var_match_obj_cont != [] and not self.loop_check(var_match_obj_cont):
+			self.__l_var_match_opt_conts[iphrase] = var_match_obj_cont
+			self.set_score_invalid()
+
+	# def set_l_var_match_opts(self, ll_var_match_objs):
+	# 	self.__ll_var_match_opts = ll_var_match_objs
+	# 	self.set_score_invalid()
+
+	def apply_cached_var_match_objs(self, l_cache_var_opt_objs, calc_level, calc_level_limit):
+		assert False, 'Old code?'
+		if calc_level >= calc_level_limit: return [] # [[] for _ in l_cache_var_opt_objs]
+		cl_var_match_opts.num_apply_cache_calls += 1
+		l_var_opt_objs = []
+		for var_opt_obj in l_cache_var_opt_objs:
+			var_opt_obj_copy = cl_var_match_opts(var_opt_obj.get_parent_gg(), copy.deepcopy(var_opt_obj.get_l_match_phrases()),
+													copy.deepcopy(var_opt_obj.get_ll_match_iphrase_combos()),
+													self, calc_level+1)
+			for iphrase, l_var_match_opts in enumerate(var_opt_obj.get_ll_var_match_opts()):
+				l_var_match_opts_copy = \
+					var_opt_obj_copy.apply_cached_var_match_objs(l_var_match_opts, calc_level+1, calc_level_limit)
+				var_opt_obj_copy.set_var_match_opts(iphrase, l_var_match_opts_copy)
+			l_var_opt_objs.append(var_opt_obj_copy)
+			# need a set_var_match_opts here b_top_call?
+		return l_var_opt_objs
 
 	def get_best_score(self):
 		if not self.__b_score_valid:
@@ -484,10 +560,11 @@ class cl_var_match_opts(object):
 		for iphrase, match_phrase in enumerate(self.__l_match_phrases):
 			if match_phrase.b_matched:
 				self.__l_match_phrase_scores[iphrase] = 1.
-			elif self.__ll_var_match_opts[iphrase] == []:
+			elif self.__l_var_match_opt_conts[iphrase] == []:
 				self.__l_match_phrase_scores[iphrase] = 0.
 			else:
-				max_child_score = max(self.__ll_var_match_opts[iphrase], key=lambda x: x.get_best_score()).get_best_score()
+				l_var_match_opts = self.get_var_match_opt_conts(iphrase).get_var_match_opt_objs()
+				max_child_score = max(l_var_match_opts, key=lambda x: x.get_best_score()).get_best_score()
 				self.__l_match_phrase_scores[iphrase] = max_child_score
 
 		l_match_phrase_scores = []
@@ -513,12 +590,12 @@ class cl_var_match_opts(object):
 				sorted(zip([r * (1. - (random.random()/5.)) for r in self.__l_combo_scores],
 						   self.__ll_match_iphrase_combos), reverse=True)]
 
-	def get_sorted_ll_opts(self):
-		if not self.__b_score_valid:
-			self.calc_best_score()
-		return [match_phrase_with_opt for _,match_phrase_with_opt in
-				sorted(zip([r * (1. - (random.random()/5.)) for r in self.__l_match_phrase_scores],
-						   zip(self.__l_match_phrases, self.__ll_var_match_opts)), key=lambda pair: pair[0], reverse=True)]
+	# def get_sorted_ll_opts(self):
+	# 	if not self.__b_score_valid:
+	# 		self.calc_best_score()
+	# 	return [match_phrase_with_opt for _,match_phrase_with_opt in
+	# 			sorted(zip([r * (1. - (random.random()/5.)) for r in self.__l_match_phrase_scores],
+	# 					   zip(self.__l_match_phrases, self.__ll_var_match_opts)), key=lambda pair: pair[0], reverse=True)]
 
 
 
