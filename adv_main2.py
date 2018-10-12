@@ -170,7 +170,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					ilen, iphrase = bitvec_mgr.add_phrase(l_player_events[-1], (i_one_story, i_story_step, story_loop_stage, event_step_id[0]))
 					#handle deletes and modifies
 					story_loop_stage = e_story_loop_stage.state1
-					# else:
+				# else:
 					# 	event_as_decided = []
 					# 	print('Event blocked!')
 					# 	story_loop_stage = e_story_loop_stage.decision
@@ -225,9 +225,11 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				the_main_event = rules2.convert_phrase_to_word_list([player_event[1:]])[0]
 				_, events_transfrs =  mpdb_mgr.run_rule(the_main_event, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 														'main', ['distr_from_event'])
+				result_rule_names = []
 				l_dbs_to_mod, events_to_queue =  mpdb_mgr.run_rule(	the_main_event,
 																	(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
-																	'main', ['state_from_event', 'br_state_from_event'])
+																	'main', ['state_from_event', 'br_state_from_event'],
+																	[], result_rule_names)
 				mpdb_mgr.extract_mod_db(l_dbs_to_mod, events_to_queue)
 				for trnsfr in events_transfrs:
 					if trnsfr[0][1] != conn_type.Broadcast or len(trnsfr[0]) <= 2:
@@ -235,8 +237,9 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					for db_name in trnsfr[0][2:]:
 						# db_name = trnsfr[0][2]
 						trnsfr_phrase = rules2.convert_phrase_to_word_list([trnsfr[1:]])[0]
-						l_new_dbs, new_mods = mpdb_mgr.run_rule(trnsfr_phrase, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
-																db_name, ['state_from_event'])
+						l_new_dbs, new_mods = mpdb_mgr.run_rule(trnsfr_phrase, (i_one_story, i_story_step,
+																				story_loop_stage, event_step_id[0]),
+																db_name, ['state_from_event'], [], result_rule_names)
 						events_to_queue += new_mods
 						l_dbs_to_mod += l_new_dbs
 				# do_learn_rule_from_step(events_to_queue, event_step_id, story_db, player_event[1:], '',

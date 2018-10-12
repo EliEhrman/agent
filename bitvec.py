@@ -146,6 +146,7 @@ class cl_bitvec_mgr(object):
 
 
 	def add_mpdb_bins(self, ilen, iphrase):
+		# self.debug_test_mpdb_bins()
 		bin_db = self.get_phrase_bin_db(ilen)
 		bins = bin_db[iphrase]
 		if self.__mpdb_bins == []:
@@ -158,7 +159,7 @@ class cl_bitvec_mgr(object):
 			grow = self.__mpdb_bins.shape[1] - bins.shape[0]
 			bins = np.pad(bins, (0, grow), 'constant')
 		self.__mpdb_bins = np.vstack((self.__mpdb_bins, bins))
-		# self.debug_test_mpdb_bins()
+		self.debug_test_mpdb_bins()
 
 		pass
 
@@ -180,9 +181,17 @@ class cl_bitvec_mgr(object):
 
 	def update_mpdb_bins(self, iupdate, rphrase):
 		new_bin = self.get_phrase_bin(*rphrase)
-		if new_bin.shape[0] < self.__mpdb_bins.shape[1]:
+		# if new_bin.shape[0] < self.__mpdb_bins.shape[1]:
+		# 	grow = self.__mpdb_bins.shape[1] - new_bin.shape[0]
+		# 	self.__mpdb_bins[iupdate] = np.pad(new_bin, (0, grow), 'constant')
+		if new_bin.shape[0] > self.__mpdb_bins.shape[1]:
+			grow = new_bin.shape[0] - self.__mpdb_bins.shape[1]
+			self.__mpdb_bins  = np.pad(self.__mpdb_bins, ((0,0), (0, grow)), 'constant')
+		elif new_bin.shape[0] < self.__mpdb_bins.shape[1]:
 			grow = self.__mpdb_bins.shape[1] - new_bin.shape[0]
-			self.__mpdb_bins[iupdate] = np.pad(new_bin, (0, grow), 'constant')
+			new_bin = np.pad(new_bin, (0, grow), 'constant')
+		self.__mpdb_bins[iupdate] = new_bin
+
 
 
 	def clear_mpdb_bins(self):
@@ -553,11 +562,11 @@ class cl_bitvec_mgr(object):
 		return self._run_rule(phrase, ilen, iphrase, idb, l_rule_cats)
 
 	# @bv_time_decor
-	def run_rule(self, stmt, phase_data, idb, l_rule_cats, l_rule_names=[]):
+	def run_rule(self, stmt, phase_data, idb, l_rule_cats, l_rule_names=[], l_result_rule_names=[]):
 		phrase = stmt # els.convert_phrase_to_word_list([stmt])[0]
 		ilen, iphrase = self.__add_phrase(phrase, phase_data)
 		return self._run_rule(	phrase, ilen, iphrase, idb,
-								l_rule_cats, l_rule_names)
+								l_rule_cats, l_rule_names, l_result_rule_names)
 
 	def get_rules_by_cat(self, l_rule_cats):
 		l_use_rules_ids = []
@@ -569,7 +578,7 @@ class cl_bitvec_mgr(object):
 
 
 	# @bv_time_decor
-	def _run_rule(	self, phrase, ilen, iphrase, idb, l_rule_cats, l_rule_names=[]):
+	def _run_rule(	self, phrase, ilen, iphrase, idb, l_rule_cats, l_rule_names=[], l_result_rule_names=[]):
 		# d_story_len_refs = self.__mpdb_mgr.get_d_story_len_refs(idb)
 		len_phrase_bin_db = self.get_phrase_bin_db(ilen)
 		phrase_bin = len_phrase_bin_db[iphrase]
@@ -600,7 +609,9 @@ class cl_bitvec_mgr(object):
 			# gg.update_stats(phrase, l_results)
 			if gg.get_num_stages() == 1:
 				one_result = gg.make_result([phrase])
-				results.append(one_result) if one_result != [] else None
+				if one_result != []:
+					results.append(one_result)
+					l_result_rule_names.append(gg.get_name())
 				continue
 
 			l_match_paths, _ = gg.find_matches(phrase, phrase_bin, self.__mpdb_mgr, idb)
@@ -610,7 +621,9 @@ class cl_bitvec_mgr(object):
 				continue
 			for match_path in l_match_paths:
 				one_result = gg.make_result(match_path)
-				if one_result != []: results.append(one_result)
+				if one_result != []:
+					results.append(one_result)
+					l_result_rule_names.append(gg.get_name())
 
 
 		return results
@@ -697,12 +710,16 @@ class cl_bitvec_mgr(object):
 			word_id = self.add_new_word(word, proposal)
 		return word_id
 
+	keep_going_num_calls = 0
+	keep_going_num_words_changed = 0
+
 	def keep_going(self, phrase):
 		phrase_bin_db, d_words, s_word_bit_db, d_lens, l_phrases, l_word_counts, l_word_phrase_ids =\
 			self.__phrase_bin_db, self.__d_words, self.__s_word_bit_db, \
 			self.__d_lens, self.__l_phrases, self.__l_word_counts, self.__l_word_phrase_ids
 		# phrase_bin_db = build_phrase_bin_db(s_phrase_lens, l_phrases, nd_el_bin_db, d_words)
 		# l_change_db = [[[0.0 for _ in xrange(c_bitvec_size)], 0.0] for _ in l_word_counts]
+		cl_bitvec_mgr.keep_going_num_calls += 1
 		num_changed = 0
 		phrase_len = len(phrase)
 		ilen = d_lens.get(phrase_len, -1)
@@ -754,14 +771,27 @@ class cl_bitvec_mgr(object):
 
 		l_rphrase_changed = []
 		for word_changed in changed_words:
+			cl_bitvec_mgr.keep_going_num_words_changed += 1
 			iword = d_words[word_changed]
-			l_rphrase_changed = change_phrase_bin_db(phrase_bin_db, l_phrases, self.__nd_el_bin_db,
+			l_rphrase_changed = self.change_phrase_bin_db(l_phrases, self.__nd_el_bin_db,
 													d_words, iword, l_word_phrase_ids, l_rphrase_changed)
 			l_fixed_rule_pos_data = self.__d_word_in_fixed_rule.get(word_changed, [])
 			for i_fixed_rule, word_pos in l_fixed_rule_pos_data:
 				self.__l_fixed_rules[i_fixed_rule].update_bin_for_word(word_pos, self.__nd_el_bin_db[iword])
 		if l_rphrase_changed != []: self.__mpdb_mgr.apply_bin_db_changes(l_rphrase_changed)
+
 		return self.__nd_el_bin_db, ilen, iphrase
+
+	def change_phrase_bin_db(self, l_phrases, nd_el_bin_db, d_words, iword, l_word_phrase_ids, l_rphrase_changed):
+		phrase_bits_db = self.__phrase_bin_db
+		# l_rphrase_changed = []
+		for ilen, iphrase in l_word_phrase_ids[iword]:
+			phrase = l_phrases[ilen][iphrase]
+			input_bits = create_input_bits(nd_el_bin_db, d_words, phrase)
+			phrase_bits_db[ilen][iphrase, :] = input_bits
+			l_rphrase_changed.append((ilen, iphrase))
+		return l_rphrase_changed
+
 
 def create_word_dict(phrase_list, max_process):
 	d_els, l_presence, l_phrase_ids = dict(), [], []
@@ -1134,15 +1164,6 @@ def build_phrase_bin_db(s_phrase_lens, l_phrases, nd_el_bin_db, d_words):
 			phrase_bits_db[ilen][iphrase, :] = input_bits
 
 	return phrase_bits_db
-
-def change_phrase_bin_db(phrase_bits_db, l_phrases, nd_el_bin_db, d_words, iword, l_word_phrase_ids, l_rphrase_changed):
-	# l_rphrase_changed = []
-	for ilen, iphrase in l_word_phrase_ids[iword]:
-		phrase = l_phrases[ilen][iphrase]
-		input_bits = create_input_bits(nd_el_bin_db, d_words, phrase)
-		phrase_bits_db[ilen][iphrase, :] = input_bits
-		l_rphrase_changed.append((ilen, iphrase))
-	return l_rphrase_changed
 
 
 

@@ -506,6 +506,7 @@ class cl_var_match_opts(object):
 	# def get_cont_var_match_opts(self, iphrase):
 
 	def set_score_invalid(self):
+		if not self.__b_score_valid: return
 		self.__b_score_valid = False
 		if self.__cont != []:
 			self.__cont.set_score_invalid()
@@ -520,7 +521,7 @@ class cl_var_match_opts(object):
 
 	def set_var_match_opts(self, iphrase, var_match_obj_cont):
 		# self.__ll_var_match_opts[iphrase] = l_var_match_objs
-		if var_match_obj_cont != [] and not self.loop_check(var_match_obj_cont):
+		if var_match_obj_cont != []: #  and not self.loop_check(var_match_obj_cont):
 			self.__l_var_match_opt_conts[iphrase] = var_match_obj_cont
 			self.set_score_invalid()
 
@@ -557,6 +558,9 @@ class cl_var_match_opts(object):
 		return self.__parent_gg.get_name()
 
 	def calc_best_score(self):
+		self.__best_score = 0.
+		self.__b_score_valid = True
+
 		for iphrase, match_phrase in enumerate(self.__l_match_phrases):
 			if match_phrase.b_matched:
 				self.__l_match_phrase_scores[iphrase] = 1.
@@ -576,7 +580,7 @@ class cl_var_match_opts(object):
 			if score > best_score: best_score = score
 			self.__l_combo_scores[icombo] = score
 		self.__best_score = best_score
-		self.__b_score_valid = True
+		# self.__b_score_valid = True
 
 	def select_combo(self):
 		if not self.__b_score_valid:

@@ -19,6 +19,10 @@ plyr_actn_tell_where	get_player_action	ml,c:f,c:a,c:s,l:Edgar:0.:1,l:decided to:
 answer_ask_compul...	compul_goal_actv	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
 											c:s,v:3,l:asked to:1.:5,l:tell:1.:6,l:Roy:0.:7,l:where is:1.:8,l:chair:0.:9,c:e,c:e,
 											c:t,v:3,o:decided to,v:6,v:7,v:8,v:9,mle
+get_done_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
+											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,
+											c:s,v:3,l:has:1.:8,v:6,c:e,c:e,
+											c:t,v:3,o:is done,mle
 get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,l:I:1.:1,l:am:1.:2,l:Edgar:0.:3,c:e,
 											c:s,v:3,l:wants:1.:5,l:chair:0.:6,c:e,c:e,
 											c:t,v:3,o:has,v:6,mle

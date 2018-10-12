@@ -76,7 +76,11 @@ class cl_mpdb_mgr(object):
 				# continue
 				idb = self.add_db(db_name)
 			if bdelay:
-				self.__l_delayed_inserts.append([idb, phrase_ref])
+				if [idb, phrase_ref] in self.__l_delayed_inserts:
+					# warnings.warn('Double insertion into delayed inserts')
+					pass
+				else:
+					self.__l_delayed_inserts.append([idb, phrase_ref])
 			else:
 				self.do_base_insert(idb, phrase_ref)
 			# ilen, iphrase = phrase_ref
@@ -110,6 +114,10 @@ class cl_mpdb_mgr(object):
 			db_name = self.get_db_name_from_idb(idb)
 			print('not adding duplicate', self.__bitvec_mgr.get_phrase(*phrase_ref), 'to db', db_name)
 			del self.__l_dbs[idb][-1]
+			d_len_refs = self.__l_d_story_len_refs[idb]
+			len_refs = d_len_refs[ilen]
+			del len_refs[-1]
+			d_len_refs[ilen] = len_refs
 		self.__ll_idb_mrks[idb][isrphrase] = True
 
 	def cleanup_srphrases(self):
@@ -204,12 +212,12 @@ class cl_mpdb_mgr(object):
 				return kname
 		return 'Name not found'
 
-	def run_rule(self, stmt, phase_data, db_name, l_rule_cats, l_rule_names=[]):
+	def run_rule(self, stmt, phase_data, db_name, l_rule_cats, l_rule_names=[], l_result_rule_names=[]):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1:
 			print('Error. mpdb requested to run rule on db', db_name, 'which doesnt exist.')
 			return None
-		results = self.__bitvec_mgr.run_rule(	stmt, phase_data, idb, l_rule_cats, l_rule_names)
+		results = self.__bitvec_mgr.run_rule(	stmt, phase_data, idb, l_rule_cats, l_rule_names, l_result_rule_names)
 		return [db_name for _ in results], results
 
 	def get_idb_rphrases(self, idb):

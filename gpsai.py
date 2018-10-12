@@ -70,10 +70,13 @@ class cl_gpsai_mgr(object):
 	def db_changed(self):
 		self.__player_goal_arg_cache = dict()
 
+	set_player_goal_num_calls = 0
+
 	@gpsai_time_decor
 	def set_player_goal(self, player_name, goal_stmt, db_name, phase_data, var_obj_parent,
 						calc_level, calc_level_limit):
 		global atime_tot, btime_tot, ctime_tot, num_c_calls
+		cl_gpsai_mgr.set_player_goal_num_calls += 1
 		# if var_obj_parent == None:
 		# 	calc_level = 0
 		# else:
@@ -87,20 +90,20 @@ class cl_gpsai_mgr(object):
 			self.__arg_cache_misses += 1
 		else:
 			self.__arg_cache_hits += 1
-			return []
+			# return []
 			# if cache_calc_level >= calc_level:
-			# c1time = timeit.default_timer()
-			# # cret = var_obj_parent.apply_cached_var_match_objs(l_cache_var_opt_objs, calc_level, calc_level_limit)
+			c1time = timeit.default_timer()
+			# cret = var_obj_parent.apply_cached_var_match_objs(l_cache_var_opt_objs, calc_level, calc_level_limit)
 			# if not var_obj_parent.loop_check(cache_var_opt_obj_cont):
-			# 	cache_var_opt_obj_cont.add_parent_obj(var_obj_parent)
+			cache_var_opt_obj_cont.add_parent_obj(var_obj_parent)
 			# 	ret = cache_var_opt_obj_cont
 			# else:
 			# 	ret = []
-			# c2time = timeit.default_timer()
-			# ctime_tot += c2time - c1time
-			# num_c_calls += 1
-			# return ret
-			# need to redo all references to __ll_var_match_opts
+			c2time = timeit.default_timer()
+			ctime_tot += c2time - c1time
+			num_c_calls += 1
+			return cache_var_opt_obj_cont
+
 
 		# self.__player_goal_arg_cache[cache_key] = [calc_level, []]
 
@@ -339,6 +342,11 @@ class cl_gpsai_mgr(object):
 			if l_poss_action[1] != []:
 				return [], compul_stmt
 
+		done_stmt = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
+									   player_name, [], ['get_done_phrase'])
+		if done_stmt != ([], []) and done_stmt[1][0][1][1] == 'is done':
+			return [], 'done'
+
 		goal_stmt = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 									   player_name, [], ['get_goal_phrase'])[1][0]
 		db_name = player_name
@@ -363,6 +371,7 @@ class cl_gpsai_mgr(object):
 	def add_phrase_to_get_decision(self, player_name, phase_data, rule_stats, new_phrase):
 		self.__mpdb_mgr.add_phrase_text(player_name, new_phrase, phase_data)
 		self.__bitvec_mgr.clear_all_db_arg_caches()
+
 		self.db_changed()
 		_, action_selected = self.make_decision_by_goal(player_name, phase_data, rule_stats)
 		if action_selected == []:
@@ -383,6 +392,9 @@ class cl_gpsai_mgr(object):
 
 		selected_action_phrase = []
 		l_var_opt_objs, action_selected = self.make_decision_by_goal(player_name, phase_data, rule_stats)
+
+		if l_var_opt_objs == [] and action_selected == 'done':
+			return [], -1
 
 		# btime = timeit.default_timer()
 		# atime_tot += btime - atime

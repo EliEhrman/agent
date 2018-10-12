@@ -2209,3 +2209,33 @@ Anyway will check in before I do this, in case I have to give up
 CIW:
 
 No repeated nodes. Very fast. Culling too aggressive.
+
+Thursday 11th October
+
+Update on that. Allowing directed CYCLIC graph. But not even bothering, as yet, to add a recursion depth to all the
+recursive functions. Works just fine. The scoring reset does, however, stop when it finds a not_valid flag.
+Not sure quite why this is working. Worth revisiting
+
+Double insert on story step 10: for Herman at
+11,25
+
+Need to find out why
+'knows_held_went_to' and 'gen_has_went'
+
+
+Friday 12th October
+
+Trying to decide what to do about a situation where two rules insert the same fact.
+For now, I think, we'll consider it harmless and disable the warnings.
+
+Next question. What do we do when the main goal has been fulfilled. For now, just stop doing anything.
+Make sure you don't search for a decision when you have no goal rather than search, use all lot of compute resources,
+and fail.
+After that, go back to the timing. Are we close to spending all the time searching the DB
+After that, go back to rule learning.
+
+OK. Player that is done, will do nothing unless they have a compulsive action.
+
+CIW:
+
+Directed Cyclic Graph for action options. Some bugs fixed. Should have a recursion limit but does not.
