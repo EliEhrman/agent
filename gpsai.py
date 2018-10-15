@@ -13,6 +13,8 @@ import timeit
 import collections
 import numpy as np
 
+from utils import profile_decor
+
 nt_past_action = collections.namedtuple('nt_past_action', 'l_phrase, last_time')
 
 total_time = 0.
@@ -72,7 +74,7 @@ class cl_gpsai_mgr(object):
 
 	set_player_goal_num_calls = 0
 
-	@gpsai_time_decor
+	@profile_decor
 	def set_player_goal(self, player_name, goal_stmt, db_name, phase_data, var_obj_parent,
 						calc_level, calc_level_limit):
 		global atime_tot, btime_tot, ctime_tot, num_c_calls
@@ -233,7 +235,7 @@ class cl_gpsai_mgr(object):
 				# # extra_calc_levels = itry * 2
 				# for l_combo in ll_combo:
 
-	# @gpsai_time_decor
+	@profile_decor
 	def select_action(	self, l_var_opt_objs, player_name, db_name, phase_data,
 						calc_level_limit_src, l_phrases_tried, l_calc_level_tried):
 		# global atime_tot, btime_tot, ctime_tot
@@ -331,8 +333,7 @@ class cl_gpsai_mgr(object):
 		# end itry loop
 		return [], -1
 
-
-	# @gpsai_time_decor
+	@profile_decor
 	def make_decision_by_goal(self, player_name, phase_data, rule_stats):
 		l_compul_stmt = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 									   player_name, ['compul_goal_actv'])[1]

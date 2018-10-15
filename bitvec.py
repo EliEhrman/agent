@@ -11,6 +11,8 @@ import csv
 import random
 import os
 from os.path import expanduser
+import sys
+sys.path.append('/home/eli/testpy')
 from shutil import copyfile
 import itertools
 import timeit
@@ -18,6 +20,7 @@ import collections
 
 import numpy as np
 
+from utils import profile_decor
 import rules2
 from rules2 import conn_type
 from rules2 import rec_def_type
@@ -25,6 +28,7 @@ from rules2 import rec_def_type
 # import makerecs as mr
 # import bitvec_rf
 import gg
+import example
 
 # fnt = 'orders_success.txt'
 # fnt = '~/tmp/adv_phrase_freq.txt'
@@ -64,17 +68,17 @@ tdown = lambda l: tuple([tuple(li) for li in l])
 
 total_time = 0
 
-def bv_time_decor(fn):
-	def wr(*args, **kwargs):
-		global total_time
-		s = timeit.default_timer()
-		r = fn(*args, **kwargs)
-		total_time += timeit.default_timer() - s
-		return r
-	return wr
-
-
-atime_tot, btime_tot, ctime_tot = 0, 0, 0
+# def bv_time_decor(fn):
+# 	def wr(*args, **kwargs):
+# 		global total_time
+# 		s = timeit.default_timer()
+# 		r = fn(*args, **kwargs)
+# 		total_time += timeit.default_timer() - s
+# 		return r
+# 	return wr
+#
+#
+# atime_tot, btime_tot, ctime_tot = 0, 0, 0
 
 
 class cl_bitvec_mgr(object):
@@ -136,9 +140,10 @@ class cl_bitvec_mgr(object):
 				tel, el, cd_max = el2[1], el1[1], el2[2]
 
 			hd_max = int(c_bitvec_size * (1. - cd_max))
-
-			el_bin = self.__nd_el_bin_db[self.__d_words[el]]
-			tel_bin = self.__nd_el_bin_db[self.__d_words[tel]]
+			iel, itel = self.__d_words.get(el, -1), self.__d_words.get(tel, -1)
+			if iel == -1 or itel == -1: return []
+			el_bin = self.__nd_el_bin_db[iel]
+			tel_bin = self.__nd_el_bin_db[itel]
 			if np.sum(np.not_equal(el_bin, tel_bin)) <= hd_max:
 				ret.append(el)
 
@@ -576,8 +581,7 @@ class cl_bitvec_mgr(object):
 		l_rule_names = [self.__l_rule_names[ir] for ir in l_use_rules_ids]
 		return l_use_rules, l_rule_names
 
-
-	# @bv_time_decor
+	@profile_decor
 	def _run_rule(	self, phrase, ilen, iphrase, idb, l_rule_cats, l_rule_names=[], l_result_rule_names=[]):
 		# d_story_len_refs = self.__mpdb_mgr.get_d_story_len_refs(idb)
 		len_phrase_bin_db = self.get_phrase_bin_db(ilen)

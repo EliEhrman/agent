@@ -15,7 +15,8 @@ import importlib
 import numpy as np
 import timeit
 
-# import els
+import utils
+from utils import profile_decor
 from rules2 import conn_type
 import bitvec
 import rules2
@@ -29,7 +30,9 @@ complete_time = 0.
 # def convert_phrase_to_word_list(statement_list):
 # 	return [[el[1] for el in statement] for statement in statement_list]
 
+@profile_decor
 def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
+	global complete_time
 	mpdb_mgr = d_mod_fns['get_mpdb_mgr']()
 	bitvec_mgr = mpdb_mgr.get_bitvec_mgr()
 	gpsai_mgr = d_mod_fns['get_ai_mgr']()
@@ -102,8 +105,15 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 			num_descision_rules = d_mod_fns['get_num_decision_rules']()
 			rule_stats = [[0.0, 0.0] for _ in range(num_descision_rules)]
 
+		# s = timeit.default_timer()
+		utils.profile_start('play story loop')
 		num_since_cleanup = 0
 		while i_story_loop_stage < c_close_to_inf:
+			# complete_time += timeit.default_timer() - s
+			# s = timeit.default_timer()
+			utils.profile_end('play story loop')
+			utils.profile_start('play story loop')
+
 			i_story_loop_stage += 1
 			if i_story_loop_stage >= c_close_to_inf - 1:
 				print('Story loop stage seems stuck in an infinite loop. Next story!')
@@ -251,8 +261,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				exit(1)
 
 			if story_loop_stage == e_story_loop_stage.complete_state1:
-				global complete_time
-				s = timeit.default_timer()
+				# s = timeit.default_timer()
 				for db_name, event_result in zip(l_dbs_to_mod, events_to_queue):
 					mpdb_mgr.apply_mods(db_name, event_result, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]))
 				mpdb_mgr.apply_delayed_inserts()
@@ -274,7 +283,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				if i_story_step >= num_story_steps:
 					break
 				i_story_loop_stage = -1
-				complete_time += timeit.default_timer() - s
+				# complete_time += timeit.default_timer() - s
 
 			continue
 

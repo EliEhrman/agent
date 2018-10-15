@@ -4,15 +4,17 @@ from enum import Enum
 import timeit
 import numpy as np
 
+from utils import profile_decor
+
 c_set_list = ['name', 'object', 'countrie']
 c_rules_fn = 'adv/rules.txt'
 c_dummy_init_fn = 'adv/dummy_init.txt'
 c_dummy_events_fn = 'adv/dummy_events.txt'
 c_phrase_freq_fnt = '~/tmp/adv_phrase_freq.txt'
 c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
-c_num_agents_per_story = 5
-c_num_countries_per_story = 5
-c_num_objects_per_story = 5
+c_num_agents_per_story = 50
+c_num_countries_per_story = 80
+c_num_objects_per_story = 50
 c_num_tries_per_player = 10
 c_goal_init_level_limit = 3
 c_goal_max_level_limit = 7
@@ -232,7 +234,7 @@ def time_decor(fn):
 		return r
 	return wr
 
-# @time_decor
+@profile_decor
 def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice = None):
 	for one_try in range(c_num_tries_per_player):
 		if decision_choice == None:

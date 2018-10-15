@@ -2239,3 +2239,37 @@ OK. Player that is done, will do nothing unless they have a compulsive action.
 CIW:
 
 Directed Cyclic Graph for action options. Some bugs fixed. Should have a recursion limit but does not.
+
+Sunday 14th October
+
+It does not look like _run_rule or searching the db takes up a high % of the time. However, this might change for larger dbs
+
+Decided to add a profiling system to replace ad-hoc decorations
+After that try, profiling with larne numbers of people, objects, places
+
+Monday 15th October
+
+Added a global profile decorator. As the number of people, objects, countries go to 50-80, the database searching fraction
+(find_var_opts b and _run_rule) goes from 10% to 40%. Presumably keeps going. Size of mpdb db goes to 221. Since we aim
+for databases of 30k. Expect this to take over.
+
+Crash appears where a phrase is used with a country that is not in dictionary. Will fix after the check in. OK. Changed
+my mind. Fixed it.
+
+Looking into adding Swig support. Stub already in code bitvec.py
+
+% swig -python example.i
+% gcc -c -fPIC example.c example_wrap.c \
+        -I/usr/include/python2.7
+% ld -shared example.o example_wrap.o -o _example.so
+
+in the module need:
+sys.path.append('/home/eli/testpy')
+import example
+
+Will obviously move to a real name and location
+
+CIW:
+
+Added a global profile decorator.
+

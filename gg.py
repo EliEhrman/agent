@@ -6,6 +6,8 @@ import timeit
 import itertools
 import copy
 
+import utils
+from utils import profile_decor
 import rules2
 from rules2 import conn_type
 from rules2 import rec_def_type
@@ -32,18 +34,19 @@ assert c_bitvec_gg_learn_min % 2 == 0, 'c_bitvec_gg_learn_min must be even'
 rule_status = Enum([	'untried', 'initial', 'perfect', 'expands', 'perfect_block', 'blocks',
 						'partial_expand', 'partial_block', 'irrelevant', 'mutant', 'endpoint'])
 
-total_time = 0.
-num_calls = 0
-b_in_time = False
+# total_time = 0.
+# num_calls = 0
+# b_in_time = False
 
-def gg_time_decor(fn):
-	def wr(*args, **kwargs):
-		global total_time
-		s = timeit.default_timer()
-		r = fn(*args, **kwargs)
-		total_time += timeit.default_timer() - s
-		return r
-	return wr
+# def gg_time_decor(fn):
+# 	def wr(*args, **kwargs):
+# 		global total_time
+# 		print('calling function:', fn.func_name)
+# 		s = timeit.default_timer()
+# 		r = fn(*args, **kwargs)
+# 		total_time += timeit.default_timer() - s
+# 		return r
+# 	return wr
 
 class cl_bitvec_gg(object):
 	find_matches_num_calls = 0
@@ -471,9 +474,9 @@ class cl_bitvec_gg(object):
 		return False
 
 
-	@gg_time_decor
+	@profile_decor
 	def find_var_opts(self, l_var_opts, db_name, var_obj_parent, calc_level):
-		global a0time_tot, atime_tot, btime_tot, ctime_tot
+		# global a0time_tot, atime_tot, btime_tot, ctime_tot
 
 		b_rule_works = self.__d_arg_cache.get(tuple(l_var_opts), None)
 		if b_rule_works != None and b_rule_works == False:
@@ -489,7 +492,8 @@ class cl_bitvec_gg(object):
 		nd_story_bins = self.__mgr.get_mpdb_bins()
 		l_story_rphrases = mpdb_mgr.get_rphrases()
 
-		a0time = timeit.default_timer()
+		# a0time = timeit.default_timer()
+		utils.profile_start('find_var_opts a0')
 
 		# The first part of this function builds the var tables.
 		# Some els have no vars, either external or intenal.
@@ -558,7 +562,8 @@ class cl_bitvec_gg(object):
 					max_of_max_hd = max(int_hd_max, ext_hd_max)
 					bin_diff = np.sum(np.not_equal(int_els_rep, ext_els_rep))
 					if bin_diff > max_of_max_hd:
-						a0time_tot += timeit.default_timer() - a0time
+						# a0time_tot += timeit.default_timer() - a0time
+						utils.profile_end('find_var_opts a0')
 						self.__d_arg_cache[tuple(l_var_opts)] = False
 						return None
 					if int_hd_max > ext_hd_max:
@@ -576,8 +581,10 @@ class cl_bitvec_gg(object):
 					if b_exact: l_var_vals[iopt] = [el_word]
 			# end if not b_resolved
 		self.__d_arg_cache[tuple(l_var_opts)] = True
-		atime = timeit.default_timer()
-		a0time_tot += atime - a0time
+		# atime = timeit.default_timer()
+		# a0time_tot += atime - a0time
+		utils.profile_end('find_var_opts a0')
+		utils.profile_start('find_var_opts a')
 
 		for src_istage, src_iel, dest_istage, dest_iel in self.__l_wlist_vars:
 			ll_src_pat[dest_istage][dest_iel] = ll_src_pat[src_istage][src_iel]
@@ -617,8 +624,10 @@ class cl_bitvec_gg(object):
 				l_var_vals.append([[]])
 
 
-		btime = timeit.default_timer()
-		atime_tot += btime - atime
+		# btime = timeit.default_timer()
+		# atime_tot += btime - atime
+		utils.profile_end('find_var_opts a')
+		utils.profile_start('find_var_opts b')
 
 		# In this block I find the matches and build the options for l_vars
 		# This block also contains two stages of building the list of match phrases - the possibilities of a
@@ -707,8 +716,10 @@ class cl_bitvec_gg(object):
 						l_match_bindings[-1][1+l_stage_ivars[istage].index(ivar)] = ivar_val
 
 		# end loop over stages
-		ctime = timeit.default_timer()
-		btime_tot += ctime - btime
+		# ctime = timeit.default_timer()
+		# btime_tot += ctime - btime
+		utils.profile_end('find_var_opts b')
+		utils.profile_start('find_var_opts c')
 
 		# In the following block, the goal is to add match phrases that bind some of the variables
 		# but perhaps not all. These new phrases are extensions of the null phrase (that binds none
@@ -815,7 +826,8 @@ class cl_bitvec_gg(object):
 			if btrouble: continue
 			ll_match_iphrase_combos += [l_match_iphrase_combo]
 
-		ctime_tot += timeit.default_timer()- ctime
+		# ctime_tot += timeit.default_timer()- ctime
+		utils.profile_end('find_var_opts c')
 
 		# Finally create the scores for combos of match phrases
 		# l_match_phrase_scores = []
