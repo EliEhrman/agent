@@ -2259,7 +2259,7 @@ my mind. Fixed it.
 Looking into adding Swig support. Stub already in code bitvec.py
 
 % swig -python example.i
-% gcc -c -fPIC example.c example_wrap.c \
+% gcc -c -fPIC -Ofast example.c example_wrap.c \
         -I/usr/include/python2.7
 % ld -shared example.o example_wrap.o -o _example.so
 
@@ -2273,3 +2273,29 @@ CIW:
 
 Added a global profile decorator.
 
+Wednesday 17th October
+
+{
+'play': nt_prof(name='play', total_time=0.0, num_calls=0, b_in_time=True, start_time=-1.0),
+'make_decision_by_goal': nt_prof(name='make_decision_by_goal', total_time=73.4173014163971, num_calls=81, b_in_time=True, start_time=-1.0),
+'set_player_goal': nt_prof(name='set_player_goal', total_time=72.82638239860535, num_calls=5661, b_in_time=True, start_time=-1.0),
+'find_var_opts': nt_prof(name='find_var_opts', total_time=61.45849967002869, num_calls=66770, b_in_time=True, start_time=-1.0),
+'play story loop': nt_prof(name='play story loop', total_time=77.05680084228516, num_calls=234, b_in_time=True, start_time=1539767559.725271),
+'find_var_opts apre': nt_prof(name='find_var_opts a00', total_time=1.9135246276855469, num_calls=66771, b_in_time=False, start_time=1539767561.2935),
+'find_var_opts a0': nt_prof(name='find_var_opts a0', total_time=12.059326171875, num_calls=12508, b_in_time=False, start_time=1539767561.293587),
+'find_var_opts a01': nt_prof(name='find_var_opts a01', total_time=1.0307867527008057, num_calls=12508, b_in_time=False, start_time=1539767561.293599),
+'find_var_opts a02': nt_prof(name='find_var_opts a02', total_time=3.011575937271118, num_calls=12508, b_in_time=False, start_time=1539767561.293722),
+'find_var_opts a03': nt_prof(name='find_var_opts a03', total_time=2.9228415489196777, num_calls=12508, b_in_time=False, start_time=1539767561.294134),
+'find_var_opts a04': nt_prof(name='find_var_opts a04', total_time=4.030108690261841, num_calls=12508, b_in_time=False, start_time=1539767561.294852),
+'find_var_opts a': nt_prof(name='find_var_opts a', total_time=1.0970406532287598, num_calls=4120, b_in_time=False, start_time=1539767561.113197),
+'find_var_opts b': nt_prof(name='find_var_opts b', total_time=29.04684543609619, num_calls=4120, b_in_time=False, start_time=1539767561.113787),
+'find_var_opts c': nt_prof(name='find_var_opts c', total_time=13.370297193527222, num_calls=4120, b_in_time=False, start_time=1539767561.132677),
+'select_action': nt_prof(name='select_action', total_time=39.31064534187317, num_calls=220, b_in_time=True, start_time=-1.0),
+'_run_rule': nt_prof(name='_run_rule', total_time=5.814964294433594, num_calls=4017, b_in_time=False, start_time=-1.0)
+}
+
+Integrated a stub of SWIG to speed up find_var_opts. Need to test the check-in process
+
+CIW:
+
+Testing git addition of SWIG stub.

@@ -5,7 +5,11 @@ import random
 import timeit
 import itertools
 import copy
+import sys
+sys.path.append('/home/eli/testpy')
 
+# import example
+from varopts import varopts
 import utils
 from utils import profile_decor
 import rules2
@@ -478,22 +482,28 @@ class cl_bitvec_gg(object):
 	def find_var_opts(self, l_var_opts, db_name, var_obj_parent, calc_level):
 		# global a0time_tot, atime_tot, btime_tot, ctime_tot
 
+		utils.profile_start('find_var_opts apre')
 		b_rule_works = self.__d_arg_cache.get(tuple(l_var_opts), None)
 		if b_rule_works != None and b_rule_works == False:
+			utils.profile_end('find_var_opts apre')
 			return None
 
 		l_match_phrases_che, ll_match_iphrase_combos_che = self.__d_db_arg_cache.get((tuple(l_var_opts), db_name), ([], []))
 		if l_match_phrases_che != []:
+			utils.profile_end('find_var_opts apre')
 			return rules2.cl_var_match_opts(self, l_match_phrases_che, ll_match_iphrase_combos_che,
 											var_obj_parent, calc_level+1)
 
+		utils.profile_end('find_var_opts apre')
 		mpdb_mgr = self.__mgr.get_mpdb_mgr()
 		idb = mpdb_mgr.get_idb_from_db_name(db_name)
 		nd_story_bins = self.__mgr.get_mpdb_bins()
 		l_story_rphrases = mpdb_mgr.get_rphrases()
 
+		varopts.My_variable = 12.0
 		# a0time = timeit.default_timer()
 		utils.profile_start('find_var_opts a0')
+		utils.profile_start('find_var_opts a01')
 
 		# The first part of this function builds the var tables.
 		# Some els have no vars, either external or intenal.
@@ -504,10 +514,15 @@ class cl_bitvec_gg(object):
 
 		# Start with table entry for the external vars. Not all of these are bound
 
+		l_cvars = [	varopts.cnt_vars(vo[0], vo[1], vo[1],
+							vo[2], -1 if vo[1] else vo[3], ivo)
+					for ivo, vo in enumerate(l_var_opts)]
 		l_vars = [	nt_vars(loc=vo[0], b_bound=vo[1], b_must_bind=vo[1],
 							val=vo[2], cd=None if vo[1] else vo[3], iext_var=ivo)
 					for ivo, vo in enumerate(l_var_opts)]
 		l_var_vals = [[vo[2]] if vo[1] else [[]] for vo in l_var_opts]
+		utils.profile_end('find_var_opts a01')
+		utils.profile_start('find_var_opts a02')
 
 		# The table of vars is supplemented with pair-based locations (istage and iel instead of of since int loc)
 		# It is also supplemented with tables for listing all locations of the var as well as a dict to get from
@@ -525,6 +540,8 @@ class cl_bitvec_gg(object):
 					d_var_opts[l_var_loc_pairs[-1]] = iopt
 					break
 
+		utils.profile_end('find_var_opts a02')
+		utils.profile_start('find_var_opts a03')
 		# bin patterns and and max hds are addded. These are set from the binding of the excternal l_var_opts
 		# or from the rule, whichever is tighter. If the hd max requirements mean they do not match, the rule fails
 		# right here and an None (Null) object is returned.
@@ -549,6 +566,9 @@ class cl_bitvec_gg(object):
 				d_var_opts[(dest_istage, dest_iel)] = iopt
 				l_var_all_locs[iopt].append((dest_istage, dest_iel))
 
+		utils.profile_end('find_var_opts a03')
+		utils.profile_start('find_var_opts a04')
+
 		for iopt, var_opt in enumerate(l_vars):
 			# var_opt = l_vars[iopt]
 			src_istage, src_iel =  l_var_all_locs[iopt][0]
@@ -563,6 +583,7 @@ class cl_bitvec_gg(object):
 					bin_diff = np.sum(np.not_equal(int_els_rep, ext_els_rep))
 					if bin_diff > max_of_max_hd:
 						# a0time_tot += timeit.default_timer() - a0time
+						utils.profile_end('find_var_opts a04')
 						utils.profile_end('find_var_opts a0')
 						self.__d_arg_cache[tuple(l_var_opts)] = False
 						return None
@@ -583,6 +604,7 @@ class cl_bitvec_gg(object):
 		self.__d_arg_cache[tuple(l_var_opts)] = True
 		# atime = timeit.default_timer()
 		# a0time_tot += atime - a0time
+		utils.profile_end('find_var_opts a04')
 		utils.profile_end('find_var_opts a0')
 		utils.profile_start('find_var_opts a')
 
