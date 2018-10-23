@@ -2299,3 +2299,40 @@ Integrated a stub of SWIG to speed up find_var_opts. Need to test the check-in p
 CIW:
 
 Testing git addition of SWIG stub.
+
+Tuesday 23rd October
+
+profile:
+
+{
+'play': nt_prof(name='play', total_time=0.0, num_calls=0, b_in_time=True, start_time=-1.0),
+'make_decision_by_goal': nt_prof(name='make_decision_by_goal', total_time=67.10481476783752, num_calls=276, b_in_time=False, start_time=-1.0),
+'set_player_goal': nt_prof(name='set_player_goal', total_time=61.80418539047241, num_calls=21531, b_in_time=False, start_time=-1.0),
+'find_var_opts': nt_prof(name='find_var_opts', total_time=39.90199518203735, num_calls=270196, b_in_time=False, start_time=-1.0),
+'play story loop': nt_prof(name='play story loop', total_time=76.18943858146667, num_calls=806, b_in_time=True, start_time=1540281810.642601),
+'find_var_opts apre': nt_prof(name='find_var_opts apre', total_time=1.284498691558838, num_calls=270196, b_in_time=False, start_time=1540281810.640083),
+'find_var_opts a0': nt_prof(name='find_var_opts a0', total_time=5.291065216064453, num_calls=28303, b_in_time=False, start_time=1540281810.631056),
+'find_var_opts vo': nt_prof(name='find_var_opts vo', total_time=0.2734231948852539, num_calls=28303, b_in_time=False, start_time=1540281810.631036),
+'find_var_opts a01': nt_prof(name='find_var_opts a01', total_time=0.34977102279663086, num_calls=28303, b_in_time=False, start_time=1540281810.631061),
+'find_var_opts a02': nt_prof(name='find_var_opts a02', total_time=0.29409337043762207, num_calls=28303, b_in_time=False, start_time=1540281810.631082),
+'find_var_opts a03': nt_prof(name='find_var_opts a03', total_time=0.3810689449310303, num_calls=28303, b_in_time=False, start_time=1540281810.631102),
+'find_var_opts a04': nt_prof(name='find_var_opts a04', total_time=2.981358766555786, num_calls=28303, b_in_time=False, start_time=1540281810.631122),
+'find_var_opts a': nt_prof(name='find_var_opts a', total_time=0.6494932174682617, num_calls=15650, b_in_time=False, start_time=1540281810.631233),
+'find_var_opts b': nt_prof(name='find_var_opts b', total_time=10.598278999328613, num_calls=15650, b_in_time=False, start_time=1540281810.631306),
+'find_var_opts c': nt_prof(name='find_var_opts c', total_time=14.654878616333008, num_calls=15650, b_in_time=False, start_time=1540281810.63213),
+'select_action': nt_prof(name='select_action', total_time=40.91210150718689, num_calls=668, b_in_time=False, start_time=-1.0),
+'_run_rule': nt_prof(name='_run_rule', total_time=6.2157886028289795, num_calls=17253, b_in_time=False, start_time=-1.0)
+}
+
+Writing of C code to parallel a01-a03 took a long time: a few rather disturbed days. Either that's the way it is or this is getting up to speed. Any rate, not
+impressive.
+
+Results are in vo. Profiling not very stable as you can see comparing to last week's
+
+Also not much improvement. Current guess is that the fault is all that malloc and free. Must be replaced with a struct I can
+hold onto without freeing unless capacity needs to be grown. So it always holds the largest that has been needed.
+More work. More time.
+
+CIW:
+
+Added some c code for first part of find_var_opts.

@@ -12,7 +12,7 @@ import random
 import os
 from os.path import expanduser
 import sys
-sys.path.append('/home/eli/testpy')
+# sys.path.append('/home/eli/testpy')
 from shutil import copyfile
 import itertools
 import timeit
@@ -28,7 +28,7 @@ from rules2 import rec_def_type
 # import makerecs as mr
 # import bitvec_rf
 import gg
-import example
+from varopts import varopts
 
 # fnt = 'orders_success.txt'
 # fnt = '~/tmp/adv_phrase_freq.txt'
@@ -120,6 +120,11 @@ class cl_bitvec_mgr(object):
 		self.__mpdb_mgr = None
 		self.__mpdb_bins = [] # np.zeros(shape=(0, 0),dtype=np.uint8)  # 2D np array holding all bitvecs for all phrases in story held by mpdb
 		gg.cl_bitvec_gg.bitvec_size = c_bitvec_size
+		self.__hcvo = varopts.init_capp()
+		varopts.set_el_bitvec_size(self.__hcvo, c_bitvec_size)
+
+	def get_hcvo(self):
+		return self.__hcvo
 
 	def combine_templates(self, templ1, templ2):
 		if len(templ2) != len(templ2): return []
@@ -319,6 +324,7 @@ class cl_bitvec_mgr(object):
 		fixed_rule.set_rule_rec(rule_rec)
 		fixed_rule.set_exdb(d_exdb)
 		fixed_rule.set_name(rule_name)
+		fixed_rule.create_vo_hgg()
 		l_cat_rules = self.__d_fr_categories.get(rule_category, [])
 		l_cat_rules.append(len(self.__l_fixed_rules))
 		self.__d_fr_categories[rule_category] = l_cat_rules

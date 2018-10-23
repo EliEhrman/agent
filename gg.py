@@ -63,6 +63,8 @@ class cl_bitvec_gg(object):
 	def __init__(self, mgr, ilen, phrase_len, result, num_stages=1, l_wlist_vars = [],
 				 phrase2_ilen = -1, phrase2_len = -1, parent_irule = -1,
 				 l_phrases_len=[], l_phrases_ilen=[]):
+		self.__hcvo_app = mgr.get_hcvo() # Handle to mgr's hcvo used to access c module's app-level function
+		self.__hcgg = None # Handle used to access cvo gg-level functions
 		self.__l_phrases = []
 		self.__ilen = ilen
 		self.__phrase_len = phrase_len
@@ -122,6 +124,29 @@ class cl_bitvec_gg(object):
 	def set_els_rep(self, l_els_rep, l_hd_max):
 		self.__l_els_rep = l_els_rep
 		self.__l_hd_max = l_hd_max
+
+	def create_vo_hgg(self):
+		if self.__hcgg != None:
+			varopts.free_gg(self.__hcgg)
+
+		self.__hcgg = varopts.init_cgg(self.__hcvo_app)
+		varopts.set_num_els_reps(self.__hcgg, len(self.__l_els_rep))
+		for iel, els_rep in enumerate(self.__l_els_rep):
+			h_el_rep_arr = varopts.charArray(self.bitvec_size)
+			for ib in range(self.bitvec_size): h_el_rep_arr[ib] = chr(els_rep[ib])
+			varopts.set_els_rep(self.__hcgg, h_el_rep_arr, self.__l_hd_max[iel], iel)
+		varopts.set_l_wlist_vars_len(self.__hcgg, len(self.__l_wlist_vars))
+		for ivar, wlist_var in enumerate(self.__l_wlist_vars):
+			var_quad = varopts.intArray(len(wlist_var)) # should be 4
+			for ii, ival in enumerate(wlist_var): var_quad[ii] = ival;
+			varopts.set_l_wlist_var(self.__hcgg, var_quad, ivar)
+			# print(ivar, wlist_var)
+		a_phrases_len = varopts.intArray(len(self.__l_phrases_len))
+		for iplen, plen in enumerate(self.__l_phrases_len): a_phrases_len[iplen] = plen
+		varopts.set_l_phrases_len(self.__hcgg, a_phrases_len, len(self.__l_phrases_len))
+
+		# varopts.free_gg(self.__hcgg)
+		# self.__hcgg = None
 
 	def get_name(self):
 		return self.__name
@@ -502,8 +527,7 @@ class cl_bitvec_gg(object):
 
 		varopts.My_variable = 12.0
 		# a0time = timeit.default_timer()
-		utils.profile_start('find_var_opts a0')
-		utils.profile_start('find_var_opts a01')
+		utils.profile_start('find_var_opts vo')
 
 		# The first part of this function builds the var tables.
 		# Some els have no vars, either external or intenal.
@@ -514,19 +538,32 @@ class cl_bitvec_gg(object):
 
 		# Start with table entry for the external vars. Not all of these are bound
 
-		l_cvars = [	varopts.cnt_vars(vo[0], vo[1], vo[1],
-							vo[2], -1 if vo[1] else vo[3], ivo)
-					for ivo, vo in enumerate(l_var_opts)]
+		hvos = varopts.init_vo(self.__hcgg)
+		varopts.set_num_vars(hvos, len(l_var_opts))
+		# l_cvars = [	varopts.cnt_vars(hvos, vo[0], vo[1], vo[1],
+		# 					vo[2], -1.0 if vo[1] else vo[3], ivo)
+		# 			for ivo, vo in enumerate(l_var_opts)]
+		for ivo, vo in enumerate(l_var_opts):
+			varopts.cnt_vars(hvos, vo[0], vo[1], vo[1], vo[2], -1.0 if vo[1] else vo[3], ivo)
+		varopts.do_vo(hvos)
+		varopts.free_vo(hvos)
+		utils.profile_end('find_var_opts vo')
+		utils.profile_start('find_var_opts a0')
+		utils.profile_start('find_var_opts a01')
 		l_vars = [	nt_vars(loc=vo[0], b_bound=vo[1], b_must_bind=vo[1],
 							val=vo[2], cd=None if vo[1] else vo[3], iext_var=ivo)
 					for ivo, vo in enumerate(l_var_opts)]
 		l_var_vals = [[vo[2]] if vo[1] else [[]] for vo in l_var_opts]
+
+
 		utils.profile_end('find_var_opts a01')
 		utils.profile_start('find_var_opts a02')
+
 
 		# The table of vars is supplemented with pair-based locations (istage and iel instead of of since int loc)
 		# It is also supplemented with tables for listing all locations of the var as well as a dict to get from
 		#    a given location to an entry in the var table
+
 
 		l_phrase_starts = [0]
 		for phrase_len in self.__l_phrases_len: l_phrase_starts.append(l_phrase_starts[-1]+phrase_len)

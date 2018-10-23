@@ -120,57 +120,135 @@ class SVec(_object):
 SVec_swigregister = _varopts.SVec_swigregister
 SVec_swigregister(SVec)
 
-class SNtVars(_object):
+class intArray(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, SNtVars, name, value)
+    __setattr__ = lambda self, name, value: _swig_setattr(self, intArray, name, value)
     __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, SNtVars, name)
+    __getattr__ = lambda self, name: _swig_getattr(self, intArray, name)
     __repr__ = _swig_repr
-    __swig_setmethods__["loc"] = _varopts.SNtVars_loc_set
-    __swig_getmethods__["loc"] = _varopts.SNtVars_loc_get
-    if _newclass:
-        loc = _swig_property(_varopts.SNtVars_loc_get, _varopts.SNtVars_loc_set)
-    __swig_setmethods__["b_bound"] = _varopts.SNtVars_b_bound_set
-    __swig_getmethods__["b_bound"] = _varopts.SNtVars_b_bound_get
-    if _newclass:
-        b_bound = _swig_property(_varopts.SNtVars_b_bound_get, _varopts.SNtVars_b_bound_set)
-    __swig_setmethods__["b_must_bind"] = _varopts.SNtVars_b_must_bind_set
-    __swig_getmethods__["b_must_bind"] = _varopts.SNtVars_b_must_bind_get
-    if _newclass:
-        b_must_bind = _swig_property(_varopts.SNtVars_b_must_bind_get, _varopts.SNtVars_b_must_bind_set)
-    __swig_setmethods__["val"] = _varopts.SNtVars_val_set
-    __swig_getmethods__["val"] = _varopts.SNtVars_val_get
-    if _newclass:
-        val = _swig_property(_varopts.SNtVars_val_get, _varopts.SNtVars_val_set)
-    __swig_setmethods__["cd"] = _varopts.SNtVars_cd_set
-    __swig_getmethods__["cd"] = _varopts.SNtVars_cd_get
-    if _newclass:
-        cd = _swig_property(_varopts.SNtVars_cd_get, _varopts.SNtVars_cd_set)
-    __swig_setmethods__["iext_var"] = _varopts.SNtVars_iext_var_set
-    __swig_getmethods__["iext_var"] = _varopts.SNtVars_iext_var_get
-    if _newclass:
-        iext_var = _swig_property(_varopts.SNtVars_iext_var_get, _varopts.SNtVars_iext_var_set)
 
-    def __init__(self):
-        this = _varopts.new_SNtVars()
+    def __init__(self, nelements):
+        this = _varopts.new_intArray(nelements)
         try:
             self.this.append(this)
         except Exception:
             self.this = this
-    __swig_destroy__ = _varopts.delete_SNtVars
+    __swig_destroy__ = _varopts.delete_intArray
     __del__ = lambda self: None
-SNtVars_swigregister = _varopts.SNtVars_swigregister
-SNtVars_swigregister(SNtVars)
+
+    def __getitem__(self, index):
+        return _varopts.intArray___getitem__(self, index)
+
+    def __setitem__(self, index, value):
+        return _varopts.intArray___setitem__(self, index, value)
+
+    def cast(self):
+        return _varopts.intArray_cast(self)
+    __swig_getmethods__["frompointer"] = lambda x: _varopts.intArray_frompointer
+    if _newclass:
+        frompointer = staticmethod(_varopts.intArray_frompointer)
+intArray_swigregister = _varopts.intArray_swigregister
+intArray_swigregister(intArray)
+cvar = _varopts.cvar
+
+def intArray_frompointer(t):
+    return _varopts.intArray_frompointer(t)
+intArray_frompointer = _varopts.intArray_frompointer
+
+class charArray(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, charArray, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, charArray, name)
+    __repr__ = _swig_repr
+
+    def __init__(self, nelements):
+        this = _varopts.new_charArray(nelements)
+        try:
+            self.this.append(this)
+        except Exception:
+            self.this = this
+    __swig_destroy__ = _varopts.delete_charArray
+    __del__ = lambda self: None
+
+    def __getitem__(self, index):
+        return _varopts.charArray___getitem__(self, index)
+
+    def __setitem__(self, index, value):
+        return _varopts.charArray___setitem__(self, index, value)
+
+    def cast(self):
+        return _varopts.charArray_cast(self)
+    __swig_getmethods__["frompointer"] = lambda x: _varopts.charArray_frompointer
+    if _newclass:
+        frompointer = staticmethod(_varopts.charArray_frompointer)
+charArray_swigregister = _varopts.charArray_swigregister
+charArray_swigregister(charArray)
+
+def charArray_frompointer(t):
+    return _varopts.charArray_frompointer(t)
+charArray_frompointer = _varopts.charArray_frompointer
 
 
-def fact(n):
-    return _varopts.fact(n)
-fact = _varopts.fact
+def set_num_vars(hvos, n):
+    return _varopts.set_num_vars(hvos, n)
+set_num_vars = _varopts.set_num_vars
 
-def cnt_vars(loc, b_bound, b_must_bind, val, cd, iext_var):
-    return _varopts.cnt_vars(loc, b_bound, b_must_bind, val, cd, iext_var)
+def set_l_phrases_len(hvos, l_phrases_len, len):
+    return _varopts.set_l_phrases_len(hvos, l_phrases_len, len)
+set_l_phrases_len = _varopts.set_l_phrases_len
+
+def init_vo(hgg):
+    return _varopts.init_vo(hgg)
+init_vo = _varopts.init_vo
+
+def cnt_vars(hvos, loc, b_bound, b_must_bind, val, cd, iext_var):
+    return _varopts.cnt_vars(hvos, loc, b_bound, b_must_bind, val, cd, iext_var)
 cnt_vars = _varopts.cnt_vars
+
+def do_vo(hvos):
+    return _varopts.do_vo(hvos)
+do_vo = _varopts.do_vo
+
+def free_vo(hvos):
+    return _varopts.free_vo(hvos)
+free_vo = _varopts.free_vo
+
+def init_capp():
+    return _varopts.init_capp()
+init_capp = _varopts.init_capp
+
+def set_el_bitvec_size(happ, size):
+    return _varopts.set_el_bitvec_size(happ, size)
+set_el_bitvec_size = _varopts.set_el_bitvec_size
+
+def free_capp(hcapp):
+    return _varopts.free_capp(hcapp)
+free_capp = _varopts.free_capp
+
+def init_cgg(hcapp):
+    return _varopts.init_cgg(hcapp)
+init_cgg = _varopts.init_cgg
+
+def free_gg(hgg):
+    return _varopts.free_gg(hgg)
+free_gg = _varopts.free_gg
+
+def set_num_els_reps(hgg, num_reps):
+    return _varopts.set_num_els_reps(hgg, num_reps)
+set_num_els_reps = _varopts.set_num_els_reps
+
+def set_els_rep(hgg, bitvec, hd, iel):
+    return _varopts.set_els_rep(hgg, bitvec, hd, iel)
+set_els_rep = _varopts.set_els_rep
+
+def set_l_wlist_vars_len(hgg, size):
+    return _varopts.set_l_wlist_vars_len(hgg, size)
+set_l_wlist_vars_len = _varopts.set_l_wlist_vars_len
+
+def set_l_wlist_var(hgg, varquad, ivar):
+    return _varopts.set_l_wlist_var(hgg, varquad, ivar)
+set_l_wlist_var = _varopts.set_l_wlist_var
 # This file is compatible with both classic and new-style classes.
 
-cvar = _varopts.cvar
 
