@@ -2308,8 +2308,8 @@ profile:
 'play': nt_prof(name='play', total_time=0.0, num_calls=0, b_in_time=True, start_time=-1.0),
 'make_decision_by_goal': nt_prof(name='make_decision_by_goal', total_time=67.10481476783752, num_calls=276, b_in_time=False, start_time=-1.0),
 'set_player_goal': nt_prof(name='set_player_goal', total_time=61.80418539047241, num_calls=21531, b_in_time=False, start_time=-1.0),
-'find_var_opts': nt_prof(name='find_var_opts', total_time=39.90199518203735, num_calls=270196, b_in_time=False, start_time=-1.0),
 'play story loop': nt_prof(name='play story loop', total_time=76.18943858146667, num_calls=806, b_in_time=True, start_time=1540281810.642601),
+'find_var_opts': nt_prof(name='find_var_opts', total_time=39.90199518203735, num_calls=270196, b_in_time=False, start_time=-1.0),
 'find_var_opts apre': nt_prof(name='find_var_opts apre', total_time=1.284498691558838, num_calls=270196, b_in_time=False, start_time=1540281810.640083),
 'find_var_opts a0': nt_prof(name='find_var_opts a0', total_time=5.291065216064453, num_calls=28303, b_in_time=False, start_time=1540281810.631056),
 'find_var_opts vo': nt_prof(name='find_var_opts vo', total_time=0.2734231948852539, num_calls=28303, b_in_time=False, start_time=1540281810.631036),
@@ -2336,3 +2336,9 @@ More work. More time.
 CIW:
 
 Added some c code for first part of find_var_opts.
+
+Thursday 25th OctoberL
+
+CIW:
+
+Completed a0 of find_var_opts.

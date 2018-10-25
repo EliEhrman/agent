@@ -502,10 +502,12 @@ class cl_bitvec_gg(object):
 					d_els[full_el[1]] += [(istage, iel)]
 		return False
 
+	find_var_opts_num_calls = 0
 
 	@profile_decor
 	def find_var_opts(self, l_var_opts, db_name, var_obj_parent, calc_level):
 		# global a0time_tot, atime_tot, btime_tot, ctime_tot
+		cl_bitvec_gg.find_var_opts_num_calls += 1
 
 		utils.profile_start('find_var_opts apre')
 		b_rule_works = self.__d_arg_cache.get(tuple(l_var_opts), None)
@@ -545,7 +547,8 @@ class cl_bitvec_gg(object):
 		# 			for ivo, vo in enumerate(l_var_opts)]
 		for ivo, vo in enumerate(l_var_opts):
 			varopts.cnt_vars(hvos, vo[0], vo[1], vo[1], vo[2], -1.0 if vo[1] else vo[3], ivo)
-		varopts.do_vo(hvos)
+		vo_ret = varopts.do_vo(hvos)
+		print("vo returned", vo_ret)
 		varopts.free_vo(hvos)
 		utils.profile_end('find_var_opts vo')
 		utils.profile_start('find_var_opts a0')

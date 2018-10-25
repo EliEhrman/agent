@@ -249,6 +249,26 @@ set_l_wlist_vars_len = _varopts.set_l_wlist_vars_len
 def set_l_wlist_var(hgg, varquad, ivar):
     return _varopts.set_l_wlist_var(hgg, varquad, ivar)
 set_l_wlist_var = _varopts.set_l_wlist_var
+
+def add_el_bin(happ, word, bitvec):
+    return _varopts.add_el_bin(happ, word, bitvec)
+add_el_bin = _varopts.add_el_bin
+
+def set_el_bin(happ, iel, word, bitvec):
+    return _varopts.set_el_bin(happ, iel, word, bitvec)
+set_el_bin = _varopts.set_el_bin
+
+def change_el_bin(happ, iel, bin):
+    return _varopts.change_el_bin(happ, iel, bin)
+change_el_bin = _varopts.change_el_bin
+
+def init_el_bin_db(happ, size, dict_space):
+    return _varopts.init_el_bin_db(happ, size, dict_space)
+init_el_bin_db = _varopts.init_el_bin_db
+
+def check_el_bin(happ, word):
+    return _varopts.check_el_bin(happ, word)
+check_el_bin = _varopts.check_el_bin
 # This file is compatible with both classic and new-style classes.
 
 

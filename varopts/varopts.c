@@ -1,31 +1,21 @@
 /* File: varopts.c */
-
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <search.h>
 #include "varopts.h"
 
 int My_variable = 3;
 double density = 4.1;
 
 typedef int intpair[2];
-
-typedef struct SIntPairList {
-	intpair * pl;
-	int len;
-} tSIntPairList;
-
-typedef struct SPairDict {
-	int num_rows;
-	int num_cols;
-	int ** ppdata;
-} tSPairDict;
-
-typedef int intquad[4];
-
-
-void clear_pair_dict(tSPairDict * ppd);
+typedef _Bool bool;
+#define true 1
+#define false 0
+#define min(a,b) (((a)<(b))?(a):(b))
+#define max(a,b) (((a)>(b))?(a):(b))
 
 
 int num_mallocs = 0;
@@ -41,6 +31,73 @@ void vofree (void* ptr) {
 	free(ptr);
 }
 
+typedef struct SIntPairList {
+	intpair * pl;
+	int len;
+} tSIntPairList;
+
+typedef struct SStrList {
+	char ** pl;
+	int len;
+} tSStrList;
+
+typedef struct SPairDict {
+	int num_rows;
+	int num_cols;
+	int ** ppdata;
+} tSPairDict;
+
+typedef int intquad[4];
+
+
+void clear_pair_dict(tSPairDict * ppd);
+
+void str_list_init(tSStrList * sl) {
+	sl->len = 0;
+	sl->pl = NULL;
+}
+
+void str_list_add_val(tSStrList * sl, char * val) {
+	int old_len = sl->len;
+	char ** old_pl = sl->pl;
+	sl->len++;
+	sl->pl = (char **)vomalloc(sl->len*sizeof(char*));
+	if (old_len > 0) {
+		memcpy(sl->pl, old_pl, old_len*sizeof(char*));
+		vofree(old_pl);
+	}
+	sl->pl[old_len] = val;
+}
+
+void str_list_change_one(tSStrList * sl, int idx, char * val) {
+	sl->pl[idx] = val;
+}
+
+void str_list_reset_with_one_val(tSStrList * sl, char * val) {
+	if (sl->len > 0) {
+		vofree(sl->pl);
+	}
+	sl->len = 0;
+	str_list_add_val(sl, val);
+}
+
+void str_list_clear(tSStrList * sl) {
+	if (sl == NULL) {
+		return;
+	}
+	if (sl->len > 0) {
+		vofree(sl->pl);
+	}
+//	vofree(sl);
+}
+
+void str_list_print(tSStrList * sl) {
+	int i;
+	for (i=0; i<sl->len; i++) {
+		printf("%s, ", sl->pl[i]);
+	}
+	printf("\n");
+}
 
 typedef struct SNtVars {
 	int loc;
@@ -52,24 +109,156 @@ typedef struct SNtVars {
 	int b_resolved;
 } tSNtVars;
 
+void print_nt_var(tSNtVars * var_opt) {
+	printf(	"loc = %d, b_bound = %d, b_must_bind = %d, val = %s, cd = %f, iext_var = %d, b_resolved = %d.\n",
+			var_opt->loc, var_opt->b_bound, var_opt->b_must_bind, var_opt->val,
+			var_opt->cd, var_opt->iext_var, var_opt->b_resolved);
+}
+
 typedef struct SVOApp {
 	int bitvec_size;
+	char** el_bin_db; // bitvecs, storage for each bitvec is local
+	size_t el_bin_db_len;
+	struct hsearch_data * d_words;
+	char ** l_els;
 } tSVOApp;
 
 void * init_capp(void) {
-	tSVOApp * pvoapp = (tSVOApp *)vomalloc(sizeof(tSVOApp));
-	return (void *)pvoapp;
+	tSVOApp * papp = (tSVOApp *)vomalloc(sizeof(tSVOApp));
+	papp->el_bin_db_len = 0;
+	papp->el_bin_db = NULL;
+	papp->d_words = NULL;
+	papp->l_els = NULL;
+	return (void *)papp;
 }
 
 void set_el_bitvec_size(void * happ, int size) {
-	tSVOApp * pvoapp = (tSVOApp *)happ;
-	pvoapp->bitvec_size = size;
+	tSVOApp * papp = (tSVOApp *)happ;
+	papp->bitvec_size = size;
+}
+
+void init_el_bin_db(void * happ, int size, int dict_space) {
+	tSVOApp * papp = (tSVOApp *)happ;
+	int i;
+	papp->el_bin_db_len = size;
+	papp->l_els = (char **)vomalloc(sizeof(char*)*size);
+	papp->el_bin_db = (char **)vomalloc(sizeof(char*)*size);
+	for (i=0;i<size;i++) {
+		papp->el_bin_db[i] = (char*)vomalloc(sizeof(char)*papp->bitvec_size);
+	}
+	papp->d_words = (struct hsearch_data *)vomalloc(sizeof(struct hsearch_data));
+	memset(papp->d_words, 0, sizeof(struct hsearch_data));
+	hcreate_r(dict_space, papp->d_words);
+}
+
+// The following sets one of the elements of the array created in init. add_el_bin, adds to the db, requiring a new alloc
+
+void set_el_bin(void * happ, int iel, char * word, char *bin) {
+	tSVOApp * papp = (tSVOApp *)happ;
+	unsigned hret = 0;
+	ENTRY e, *ep;
+
+//	{
+//		int i;
+//		printf("Setting %s for %d in el_bin: ", word, iel);
+//		for (i=0;i<papp->bitvec_size;i++) {
+//			printf("%hhd",bin[i]);
+//		}
+//		printf("\n");
+//		
+//	}
+		
+	e.key = word;
+	e.data = (void *)(size_t)iel;
+	hret = hsearch_r(e, ENTER, &ep, papp->d_words);
+	if (hret == 0) {
+		printf("Error! Failed to add word to d_words dict\n");
+	}
+
+	memcpy(papp->el_bin_db[iel], bin, papp->bitvec_size*sizeof(char));
+	papp->l_els[iel] = word;
+}
+
+// Change the bin for a word/el already in the database
+void change_el_bin(void * happ, int iel, char *bin) {
+	tSVOApp * papp = (tSVOApp *)happ;
+	memcpy(papp->el_bin_db[iel], bin, papp->bitvec_size*sizeof(char));
+}
+
+int add_el_bin(void * happ, char * word, char *bin) {
+	tSVOApp * papp = (tSVOApp *)happ;
+	unsigned hret = 0;
+	ENTRY e, *ep;
+	size_t old_len = papp->el_bin_db_len;
+	char ** old_el_bin_db = papp->el_bin_db;
+	char ** old_l_els = papp->l_els;
+
+	papp->el_bin_db_len++;
+	papp->el_bin_db = (char**)vomalloc(papp->el_bin_db_len*sizeof(char*));
+	papp->l_els = (char **)vomalloc(papp->el_bin_db_len*sizeof(char*));
+	memcpy(papp->el_bin_db, old_el_bin_db, old_len*sizeof(char*));
+	memcpy(papp->l_els, old_l_els, old_len*sizeof(char*));
+	vofree(old_el_bin_db);
+	vofree(old_l_els);
+	papp->el_bin_db[old_len] = (char*)vomalloc(sizeof(char)*papp->bitvec_size);
+
+	e.key = word;
+	e.data = (void *)old_len;
+	hret = hsearch_r(e, ENTER, &ep, papp->d_words);
+	if (hret == 0) {
+		printf("Error! Failed to add new word to d_words dict\n");
+	}
+
+	memcpy(papp->el_bin_db[old_len], bin, papp->bitvec_size*sizeof(char));
+	papp->l_els[old_len]  = word;
+	return papp->el_bin_db_len;
+}
+
+char* get_el_bin(tSVOApp * papp, char * word) {
+//	tSVOApp * papp = (tSVOApp *)happ;
+	unsigned hret = 0;
+	ENTRY e, *ep;
+	size_t iel;
+
+	e.key = word;
+	hret = hsearch_r(e, FIND, &ep, papp->d_words);
+	if (hret == 0) {
+		printf("Warning. request to get bin for %s which was not found\n", word);
+		return NULL;
+	}
+
+	iel = (size_t)ep->data;
+	printf("get_el_bin for %s. iel = %zu\n", ep->key, iel);
+	return papp->el_bin_db[iel];
+}
+
+char* check_el_bin(void * happ, char * word) {
+	tSVOApp * papp = (tSVOApp *)happ;
+	return get_el_bin(papp, word);
 }
 
 
+char * get_word_by_id(tSVOApp * papp, int iel) {
+//	tSVOApp * papp = (tSVOApp *)happ;
+	printf("get_word_by_id returned %s\n", papp->l_els[iel]);
+	return papp->l_els[iel];
+}
+
 void free_capp(void * hcapp) {
-	tSVOApp * pvoapp = (tSVOApp *)hcapp;
-	vofree(pvoapp);
+	tSVOApp * papp = (tSVOApp *)hcapp;
+	if (papp->el_bin_db != NULL) {
+		int i;
+		for (i=0; i<papp->el_bin_db_len; i++) {
+			vofree(papp->el_bin_db[i]);
+		}
+		vofree(papp->el_bin_db);
+		vofree(papp->l_els);
+	}
+	if (papp->d_words != NULL) {
+		hdestroy_r(papp->d_words);
+		vofree(papp->d_words);
+	}
+	vofree(papp);
 }
 
 typedef struct SVOGG {
@@ -189,7 +378,7 @@ typedef struct SVOState {
 //	int * l_phrases_len; // pointer to an IntArray created at the Python level - no malloc or free
 //	int l_phrases_len_len;
 	int * l_phrase_starts; // 1 longer than l_phrases_len_len
-	char ** l_var_vals; // len num_vars
+	tSStrList* l_var_vals; // len num_vars
 	int * l_var_locs; // len num_vars
 	//	int num_loc_pairs;
 	intpair * l_var_loc_pairs; // len num_vars
@@ -233,13 +422,19 @@ void free_vo(void * hvos) {
 		vofree(pvos->ll_hd_max);
 	}
 	if (pvos->num_vars > 0) {
-		vofree(pvos->pnv);
 		if (pvos->l_var_vals != NULL) {
+			int il;
+			for (il=0; il<pvos->num_vars; il++) {
+//				printf("deleting: ");
+//				str_list_print(&(pvos->l_var_vals[il]));
+				str_list_clear(&(pvos->l_var_vals[il]));
+			}
 			vofree(pvos->l_var_vals);
 		}
 		if (pvos->l_var_locs != NULL) {
 			vofree(pvos->l_var_locs);
 		}
+		vofree(pvos->pnv);
 	}
 	if (pvos->l_phrase_starts != NULL) {
 		vofree(pvos->l_phrase_starts);
@@ -387,23 +582,74 @@ void cnt_vars(void * hvos, int loc, int b_bound, int b_must_bind, char * val, do
 //	return nv;
 }
 
-void do_vo(void * hvos) {
+int bin_diff_count(char * a, char * b, int size) {
+	int i;
+	char *pa, *pb;
+	int num_diffs = 0;
+	printf("a bitvec: ");
+	for (i=0, pa = a; i<size;i++,pa++) {
+		printf("%hhd", *pa);
+	}
+	printf("\n");
+	printf("b bitvec: ");
+	for (i=0, pb = b; i<size;i++,pb++) {
+		printf("%hhd", *pb);
+	}
+	printf("\n");
+	printf("bin_diff_count: ");
+	for (i=0, pa = a, pb = b; i<size;i++,pa++,pb++) {
+		if (*pa != *pb ) {
+			num_diffs++;
+		}
+	}
+	printf("num diffs = %d\n", num_diffs);
+	return num_diffs;
+}
+
+int bin_idx_best_match(char ** db, char * q, int dbsize, int binsize) {
+	int idx_best = 0, best_count = 0;
+	int i;
+	char **pdb;
+	for (i=0, pdb=db;i<dbsize;i++, pdb++) {
+		int j;
+		char *pq, *ppdb;
+		int match_count = 0;
+		for (j=0,pq=q,ppdb=*pdb;j<binsize;j++, pq++, ppdb++) {
+			if (*pq==*ppdb) {
+				match_count++;
+			}
+		}
+		if (match_count > best_count) {
+			best_count = match_count;
+			idx_best = i;
+		}
+	}
+	printf("bin_idx_best_match returning best = %d, match_count = %d\n", idx_best, best_count);
+	return idx_best;
+}
+
+int do_vo(void * hvos) {
 	tSVOState * pvos = (tSVOState *)hvos;
+	tSVOApp * papp = pvos->pgg->pApp;
 	int i,j;
 	int num_loc_pairs = 0;
 	int max_phrase_len = 0;
 
-	pvos->l_var_vals = (char **)vomalloc(pvos->num_vars*sizeof(char*));
+	pvos->l_var_vals = (tSStrList *)vomalloc(pvos->num_vars*sizeof(tSStrList));
 	pvos->l_var_locs = (int *)vomalloc(pvos->num_vars*sizeof(int));
 	for (i=0; i<pvos->num_vars; i++) {
+		str_list_init(&(pvos->l_var_vals[i]));
 		if (pvos->pnv[i].b_bound) {
-			pvos->l_var_vals[i] = pvos->pnv[i].val;
+			str_list_add_val(&(pvos->l_var_vals[i]), pvos->pnv[i].val);
+//			pvos->l_var_vals[i] = pvos->pnv[i].val;
 		}
 		else {
-			pvos->l_var_vals[i] = NULL;
+			str_list_add_val(&(pvos->l_var_vals[i]), NULL);
+//			pvos->l_var_vals[i] = NULL;
 		}
 		pvos->l_var_locs[i] = pvos->pnv[i].loc;
 	}
+
 //	printf("pvos->pgg->l_phrases_len_len = %d\n", pvos->pgg->l_phrases_len_len);
 //	{
 //		int k;
@@ -429,7 +675,9 @@ void do_vo(void * hvos) {
 			}
 		}
 	}
-	assert(num_loc_pairs == pvos->num_vars);
+	if (num_loc_pairs != pvos->num_vars) {
+		printf("Coding error! num_loc_pairs != pvos->num_vars");
+	}
 	pvos->l_var_loc_pairs = (intpair *)vomalloc(pvos->num_vars*sizeof(intpair));
 	pvos->l_var_all_locs = (tSIntPairList *)vomalloc(pvos->num_vars*sizeof(tSIntPairList));
 	pvos->d_var_opts = create_pair_dict(pvos->pgg->l_phrases_len_len, max_phrase_len);
@@ -498,6 +746,7 @@ void do_vo(void * hvos) {
 //			}
 //		}
 	}
+	printf("7\n");
 	{
 		int ivar;
 		int iopt_now = pvos->num_vars;
@@ -509,6 +758,8 @@ void do_vo(void * hvos) {
 			int src_iel = wlist_var[1];
 			int iopt = pair_dict_get(pvos->d_var_opts, src_istage, src_iel);
 			if (iopt == -1) {
+				// This code is not quite right. Once we add vars, later refs to the
+				// the same var will not be -1. Better to add as necessary and not pre-count
 				num_new_vars++;
 			}
 		}
@@ -522,10 +773,13 @@ void do_vo(void * hvos) {
 				vofree(old_pnv);
 			}
 			{
-				char ** old_l_var_vals = pvos->l_var_vals;
-				pvos->l_var_vals = (char **)vomalloc(pvos->num_vars*sizeof(char*));
-				memcpy(pvos->l_var_vals, old_l_var_vals, sizeof(char *) * old_num_vars);
+				tSStrList * old_l_var_vals = pvos->l_var_vals;				
+				pvos->l_var_vals = (tSStrList*)vomalloc(pvos->num_vars*sizeof(tSStrList));
+				memcpy(pvos->l_var_vals, old_l_var_vals, sizeof(tSStrList) * old_num_vars);
 				vofree(old_l_var_vals);
+				for (ivar=old_num_vars; ivar < pvos->num_vars; ivar++) {
+					str_list_init(&(pvos->l_var_vals[ivar]));
+				}
 			}
 //			do the same for l_var_all_locs but figure out the pair list thingy
 			{
@@ -544,6 +798,7 @@ void do_vo(void * hvos) {
 //		var_loc_adds = (int *)vomalloc(pvos->num_vars*sizeof(int));
 //		memset(var_loc_adds, 0, sizeof(int)*pvos->num_vars);
 //		printf("l_wlist_vars:\n");
+//		printf("l_wlist_vars_len = %d\n", pvos->pgg->l_wlist_vars_len);
 		for (ivar=0; ivar < pvos->pgg->l_wlist_vars_len; ivar++) {
 			int * wlist_var = pvos->pgg->l_wlist_vars[ivar];
 			int src_istage = wlist_var[0];
@@ -552,6 +807,7 @@ void do_vo(void * hvos) {
 			int dest_iel = wlist_var[3];
 //			printf("%d: src: %d, %d. dest: %d, %d.\n", ivar, src_istage, src_iel, dest_istage, dest_iel);
 			int iopt = pair_dict_get(pvos->d_var_opts, src_istage, src_iel);
+			printf("ivar: %d. iopt = %d. iopt_now = %d. pvos->num_vars = %d\n", ivar, iopt, iopt_now, pvos->num_vars);
 			if (iopt == -1) {
 				tSNtVars nv;
 				nv.loc = pvos->l_phrase_starts[src_istage]+src_iel, nv.b_bound = 0, nv.b_must_bind = 0, nv.val = NULL;
@@ -563,14 +819,14 @@ void do_vo(void * hvos) {
 				pvos->l_var_all_locs[iopt_now].pl[0][1] = src_iel;
 				pvos->l_var_all_locs[iopt_now].pl[1][0] = dest_istage;
 				pvos->l_var_all_locs[iopt_now].pl[1][1] = dest_iel;
-				pvos->l_var_vals[iopt_now] = NULL;
+				str_list_add_val(&(pvos->l_var_vals[iopt_now]), NULL);
 				iopt_now++;
 			}
 			else {
 				tSIntPairList * p_var_locs = &(pvos->l_var_all_locs[iopt]);
 				int old_len = p_var_locs->len;
 				intpair * old_pl = p_var_locs->pl;
-//				printf("var_locs.len was %d\n", p_var_locs->len);
+				printf("var_locs.len was %d\n", p_var_locs->len);
 				p_var_locs->len++;
 				p_var_locs->pl = (intpair*)vomalloc(p_var_locs->len * sizeof(intpair));
 				memcpy(p_var_locs->pl, old_pl, old_len*sizeof(intpair));
@@ -579,6 +835,7 @@ void do_vo(void * hvos) {
 				pair_dict_set(pvos->d_var_opts, dest_istage, dest_iel, iopt);
 //				var_loc_adds[iopt]++;
 			}
+			printf("end if iopt == -1\n");
 		}
 //		vofree(var_loc_adds);
 //		{
@@ -597,4 +854,95 @@ void do_vo(void * hvos) {
 //			pair_dict_print(pvos->d_var_opts);
 //		}
 	}
+
+	{
+		int iopt;
+		for (iopt=0; iopt<pvos->num_vars; iopt++) {
+			tSNtVars * var_opt = &(pvos->pnv[iopt]);
+			tSIntPairList * var_all_locs = &(pvos->l_var_all_locs[iopt]);
+			int src_istage = var_all_locs->pl[0][0];
+			int src_iel = var_all_locs->pl[0][1];
+			if (!var_opt->b_resolved) {
+				bool b_set_by_int = true;
+				char* int_els_rep = pvos->ll_src_pat[src_istage][src_iel];
+				int int_hd_max = pvos->ll_hd_max[src_istage][src_iel];
+				if (var_opt->iext_var >= 0) {
+//					ext_var_opt = pvos->pnv[var_opt.iext_var]
+					char * ext_els_rep = get_el_bin(papp, var_opt->val);
+					int ext_hd_max = 0;
+					int max_of_max_hd;
+					int bin_diff = bin_diff_count(int_els_rep, ext_els_rep,papp->bitvec_size);
+					if (var_opt->cd >= 0.0 ) {
+						ext_hd_max = (int)((double)(papp->bitvec_size) * (1. - var_opt->cd));
+					}
+					max_of_max_hd = max(int_hd_max, ext_hd_max);
+					printf("bin_diff = %d, max_of_max_hd = %d\n", bin_diff, max_of_max_hd);
+					if (bin_diff > max_of_max_hd) {
+						printf("Exiting! \n");
+						return 0;
+					}
+					if (int_hd_max > ext_hd_max) {
+						pvos->ll_src_pat[src_istage][src_iel] = ext_els_rep;
+						pvos->ll_hd_max[src_istage][src_iel] = ext_hd_max;
+						b_set_by_int = false;
+						var_opt->b_resolved=true;
+					}
+				}
+				if (b_set_by_int) {
+					int nd_el_match_idx = bin_idx_best_match(	papp->el_bin_db, int_els_rep,
+																papp->el_bin_db_len, papp->bitvec_size);
+					char *el_word = get_word_by_id(papp, nd_el_match_idx);
+					bool b_exact = (pvos->ll_hd_max[src_istage][src_iel] == 0);
+					var_opt->b_bound=b_exact, var_opt->b_must_bind=b_exact, var_opt->val = el_word;
+					var_opt->b_resolved = true;
+					var_opt->cd = 1.-((double)((pvos->ll_hd_max[src_istage][src_iel]) / papp->bitvec_size));
+					if (b_exact) {
+						str_list_reset_with_one_val(&(pvos->l_var_vals[iopt]), el_word);
+					}
+				}
+			}
+		}
+		{
+			
+		}
+		{
+			int i;
+			printf("ll_hd_max: \n");
+			for (i=0; i<pvos->pgg->l_phrases_len_len; i++) {
+				int j;
+				printf("stage %d: [", i);
+				for (j=0; j<pvos->pgg->l_phrases_len[i];j++) {
+					printf("%d, ", pvos->ll_hd_max[i][j]);
+				}
+				printf("], ");
+			}
+			printf("\n");
+			printf("ll_src_pat: \n");
+			for (i=0; i<pvos->pgg->l_phrases_len_len; i++) {
+				int j;
+				printf("stage %d: [", i);
+				for (j=0; j<pvos->pgg->l_phrases_len[i];j++) {
+					int k;
+					for (k=0;k<papp->bitvec_size;k++) {
+						printf("%hhd", pvos->ll_src_pat[i][j][k]);
+					}
+					printf(", ");
+				}
+				printf("], ");
+			}
+			printf("\n");
+			printf("l_vars: \n");
+			for (iopt=0; iopt<pvos->num_vars; iopt++) {
+				tSNtVars * var_opt = &(pvos->pnv[iopt]);
+				print_nt_var(var_opt);
+			}
+			printf("l_var_vals: \n");
+			for (iopt=0; iopt<pvos->num_vars; iopt++) {
+				tSStrList * sl = &(pvos->l_var_vals[iopt]);
+				printf("%d: ", iopt);
+				str_list_print(sl);
+			}
+		}
+    }
+	return 1;
 }

@@ -122,9 +122,19 @@ class cl_bitvec_mgr(object):
 		gg.cl_bitvec_gg.bitvec_size = c_bitvec_size
 		self.__hcvo = varopts.init_capp()
 		varopts.set_el_bitvec_size(self.__hcvo, c_bitvec_size)
+		varopts.init_el_bin_db(self.__hcvo, len(self.__nd_el_bin_db), len(self.__d_words) * 2);
+		for iel, (el_bin, el_word) in enumerate(zip(self.__nd_el_bin_db, self.__l_els)):
+			bin_arr = self.convert_bitvec_to_arr(el_bin)
+			varopts.set_el_bin(self.__hcvo, iel, el_word, bin_arr)
+			# test_bin_arr = varopts.check_el_bin(self.__hcvo, el_word);
 
 	def get_hcvo(self):
 		return self.__hcvo
+
+	def convert_bitvec_to_arr(self, el_bin):
+		bin_arr = varopts.charArray(c_bitvec_size)
+		for ib in range(c_bitvec_size): bin_arr[ib] = chr(el_bin[ib])
+		return bin_arr
 
 	def combine_templates(self, templ1, templ2):
 		if len(templ2) != len(templ2): return []
@@ -704,6 +714,10 @@ class cl_bitvec_mgr(object):
 		# self.__nd_el_bin_db[word_id, :] = word_binvec
 		self.__s_word_bit_db.add(tuple(word_binvec))
 		self.__l_word_fix_num.append(0)
+		print('adding', word)
+		cnum = varopts.add_el_bin(self.__hcvo, word, self.convert_bitvec_to_arr(word_binvec))
+		print('added', word)
+		assert cnum == len(self.__d_words), 'Error. c version of el db misaligned with base code.'
 		return word_id
 
 	def check_or_add_word(self, word):
@@ -788,6 +802,9 @@ class cl_bitvec_mgr(object):
 			l_fixed_rule_pos_data = self.__d_word_in_fixed_rule.get(word_changed, [])
 			for i_fixed_rule, word_pos in l_fixed_rule_pos_data:
 				self.__l_fixed_rules[i_fixed_rule].update_bin_for_word(word_pos, self.__nd_el_bin_db[iword])
+			# varopts.set_el_bin(self.__hcvo, iword, word_changed, self.convert_bitvec_to_arr(self.__nd_el_bin_db[iword]))
+			varopts.change_el_bin(self.__hcvo, iword, self.convert_bitvec_to_arr(self.__nd_el_bin_db[iword]))
+
 		if l_rphrase_changed != []: self.__mpdb_mgr.apply_bin_db_changes(l_rphrase_changed)
 
 		return self.__nd_el_bin_db, ilen, iphrase

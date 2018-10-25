@@ -23,7 +23,7 @@ void set_num_vars(void * hvos, int n);
 void set_l_phrases_len(void * hvos, int * l_phrases_len, int len) ;
 void * init_vo(void * hgg);
 void cnt_vars(void * hvos, int loc, int b_bound, int b_must_bind, char * val, double cd, int iext_var);
-void do_vo(void * hvos);
+int do_vo(void * hvos);
 void free_vo(void * hvos);
 void * init_capp(void);
 void set_el_bitvec_size(void * happ, int size);
@@ -36,5 +36,10 @@ void set_l_wlist_vars_len(void * hgg, int size);
 void set_l_wlist_var(void * hgg, int * varquad, int ivar);
 void set_l_phrases_len(void * hgg, int * l_phrases_len, int len);
 
+int add_el_bin(void * happ, char * word, char *bitvec);
+void set_el_bin(void * happ, int iel, char * word, char *bitvec);
+void change_el_bin(void * happ, int iel, char *bin);
+void init_el_bin_db(void * happ, int size, int dict_space);
+char* check_el_bin(void * happ, char * word);
 
 
