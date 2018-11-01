@@ -336,7 +336,7 @@ def main():
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt)
-	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr)
+	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents))
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
 	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)

@@ -2342,3 +2342,14 @@ Thursday 25th OctoberL
 CIW:
 
 Completed a0 of find_var_opts.
+
+Too many mallocs. Way too many. See Tuesday's comment. Ploughing on for now, however.
+
+Thursday 1st November
+
+Yes, I know that I have commented little in the last week. That is because what I have done is very straightforward. Just
+porting the python code of part b of find_var_opts to c.
+
+CIW:
+
+Initial testing passes for part b of varopts.

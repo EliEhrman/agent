@@ -19,6 +19,7 @@ import timeit
 import collections
 
 import numpy as np
+from py.builtin import enumerate
 
 from utils import profile_decor
 import rules2
@@ -124,16 +125,16 @@ class cl_bitvec_mgr(object):
 		varopts.set_el_bitvec_size(self.__hcvo, c_bitvec_size)
 		varopts.init_el_bin_db(self.__hcvo, len(self.__nd_el_bin_db), len(self.__d_words) * 2);
 		for iel, (el_bin, el_word) in enumerate(zip(self.__nd_el_bin_db, self.__l_els)):
-			bin_arr = self.convert_bitvec_to_arr(el_bin)
+			bin_arr = self.convert_charvec_to_arr(el_bin, c_bitvec_size)
 			varopts.set_el_bin(self.__hcvo, iel, el_word, bin_arr)
 			# test_bin_arr = varopts.check_el_bin(self.__hcvo, el_word);
 
 	def get_hcvo(self):
 		return self.__hcvo
 
-	def convert_bitvec_to_arr(self, el_bin):
-		bin_arr = varopts.charArray(c_bitvec_size)
-		for ib in range(c_bitvec_size): bin_arr[ib] = chr(el_bin[ib])
+	def convert_charvec_to_arr(self, bin, size):
+		bin_arr = varopts.charArray(size)
+		for ib in range(size): bin_arr[ib] = chr(bin[ib])
 		return bin_arr
 
 	def combine_templates(self, templ1, templ2):
@@ -164,21 +165,33 @@ class cl_bitvec_mgr(object):
 
 		return ret
 
+	def mpdb_bins_to_c(self):
+		varopts.app_mpdb_bin_init(self.__hcvo, self.__mpdb_bins.shape[0], self.__mpdb_bins.shape[1])
+		for irec, rec in enumerate(self.__mpdb_bins):
+			varopts.app_mpdb_bin_rec_set(self.__hcvo, irec, self.convert_charvec_to_arr(rec, rec.shape[0]))
 
 	def add_mpdb_bins(self, ilen, iphrase):
 		# self.debug_test_mpdb_bins()
 		bin_db = self.get_phrase_bin_db(ilen)
 		bins = bin_db[iphrase]
+		b_c_reset = False
 		if self.__mpdb_bins == []:
 			self.__mpdb_bins = np.expand_dims(bins,axis=0)
+			self.mpdb_bins_to_c()
 			return
 		if bins.shape[0] > self.__mpdb_bins.shape[1]:
 			grow = bins.shape[0] - self.__mpdb_bins.shape[1]
 			self.__mpdb_bins  = np.pad(self.__mpdb_bins, ((0,0), (0, grow)), 'constant')
+			varopts.app_mpdb_bin_free(self.__hcvo)
+			b_c_reset = True
 		elif bins.shape[0] < self.__mpdb_bins.shape[1]:
 			grow = self.__mpdb_bins.shape[1] - bins.shape[0]
 			bins = np.pad(bins, (0, grow), 'constant')
 		self.__mpdb_bins = np.vstack((self.__mpdb_bins, bins))
+		if b_c_reset:
+			self.mpdb_bins_to_c()
+		else:
+			varopts.app_mpdb_bin_rec_add(self.__hcvo, self.convert_charvec_to_arr(bins, bins.shape[0]))
 		self.debug_test_mpdb_bins()
 
 		pass
@@ -196,26 +209,37 @@ class cl_bitvec_mgr(object):
 	def cleanup_mpdb_bins(self, l_keep):
 		# l_keep is the indexes of the current version to keep
 		self.__mpdb_bins = self.__mpdb_bins[l_keep]
+		varopts.app_mpdb_bin_free(self.__hcvo)
+		self.mpdb_bins_to_c()
 		self.debug_test_mpdb_bins()
 
 
 	def update_mpdb_bins(self, iupdate, rphrase):
 		new_bin = self.get_phrase_bin(*rphrase)
+		b_c_reset = False
 		# if new_bin.shape[0] < self.__mpdb_bins.shape[1]:
 		# 	grow = self.__mpdb_bins.shape[1] - new_bin.shape[0]
 		# 	self.__mpdb_bins[iupdate] = np.pad(new_bin, (0, grow), 'constant')
 		if new_bin.shape[0] > self.__mpdb_bins.shape[1]:
 			grow = new_bin.shape[0] - self.__mpdb_bins.shape[1]
 			self.__mpdb_bins  = np.pad(self.__mpdb_bins, ((0,0), (0, grow)), 'constant')
+			varopts.app_mpdb_bin_free(self.__hcvo)
+			b_c_reset = True
 		elif new_bin.shape[0] < self.__mpdb_bins.shape[1]:
 			grow = self.__mpdb_bins.shape[1] - new_bin.shape[0]
 			new_bin = np.pad(new_bin, (0, grow), 'constant')
 		self.__mpdb_bins[iupdate] = new_bin
+		if b_c_reset:
+			self.mpdb_bins_to_c()
+		else:
+			varopts.app_mpdb_bin_rec_set(self.__hcvo, iupdate, self.convert_charvec_to_arr(new_bin, new_bin.shape[0]))
+		self.debug_test_mpdb_bins()
 
 
 
 	def clear_mpdb_bins(self):
 		self.__mpdb_bins = []
+		varopts.app_mpdb_bin_free(self.__hcvo)
 
 	def clear_all_db_arg_caches(self):
 		for gg in self.__l_fixed_rules:
@@ -248,6 +272,7 @@ class cl_bitvec_mgr(object):
 				ilen = len(self.__l_phrases)
 				self.__d_lens[phrase_len] = ilen
 				self.__l_phrases.append([])
+				varopts.ll_phrases_add_ilen(self.__hcvo)
 				self.__phrase_bin_db.append([])
 			return ilen
 
@@ -715,7 +740,7 @@ class cl_bitvec_mgr(object):
 		self.__s_word_bit_db.add(tuple(word_binvec))
 		self.__l_word_fix_num.append(0)
 		print('adding', word)
-		cnum = varopts.add_el_bin(self.__hcvo, word, self.convert_bitvec_to_arr(word_binvec))
+		cnum = varopts.add_el_bin(self.__hcvo, word, self.convert_charvec_to_arr(word_binvec, c_bitvec_size))
 		print('added', word)
 		assert cnum == len(self.__d_words), 'Error. c version of el db misaligned with base code.'
 		return word_id
@@ -751,6 +776,7 @@ class cl_bitvec_mgr(object):
 			ilen = len(d_lens)
 			d_lens[phrase_len] = ilen
 			l_phrases.append([])
+			varopts.ll_phrases_add_ilen(self.__hcvo)
 			phrase_bin_db.append([])
 		iphrase = len(l_phrases[ilen])
 		l_b_known = [True for _ in phrase]
@@ -787,6 +813,10 @@ class cl_bitvec_mgr(object):
 			l_word_phrase_ids[iword].append((ilen, iphrase))
 
 		l_phrases[ilen].append(phrase)
+		str_arr = varopts.str_list_create(len(phrase))
+		for phrase_iel, phrase_el in enumerate(phrase): varopts.str_list_set(str_arr, phrase_iel, phrase_el)
+		varopts.ll_phrases_add_val(self.__hcvo, ilen, str_arr)
+		varopts.str_list_delete(str_arr)
 		self.__map_phrase_to_rphrase[tuple(phrase)] = (ilen, iphrase)
 		if phrase_bin_db[ilen] == []:
 			phrase_bin_db[ilen] = np.expand_dims(input_bits, axis=0)
@@ -803,7 +833,7 @@ class cl_bitvec_mgr(object):
 			for i_fixed_rule, word_pos in l_fixed_rule_pos_data:
 				self.__l_fixed_rules[i_fixed_rule].update_bin_for_word(word_pos, self.__nd_el_bin_db[iword])
 			# varopts.set_el_bin(self.__hcvo, iword, word_changed, self.convert_bitvec_to_arr(self.__nd_el_bin_db[iword]))
-			varopts.change_el_bin(self.__hcvo, iword, self.convert_bitvec_to_arr(self.__nd_el_bin_db[iword]))
+			varopts.change_el_bin(self.__hcvo, iword, self.convert_charvec_to_arr(self.__nd_el_bin_db[iword], c_bitvec_size))
 
 		if l_rphrase_changed != []: self.__mpdb_mgr.apply_bin_db_changes(l_rphrase_changed)
 

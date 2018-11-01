@@ -141,9 +141,10 @@ class cl_bitvec_gg(object):
 			for ii, ival in enumerate(wlist_var): var_quad[ii] = ival;
 			varopts.set_l_wlist_var(self.__hcgg, var_quad, ivar)
 			# print(ivar, wlist_var)
-		a_phrases_len = varopts.intArray(len(self.__l_phrases_len))
+		a_phrases_len, a_phrases_ilen = varopts.intArray(len(self.__l_phrases_len)), varopts.intArray(len(self.__l_phrases_len))
 		for iplen, plen in enumerate(self.__l_phrases_len): a_phrases_len[iplen] = plen
-		varopts.set_l_phrases_len(self.__hcgg, a_phrases_len, len(self.__l_phrases_len))
+		for iplen, pilen in enumerate(self.__l_phrases_ilen): a_phrases_ilen[iplen] = pilen
+		varopts.set_l_phrases_len(self.__hcgg, a_phrases_len, a_phrases_ilen, len(self.__l_phrases_len))
 
 		# varopts.free_gg(self.__hcgg)
 		# self.__hcgg = None
@@ -528,6 +529,8 @@ class cl_bitvec_gg(object):
 		l_story_rphrases = mpdb_mgr.get_rphrases()
 
 		varopts.My_variable = 12.0
+		varopts.app_mpdb_bin_print(self.__mgr.get_hcvo())
+		varopts.ll_phrases_print(self.__mgr.get_hcvo())
 		# a0time = timeit.default_timer()
 		utils.profile_start('find_var_opts vo')
 
@@ -540,7 +543,7 @@ class cl_bitvec_gg(object):
 
 		# Start with table entry for the external vars. Not all of these are bound
 
-		hvos = varopts.init_vo(self.__hcgg)
+		hvos = varopts.init_vo(self.__hcgg, mpdb_mgr.get_chmpdb(), db_name)
 		varopts.set_num_vars(hvos, len(l_var_opts))
 		# l_cvars = [	varopts.cnt_vars(hvos, vo[0], vo[1], vo[1],
 		# 					vo[2], -1.0 if vo[1] else vo[3], ivo)
@@ -587,7 +590,7 @@ class cl_bitvec_gg(object):
 		# right here and an None (Null) object is returned.
 		# The main loop in this blocks iters over the var table of the rule itself, not the tables we just built
 		# print('TBD: Must make sure that when creating a match phrase there are no repeated els. See comment 6666')
-		l_matches, l_b_phrases_matched, l_match_phrases, l_match_bindings = [], [], [], []
+		# l_matches, l_b_phrases_matched, l_match_phrases, l_match_bindings = [], [], [], []
 		ll_src_pat = [	[self.__l_els_rep[l_phrase_starts[istage]+iel] for iel in range(stage_len)]
 						for istage, stage_len in enumerate(self.__l_phrases_len)]
 		ll_hd_max = [	[self.__l_hd_max[l_phrase_starts[istage]+iel] for iel in range(stage_len)]
@@ -658,6 +661,9 @@ class cl_bitvec_gg(object):
 		#    requirements
 		for iopt, (var_all_locs, one_var) in enumerate(zip(l_var_all_locs, l_vars)):
 			if one_var.iext_var == -1 or one_var.b_resolved: continue
+			# As long as the following assert is not tripped, I will not write C code for this block
+			# Repeat. No code for this block!!!!
+			assert False, 'Old code? Never reached?'
 			src_istage, src_iel = var_all_locs[0]
 			ext_var_opt = l_var_opts[one_var.iext_var]
 			ll_src_pat[src_istage][src_iel] = self.__mgr.get_el_bin(ext_var_opt[2])
@@ -696,15 +702,16 @@ class cl_bitvec_gg(object):
 		# phrase that matches the rules. This contains both phrases found in the db with no open vars as well as
 		# phrases with open vars or no open vars neither of which are actually in the db
 		# Within this block there is creation of the parts of the phrase that do not depend on db matches and those that do
+		# l_matches, l_b_phrases_matched = [], []
+		l_match_phrases, l_match_bindings, l_i_null_phrases = [], [], []
 		nd_default_idb_mrk = mpdb_mgr.get_nd_idb_mrk(idb)
-		l_i_null_phrases = []
 		l_stage_ivars = [[] for _ in range(len(self.__l_phrases_len))]
 		# The stages are the different clauses (phrases) in the rule
 		for istage, phrase_len in enumerate(self.__l_phrases_len):
 			nd_ilen_mrk = np.array([ilen == self.__l_phrases_ilen[istage] for ilen, _ in l_story_rphrases], dtype=np.bool)
 			m_match = np.ones(nd_story_bins.shape[0], dtype=np.bool)
 			m_mrks = np.logical_and(nd_default_idb_mrk, nd_ilen_mrk)
-			m_match = np.logical_and(m_mrks, m_match)
+			m_match = np.logical_and(m_mrks, m_match) # looks like there is no need to preset m_match to ones. Just make a copy
 			l_phrase_found = [[] for _ in range(phrase_len)]
 			l_b_unbound, l_i_unbound = [False for _ in range(phrase_len)], [-1 for _ in range(phrase_len)]
 			# loop through filling in els that do not require a match. Some of the els in this loop will be replaced
@@ -751,24 +758,24 @@ class cl_bitvec_gg(object):
 			l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=False, phrase=l_phrase_found))
 			l_match_bindings.append([istage] + [0 for _ in l_stage_ivars[istage]])
 			# keeping following two lines so that calling functions can keep working
-			l_matches.append(l_phrase_found)
-			l_b_phrases_matched.append(False)
+			# l_matches.append(l_phrase_found)
+			# l_b_phrases_matched.append(False)
 			for imatch, bmatch in enumerate(m_match):
 				if not bmatch: continue
-				l_phrase_found = self.__mgr.get_phrase(*l_story_rphrases[imatch])
-				if self.test_for_unexpected_double([rules2.convert_wlist_to_phrase(l_phrase_found)], d_var_opts,
+				l_story_phrase_found = self.__mgr.get_phrase(*l_story_rphrases[imatch])
+				if self.test_for_unexpected_double([rules2.convert_wlist_to_phrase(l_story_phrase_found)], d_var_opts,
 												   l_var_all_locs, [istage]):
 					m_match[imatch] = False
 					continue
 				# if btrouble: continue
 				l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=True,
-														phrase=rules2.convert_wlist_to_phrases([l_phrase_found])[0]))
+														phrase=rules2.convert_wlist_to_phrases([l_story_phrase_found])[0]))
 				l_match_bindings.append([istage]+ [0 for _ in l_stage_ivars[istage]])
 				for iel in range(phrase_len):
 					if l_b_unbound[iel]:
 						ivar = l_i_unbound[iel]
 						l_bindings = l_var_vals[ivar]
-						var_binding = l_phrase_found[iel]
+						var_binding = l_story_phrase_found[iel]
 						if var_binding in l_bindings:
 							ivar_val = l_bindings.index(var_binding)
 						else:

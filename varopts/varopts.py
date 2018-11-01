@@ -189,17 +189,63 @@ def charArray_frompointer(t):
     return _varopts.charArray_frompointer(t)
 charArray_frompointer = _varopts.charArray_frompointer
 
+class strArray(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, strArray, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, strArray, name)
+    __repr__ = _swig_repr
+
+    def __init__(self, nelements):
+        this = _varopts.new_strArray(nelements)
+        try:
+            self.this.append(this)
+        except Exception:
+            self.this = this
+    __swig_destroy__ = _varopts.delete_strArray
+    __del__ = lambda self: None
+
+    def __getitem__(self, index):
+        return _varopts.strArray___getitem__(self, index)
+
+    def __setitem__(self, index, value):
+        return _varopts.strArray___setitem__(self, index, value)
+
+    def cast(self):
+        return _varopts.strArray_cast(self)
+    __swig_getmethods__["frompointer"] = lambda x: _varopts.strArray_frompointer
+    if _newclass:
+        frompointer = staticmethod(_varopts.strArray_frompointer)
+strArray_swigregister = _varopts.strArray_swigregister
+strArray_swigregister(strArray)
+
+def strArray_frompointer(t):
+    return _varopts.strArray_frompointer(t)
+strArray_frompointer = _varopts.strArray_frompointer
+
+
+def str_list_create(len):
+    return _varopts.str_list_create(len)
+str_list_create = _varopts.str_list_create
+
+def str_list_set(hl, ipos, val):
+    return _varopts.str_list_set(hl, ipos, val)
+str_list_set = _varopts.str_list_set
+
+def str_list_delete(hl):
+    return _varopts.str_list_delete(hl)
+str_list_delete = _varopts.str_list_delete
 
 def set_num_vars(hvos, n):
     return _varopts.set_num_vars(hvos, n)
 set_num_vars = _varopts.set_num_vars
 
-def set_l_phrases_len(hvos, l_phrases_len, len):
-    return _varopts.set_l_phrases_len(hvos, l_phrases_len, len)
+def set_l_phrases_len(hvos, l_phrases_len, l_phrases_ilen, len):
+    return _varopts.set_l_phrases_len(hvos, l_phrases_len, l_phrases_ilen, len)
 set_l_phrases_len = _varopts.set_l_phrases_len
 
-def init_vo(hgg):
-    return _varopts.init_vo(hgg)
+def init_vo(hgg, hmpdb, dbname):
+    return _varopts.init_vo(hgg, hmpdb, dbname)
 init_vo = _varopts.init_vo
 
 def cnt_vars(hvos, loc, b_bound, b_must_bind, val, cd, iext_var):
@@ -221,6 +267,18 @@ init_capp = _varopts.init_capp
 def set_el_bitvec_size(happ, size):
     return _varopts.set_el_bitvec_size(happ, size)
 set_el_bitvec_size = _varopts.set_el_bitvec_size
+
+def ll_phrases_add_ilen(happ):
+    return _varopts.ll_phrases_add_ilen(happ)
+ll_phrases_add_ilen = _varopts.ll_phrases_add_ilen
+
+def ll_phrases_add_val(happ, ilen, hsl):
+    return _varopts.ll_phrases_add_val(happ, ilen, hsl)
+ll_phrases_add_val = _varopts.ll_phrases_add_val
+
+def ll_phrases_print(happ):
+    return _varopts.ll_phrases_print(happ)
+ll_phrases_print = _varopts.ll_phrases_print
 
 def free_capp(hcapp):
     return _varopts.free_capp(hcapp)
@@ -269,6 +327,58 @@ init_el_bin_db = _varopts.init_el_bin_db
 def check_el_bin(happ, word):
     return _varopts.check_el_bin(happ, word)
 check_el_bin = _varopts.check_el_bin
+
+def mpdb_init(happ, num_idbs):
+    return _varopts.mpdb_init(happ, num_idbs)
+mpdb_init = _varopts.mpdb_init
+
+def mpdb_add_db(hmpdb, dbname, idb):
+    return _varopts.mpdb_add_db(hmpdb, dbname, idb)
+mpdb_add_db = _varopts.mpdb_add_db
+
+def mpdb_get_idb(hmpdb, dbname):
+    return _varopts.mpdb_get_idb(hmpdb, dbname)
+mpdb_get_idb = _varopts.mpdb_get_idb
+
+def mpdb_add_srphrase(hmpdb, ilen, iphrase):
+    return _varopts.mpdb_add_srphrase(hmpdb, ilen, iphrase)
+mpdb_add_srphrase = _varopts.mpdb_add_srphrase
+
+def mpdb_set_idb_mrk(hmpdb, idb, isrphrase, val):
+    return _varopts.mpdb_set_idb_mrk(hmpdb, idb, isrphrase, val)
+mpdb_set_idb_mrk = _varopts.mpdb_set_idb_mrk
+
+def mpdb_del_srphrase(hmpdb, isrphrase):
+    return _varopts.mpdb_del_srphrase(hmpdb, isrphrase)
+mpdb_del_srphrase = _varopts.mpdb_del_srphrase
+
+def mpdb_clear(hmpdb):
+    return _varopts.mpdb_clear(hmpdb)
+mpdb_clear = _varopts.mpdb_clear
+
+def app_mpdb_bin_init(happ, num_recs, rec_len):
+    return _varopts.app_mpdb_bin_init(happ, num_recs, rec_len)
+app_mpdb_bin_init = _varopts.app_mpdb_bin_init
+
+def app_mpdb_bin_free(happ):
+    return _varopts.app_mpdb_bin_free(happ)
+app_mpdb_bin_free = _varopts.app_mpdb_bin_free
+
+def app_mpdb_bin_rec_set(happ, irec, rec):
+    return _varopts.app_mpdb_bin_rec_set(happ, irec, rec)
+app_mpdb_bin_rec_set = _varopts.app_mpdb_bin_rec_set
+
+def app_mpdb_bin_rec_add(happ, rec):
+    return _varopts.app_mpdb_bin_rec_add(happ, rec)
+app_mpdb_bin_rec_add = _varopts.app_mpdb_bin_rec_add
+
+def app_mpdb_bin_rec_del(happ, irec):
+    return _varopts.app_mpdb_bin_rec_del(happ, irec)
+app_mpdb_bin_rec_del = _varopts.app_mpdb_bin_rec_del
+
+def app_mpdb_bin_print(happ):
+    return _varopts.app_mpdb_bin_print(happ)
+app_mpdb_bin_print = _varopts.app_mpdb_bin_print
 # This file is compatible with both classic and new-style classes.
 
 

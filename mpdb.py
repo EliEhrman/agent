@@ -10,10 +10,11 @@ from __future__ import print_function
 import numpy as np
 # import copy
 import warnings
+from varopts import varopts
 
 
 class cl_mpdb_mgr(object):
-	def __init__(self, bitvec_mgr, rule_mgr):
+	def __init__(self, bitvec_mgr, rule_mgr, len_set_names):
 		self.__l_dbs = []
 		self.__l_d_story_len_refs = []
 		self.__d_dn_names = dict()
@@ -25,7 +26,9 @@ class cl_mpdb_mgr(object):
 		self.__ll_idb_mrks = [] # for each idb, list of bools for whether the phrase (indexed on l_srphrases) is in that idb
 		rule_mgr.add_to_bitvec_mgr(bitvec_mgr)
 		bitvec_mgr.set_mpdb_mgr(self)
-		self.add_db('main')
+		self.__len_set_names = len_set_names
+		self.__chmpdb = varopts.mpdb_init(self.__bitvec_mgr.get_hcvo(), self.__len_set_names)
+		# self.add_db('main')
 		self.__l_poss_stmts = []
 		pass
 
@@ -34,6 +37,8 @@ class cl_mpdb_mgr(object):
 
 	def clear_dbs(self):
 		self.__bitvec_mgr.clear_mpdb_bins()
+		varopts.mpdb_clear(self.__chmpdb)
+		self.__chmpdb = varopts.mpdb_init(self.__bitvec_mgr.get_hcvo(), self.__len_set_names)
 		self.__l_dbs = []
 		self.__l_d_story_len_refs = []
 		self.__d_dn_names = dict()
@@ -53,8 +58,12 @@ class cl_mpdb_mgr(object):
 			self.__ll_idb_mrks.append([])
 		else:
 			self.__ll_idb_mrks.append([False for _ in self.__ll_idb_mrks[0]])
+		varopts.mpdb_add_db(self.__chmpdb, db_name, idb)
 
 		return idb
+
+	def get_chmpdb(self):
+		return self.__chmpdb
 
 	def set_poss_db(self, l_poss_stmts):
 		self.__l_poss_stmts = l_poss_stmts
@@ -106,6 +115,7 @@ class cl_mpdb_mgr(object):
 			isrphrase = len(self.__l_srphrases)
 			self.__map_rphrase_to_isrphrase[phrase_ref] = isrphrase
 			self.__l_srphrases.append(phrase_ref)
+			varopts.mpdb_add_srphrase(self.__chmpdb, ilen, iphrase)
 			for idb_mrk in self.__ll_idb_mrks:
 				idb_mrk.append(False)
 			self.__bitvec_mgr.add_mpdb_bins(*phrase_ref)
@@ -119,6 +129,8 @@ class cl_mpdb_mgr(object):
 			del len_refs[-1]
 			d_len_refs[ilen] = len_refs
 		self.__ll_idb_mrks[idb][isrphrase] = True
+		varopts.mpdb_set_idb_mrk(self.__chmpdb, idb, isrphrase, chr(1))
+
 
 	def cleanup_srphrases(self):
 		num_srphrases_orig = len(self.__l_srphrases)
@@ -132,6 +144,7 @@ class cl_mpdb_mgr(object):
 			if not binuse:
 				del self.__map_rphrase_to_isrphrase[self.__l_srphrases[isrphrase]]
 				del l_idxs[isrphrase], self.__l_srphrases[isrphrase]
+				varopts.mpdb_del_srphrase(self.__chmpdb, isrphrase)
 				for idb_mrks in self.__ll_idb_mrks:
 					del idb_mrks[isrphrase]
 
@@ -185,7 +198,7 @@ class cl_mpdb_mgr(object):
 		for db_name in l_db_names_from:
 			idb = self.__d_dn_names.get(db_name, -1)
 			if idb == -1:
-				print('Error. mpdb requested to remove from', db_name, 'which doesnt exist.')
+				print('Error. mpdb requested to infer from', db_name, 'which doesnt exist.')
 				continue
 			for ilen, iphrase in list(self.__l_dbs[idb]):
 				# story_refs = list(self.__l_dbs[idb])
