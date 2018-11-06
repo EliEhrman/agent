@@ -528,6 +528,7 @@ class cl_bitvec_gg(object):
 		nd_story_bins = self.__mgr.get_mpdb_bins()
 		l_story_rphrases = mpdb_mgr.get_rphrases()
 
+		print('find_var_opts call #', cl_bitvec_gg.find_var_opts_num_calls)
 		varopts.My_variable = 12.0
 		varopts.app_mpdb_bin_print(self.__mgr.get_hcvo())
 		varopts.ll_phrases_print(self.__mgr.get_hcvo())
@@ -543,7 +544,7 @@ class cl_bitvec_gg(object):
 
 		# Start with table entry for the external vars. Not all of these are bound
 
-		hvos = varopts.init_vo(self.__hcgg, mpdb_mgr.get_chmpdb(), db_name)
+		hvos = varopts.init_vo(self.__hcgg, mpdb_mgr.get_chmpdb(), db_name,  cl_bitvec_gg.find_var_opts_num_calls)
 		varopts.set_num_vars(hvos, len(l_var_opts))
 		# l_cvars = [	varopts.cnt_vars(hvos, vo[0], vo[1], vo[1],
 		# 					vo[2], -1.0 if vo[1] else vo[3], ivo)

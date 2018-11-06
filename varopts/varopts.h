@@ -4,7 +4,7 @@ void * str_list_create(int len);
 void str_list_set(void * hl, int ipos, char * val);
 void str_list_delete(void * hl);
 
-void * init_vo(void * hgg, void * hmpdb, char * dbname);
+void * init_vo(void * hgg, void * hmpdb, char * dbname, int call_num);
 void free_vo(void * hvos);
 void set_num_vars(void * hvos, int n);
 void set_l_phrases_len(void * hvos, int * l_phrases_len, int * l_phrases_ilen, int len) ;

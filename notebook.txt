@@ -2353,3 +2353,35 @@ porting the python code of part b of find_var_opts to c.
 CIW:
 
 Initial testing passes for part b of varopts.
+
+Tuesday 6th November
+
+The port has become less straight forward. Much more creative cleaning up.
+
+Added a way to catch the crashes and now I am actively using them.
+In setup.py added
+						   extra_compile_args=['-O0', '-rdynamic']
+Added a signal handler that prints out a symbolic stack trace
+Use the following to find the address of a function in the library:
+nm -g _varopts.so | grep "cartesian_product"
+The crash report gives an offset from the function name. So you hex add that offset and then call:
+addr2line -e /home/eli/dev/agent/varopts/_varopts.so 0x10BB2
+..and with any luck (sic) you get an output like this:
+/home/eli/dev/agent/varopts/varopts.c:426 (discriminator 3)
+
+Added a memory recording module on vomalloc so that every malloc has an index and can track if not free
+Then you signal a SIGSEGV when that malloc number happens, crash.. and look at the stack trace to find the offender
+
+All els are used as vars. Not just the unbound ones. See extensive commenting in varopts.c
+
+Every l_match_phrase has an associated array that contains an index to the var_val for all vars
+That array is used to determine if a perm of the var_vals is forbidden (not exactly, still have one place doing it old-fashioned)
+and that perm is used to in the process of ading new perms and combos.
+
+These last 2 diverge significantly from the python code which uses itertools and became pretty unreadable.
+
+Instead, a cartesian_product function takes a list of ints as limits and returns all perms of numbers up to those limits.
+
+CIW:
+
+varopts works with too many mallocs but no memory leak.
