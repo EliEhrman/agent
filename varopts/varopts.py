@@ -379,6 +379,46 @@ app_mpdb_bin_rec_del = _varopts.app_mpdb_bin_rec_del
 def app_mpdb_bin_print(happ):
     return _varopts.app_mpdb_bin_print(happ)
 app_mpdb_bin_print = _varopts.app_mpdb_bin_print
+
+def get_num_match_phrases(hvos):
+    return _varopts.get_num_match_phrases(hvos)
+get_num_match_phrases = _varopts.get_num_match_phrases
+
+def get_match_phrase_istage(hvos, imatch):
+    return _varopts.get_match_phrase_istage(hvos, imatch)
+get_match_phrase_istage = _varopts.get_match_phrase_istage
+
+def get_match_phrase_b_matched(hvos, imatch):
+    return _varopts.get_match_phrase_b_matched(hvos, imatch)
+get_match_phrase_b_matched = _varopts.get_match_phrase_b_matched
+
+def get_num_phrase_els(hvos, imatch):
+    return _varopts.get_num_phrase_els(hvos, imatch)
+get_num_phrase_els = _varopts.get_num_phrase_els
+
+def get_phrase_el_def_type(hvos, imatch, iel):
+    return _varopts.get_phrase_el_def_type(hvos, imatch, iel)
+get_phrase_el_def_type = _varopts.get_phrase_el_def_type
+
+def get_phrase_el_cd(hvos, imatch, iel):
+    return _varopts.get_phrase_el_cd(hvos, imatch, iel)
+get_phrase_el_cd = _varopts.get_phrase_el_cd
+
+def get_phrase_el_val(hvos, imatch, iel):
+    return _varopts.get_phrase_el_val(hvos, imatch, iel)
+get_phrase_el_val = _varopts.get_phrase_el_val
+
+def get_num_combos(hvos):
+    return _varopts.get_num_combos(hvos)
+get_num_combos = _varopts.get_num_combos
+
+def get_combo_len(hvos):
+    return _varopts.get_combo_len(hvos)
+get_combo_len = _varopts.get_combo_len
+
+def get_combo_val(hvos, icombo, ival):
+    return _varopts.get_combo_val(hvos, icombo, ival)
+get_combo_val = _varopts.get_combo_val
 # This file is compatible with both classic and new-style classes.
 
 

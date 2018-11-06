@@ -47,3 +47,16 @@ void app_mpdb_bin_rec_set(void * happ, int irec, char* rec);
 void app_mpdb_bin_rec_add(void * happ, char* rec);
 void app_mpdb_bin_rec_del(void * happ, int irec);
 void app_mpdb_bin_print(void * happ);
+
+int get_num_match_phrases(void * hvos);
+int get_match_phrase_istage(void * hvos, int imatch);
+int get_match_phrase_b_matched(void * hvos, int imatch);
+int get_num_phrase_els(void * hvos, int imatch);
+int get_phrase_el_def_type(void * hvos, int imatch, int iel);
+double get_phrase_el_cd(void * hvos, int imatch, int iel) ;
+char * get_phrase_el_val(void * hvos, int imatch, int iel) ;
+int get_num_combos(void * hvos);
+int get_combo_len(void * hvos) ;
+int get_combo_val(void * hvos, int icombo, int ival);
+
+

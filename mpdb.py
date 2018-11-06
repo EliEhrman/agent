@@ -192,6 +192,7 @@ class cl_mpdb_mgr(object):
 			len_refs = d_len_refs[ilen]
 			len_refs.remove(iphrase)
 			self.__ll_idb_mrks[idb][isrphrase] = False
+			varopts.mpdb_set_idb_mrk(self.__chmpdb, idb, isrphrase, chr(0))
 
 	def infer(self, l_db_names_from, phase_data, l_rule_cats):
 		results = []

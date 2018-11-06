@@ -13,7 +13,7 @@ import numpy as np
 # import makerecs as mr
 
 conn_type = Enum('conn_type', 'single AND OR start end Insert Remove Modify IF THEN Broadcast replace_with_next, Unique')
-rec_def_type = Enum('rec_def_type', 'obj conn var error set like')
+rec_def_type = Enum('rec_def_type', 'obj conn var error set like err')
 # see notebook on 2nd Nov
 rule_type = Enum('rule_type', 'story_start event_from_decide state_from_state state_from_event '
 							  'event_from_event block_event knowledge_query query event_from_none')

@@ -41,6 +41,10 @@ void handler(int sig) {
 }
 void perm_free(int** l_out);
 
+int vo_call_num = -1;
+
+//#define TEST_MALLOC
+#ifdef TEST_MALLOC
 #define MALLOC_HASH_MAX 100000
 #define MAX_ADDR_STR 32
 struct hsearch_data  d_mallocs;
@@ -50,7 +54,6 @@ bool b_malloc_init = false;
 bool malloc_arr[MALLOC_HASH_MAX];
 char addr_str_arr[MALLOC_HASH_MAX][MAX_ADDR_STR];
 char * pbad = 0;
-int vo_call_num = -1;
 
 void vo_malloc_init(void) {
 	imalloc = 0;
@@ -58,30 +61,38 @@ void vo_malloc_init(void) {
 	hcreate_r(MALLOC_HASH_MAX, &d_mallocs);
 	memset(malloc_arr, 0, MALLOC_HASH_MAX*sizeof(bool));
 }
+#endif // TEST_MALLOC
 
 void vo_malloc_reset(void) {
+#ifdef TEST_MALLOC
 	hdestroy_r(&d_mallocs);
 	b_malloc_init = false;
+#endif // TEST_MALLOC
 }
 
 void vo_malloc_test(void) {
+#ifdef TEST_MALLOC
 	for (int i=0; i<imalloc; i++) {
 		if (malloc_arr[i]) {
 			printf("malloc at # %d not freed, vo_call_num %d.\n", i, vo_call_num);
 		}
 	}
+#endif // TEST_MALLOC
 }
 void* vomalloc (size_t size) {
+#ifdef TEST_MALLOC
 	if (!b_malloc_init) {
 		vo_malloc_init();
 		b_malloc_init = true;
 	}
+#endif // TEST_MALLOC
 	num_mallocs++;
-	if (imalloc == 83 && vo_call_num == 11) {
-		printf("imalloc # %d hit for vo_call_num %d.\n", imalloc, vo_call_num);
+//	if (imalloc == 83 && vo_call_num == 11) {
+//		printf("imalloc # %d hit for vo_call_num %d.\n", imalloc, vo_call_num);
 //		raise(SIGSEGV);
-	}
+//	}
 	void * p = malloc(size);
+#ifdef TEST_MALLOC
 	malloc_arr[imalloc] = true;
 //	char sbuf[32];
 	snprintf(addr_str_arr[imalloc], MAX_ADDR_STR, "%p", p);
@@ -98,6 +109,7 @@ void* vomalloc (size_t size) {
 		hsearch_r(e, ENTER, &ep, &d_mallocs);
 	}
 	imalloc++;
+#endif // TEST_MALLOC
 	return p;
 }
 
@@ -105,6 +117,7 @@ void vofree (void* ptr) {
 	signal(SIGSEGV, handler);   // install our handler
 	num_frees++;
 	free(ptr);
+#ifdef TEST_MALLOC
 
 //	memcpy(pbad, ptr, 100000);
 //	raise(SIGSEGV);
@@ -133,6 +146,7 @@ void vofree (void* ptr) {
 		printf("Trying to free pointer %s which has already been freed.\n", sbuf);
 	}
 	*pb = false;
+#endif // TEST_MALLOC
 }
 
 typedef struct SIntList {
@@ -822,7 +836,9 @@ void mpdb_set_idb_mrk(void * hmpdb, int idb, int isrphrase, char val) {
 //
 void mpdb_del_srphrase(void * hmpdb, int isrphrase) {
 	tSMPDB * pmpdb = (tSMPDB *)hmpdb;
+	printf("mpdb_del_srphrase called for isrphrase %d. %d phrases present.\n", isrphrase, pmpdb->l_srphrases.len);
 	int rem_len = pmpdb->l_srphrases.len - isrphrase - 1;
+	printf("rem_len = %d. num_ids = %d.\n", rem_len, pmpdb->num_dbs);
 	if (isrphrase >= pmpdb->l_srphrases.len) {
 		printf("mpdb_del_srphrase: Coding error. isrphrase (%d) >= pmpdb->l_srphrases.len (%d)\n", 
 				isrphrase, pmpdb->l_srphrases.len);
@@ -831,7 +847,7 @@ void mpdb_del_srphrase(void * hmpdb, int isrphrase) {
 		int idb;
 		memcpy(&(pmpdb->l_srphrases.pl[isrphrase]), &(pmpdb->l_srphrases.pl[isrphrase+1]), rem_len*sizeof(intpair));
 		for (idb=0;idb<pmpdb->num_dbs;idb++) {
-			memcpy(&(pmpdb->l_idb_mrks[idb][isrphrase]), &(pmpdb->l_idb_mrks[idb][isrphrase]), rem_len*sizeof(char));
+			memcpy(&(pmpdb->l_idb_mrks[idb][isrphrase]), &(pmpdb->l_idb_mrks[idb][isrphrase+1]), rem_len*sizeof(char));
 		}
 	}
 	pmpdb->l_srphrases.len--;
@@ -1668,6 +1684,57 @@ void perm_free(int** l_out) {
 	l_out = NULL;
 }
 
+int get_num_match_phrases(void * hvos) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->match_phrases_len;
+}
+
+int get_match_phrase_istage(void * hvos, int imatch) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->l_match_phrases[imatch].istage;
+}
+
+int get_match_phrase_b_matched(void * hvos, int imatch) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return (int)(pvos->l_match_phrases[imatch].b_matched);
+}
+
+
+int get_num_phrase_els(void * hvos, int imatch) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->l_match_phrases[imatch].phrase.len;
+}
+
+int get_phrase_el_def_type(void * hvos, int imatch, int iel) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return (int)(pvos->l_match_phrases[imatch].phrase.pl[iel].el_type);
+}
+
+double get_phrase_el_cd(void * hvos, int imatch, int iel) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->l_match_phrases[imatch].phrase.pl[iel].cd;
+}
+
+char * get_phrase_el_val(void * hvos, int imatch, int iel) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->l_match_phrases[imatch].phrase.pl[iel].val;
+}
+
+int get_num_combos(void * hvos) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->num_combos;
+}
+
+int get_combo_len(void * hvos) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->pgg->l_phrases_len_len;
+}
+
+int get_combo_val(void * hvos, int icombo, int ival) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->ll_match_iphrase_combos[icombo][ival];
+}
+
 int do_vo(void * hvos) {
 	signal(SIGSEGV, handler);   // install our handler
 
@@ -2157,6 +2224,14 @@ int do_vo(void * hvos) {
 		// nd_default_idb_mrk is the array of markers across records, specifiying which records this particular
 		// agent/database believes to be true
 		nd_default_idb_mrk = pvos->pmpdb->l_idb_mrks[idb]; //  mpdb_mgr.get_nd_idb_mrk(idb)
+		if (vo_call_num == 54552) {
+			
+			printf("vo_call_num: %d. default idb mrk for %s: idb %d\n", vo_call_num, pvos->db_name, idb);
+			for (int irec=0;irec<papp->mpdb_num_recs;irec++) {
+				printf("%hhd",nd_default_idb_mrk[irec]);
+			}
+			printf("\n");
+		}
 		// Set up the stage_vars array. One list for each phrase/stage of the vars affecting that stage
 		// Currently considering doing this so that this data structure is not needed.
 		pvos->stage_vars_len = pvos->pgg->l_phrases_len_len;
@@ -2599,9 +2674,12 @@ int do_vo(void * hvos) {
 				int * perm = pvos->l_product_perms[iperm];
 				// for this perm set up a translation to an array of all vars where the vals of that perm, if relevant,
 				// appear in the var location otherwise -1
-				for (int ivar=0;ivar<pvos->num_vars;ivar++) {
-					pvos->l_comb_vars[ivar] = -1;
-				}
+				// first initialize using the null phrase's var sels.
+				memcpy(pvos->l_comb_vars, pvos->ll_match_phrase_var_sels[i_null_phrase], sizeof(int)*pvos->num_vars);
+//				for (int ivar=0;ivar<pvos->num_vars;ivar++) {
+//					pvos->l_comb_vars[ivar] = -1;
+//				}
+				// now replace the var sels with those the perm is suggesting
 				for (int ii=0;ii<pvos->replace_iopts_len;ii++) {
 					int ivar = pvos->l_iopts[ii];
 					pvos->l_comb_vars[ivar] = perm[ii];

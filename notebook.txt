@@ -2385,3 +2385,7 @@ Instead, a cartesian_product function takes a list of ints as limits and returns
 CIW:
 
 varopts works with too many mallocs but no memory leak.
+
+CIW:
+
+data returns from c to python. Fixed plenty bugs.

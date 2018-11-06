@@ -38,6 +38,12 @@ assert c_bitvec_gg_learn_min % 2 == 0, 'c_bitvec_gg_learn_min must be even'
 rule_status = Enum([	'untried', 'initial', 'perfect', 'expands', 'perfect_block', 'blocks',
 						'partial_expand', 'partial_block', 'irrelevant', 'mutant', 'endpoint'])
 
+def_type_table = []
+def_type_table.append(rec_def_type.err)
+def_type_table.append(rec_def_type.obj)
+def_type_table.append(rec_def_type.like)
+
+
 # total_time = 0.
 # num_calls = 0
 # b_in_time = False
@@ -530,13 +536,13 @@ class cl_bitvec_gg(object):
 
 		print('find_var_opts call #', cl_bitvec_gg.find_var_opts_num_calls)
 		varopts.My_variable = 12.0
-		varopts.app_mpdb_bin_print(self.__mgr.get_hcvo())
-		varopts.ll_phrases_print(self.__mgr.get_hcvo())
+		# varopts.app_mpdb_bin_print(self.__mgr.get_hcvo())
+		# varopts.ll_phrases_print(self.__mgr.get_hcvo())
 		# a0time = timeit.default_timer()
 		utils.profile_start('find_var_opts vo')
 
 		# The first part of this function builds the var tables.
-		# Some els have no vars, either external or intenal.
+		# Some els have no vars, either external or internal.
 		# Some els are vars but have no reuse of the var except in a THEN claause. The are external,
 		# Some els are vars only for internal (re)use.
 		# Of the internal and external, some are instantiated by the rules requiring exact matches and some by
@@ -553,6 +559,33 @@ class cl_bitvec_gg(object):
 			varopts.cnt_vars(hvos, vo[0], vo[1], vo[1], vo[2], -1.0 if vo[1] else vo[3], ivo)
 		vo_ret = varopts.do_vo(hvos)
 		print("vo returned", vo_ret)
+
+		if vo_ret == 1:
+			c_l_match_phrases = []
+			num_c_match_phrases = varopts.get_num_match_phrases(hvos)
+			for imatch in range(num_c_match_phrases):
+				istage = varopts.get_match_phrase_istage(hvos, imatch)
+				b_matched = bool(varopts.get_match_phrase_b_matched(hvos, imatch))
+				num_phrase_els = varopts.get_num_phrase_els(hvos, imatch)
+				match_phrase = []
+				for iel in range(num_phrase_els):
+					i_def_type = varopts.get_phrase_el_def_type(hvos, imatch, iel)
+					def_type = def_type_table[i_def_type]
+					phrase_val = varopts.get_phrase_el_val(hvos, imatch, iel)
+					phrase_cd = varopts.get_phrase_el_cd(hvos, imatch, iel)
+					match_phrase.append([def_type, phrase_val])
+					if def_type != rec_def_type.obj: match_phrase[-1].append(phrase_cd)
+				c_l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=b_matched, phrase=match_phrase) )
+			c_l_match_iphrase_combos = []
+			num_c_combos = varopts.get_num_combos(hvos)
+			c_combo_len = varopts.get_combo_len(hvos)
+			for icombo in range(num_c_combos):
+				one_combo = []
+				for ival in range(c_combo_len):
+					one_combo.append(varopts.get_combo_val(hvos, icombo, ival))
+				c_l_match_iphrase_combos.append(one_combo)
+
+
 		varopts.free_vo(hvos)
 		utils.profile_end('find_var_opts vo')
 		utils.profile_start('find_var_opts a0')
@@ -630,6 +663,8 @@ class cl_bitvec_gg(object):
 						utils.profile_end('find_var_opts a04')
 						utils.profile_end('find_var_opts a0')
 						self.__d_arg_cache[tuple(l_var_opts)] = False
+						if vo_ret == 1:
+							print('Error! Python code exiting from find_var_opts at 0 even though c code returned 1.')
 						return None
 					if int_hd_max > ext_hd_max:
 						ll_src_pat[src_istage][src_iel], ll_hd_max[src_istage][src_iel] = ext_els_rep, ext_hd_max
@@ -899,21 +934,26 @@ class cl_bitvec_gg(object):
 		# ctime_tot += timeit.default_timer()- ctime
 		utils.profile_end('find_var_opts c')
 
-		# Finally create the scores for combos of match phrases
-		# l_match_phrase_scores = []
-		# best_score = 0.
-		# for l_match_iphrase_combo in ll_match_iphrase_combos:
-		# 	score, frac = 0., 1. / len(l_match_iphrase_combo)
-		# 	for iphrase in l_match_iphrase_combo:
-		# 		if l_match_phrases[iphrase].b_matched: score += frac
-		# 	if score > best_score: best_score = score
-		# 	l_match_phrase_scores.append(score)
+		b_c_mismatch = False
+		if l_match_phrases != c_l_match_phrases:
+			if len(l_match_phrases) != len(c_l_match_phrases):
+				b_c_mismatch = true
+			if not b_c_mismatch:
+				for ilmc, lmc in enumerate(c_l_match_phrases):
+					l_missing = copy.deepcopy(c_l_match_phrases)
+					del l_missing[ilmc]
+					if lmc in l_missing:
+						print('duplicate found in c_l_match_phrases', ilmc)
+				for lmc in c_l_match_phrases:
+					if lmc not in l_match_phrases:
+						b_c_mismatch = True
 
-		# return [l_matches], [l_b_phrases_matched]
+		if not b_c_mismatch and (c_l_match_iphrase_combos != ll_match_iphrase_combos):
+			b_c_mismatch = True
 
+		if b_c_mismatch:
+			print('c and python results do not match: python: ', l_match_phrases, 'c:', c_l_match_phrases)
 
-		# if l_match_phrases_che != []:
-		# 	assert l_match_phrases_che == l_match_phrases and ll_match_iphrase_combos_che == ll_match_iphrase_combos, 'cache strategy failed'
 		self.__d_db_arg_cache[(tuple(l_var_opts), db_name)] = (l_match_phrases, ll_match_iphrase_combos)
 		return rules2.cl_var_match_opts(self, l_match_phrases, ll_match_iphrase_combos,
 										var_obj_parent, calc_level+1)
@@ -1209,5 +1249,7 @@ class cl_bitvec_gg(object):
 
 	def update_bin_for_word(self, iword, el_bin):
 		self.__l_els_rep[iword] = el_bin
+		self.create_vo_hgg()
+
 
 

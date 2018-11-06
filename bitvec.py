@@ -233,7 +233,6 @@ class cl_bitvec_mgr(object):
 			self.mpdb_bins_to_c()
 		else:
 			varopts.app_mpdb_bin_rec_set(self.__hcvo, iupdate, self.convert_charvec_to_arr(new_bin, new_bin.shape[0]))
-		self.debug_test_mpdb_bins()
 
 
 
@@ -835,7 +834,9 @@ class cl_bitvec_mgr(object):
 			# varopts.set_el_bin(self.__hcvo, iword, word_changed, self.convert_bitvec_to_arr(self.__nd_el_bin_db[iword]))
 			varopts.change_el_bin(self.__hcvo, iword, self.convert_charvec_to_arr(self.__nd_el_bin_db[iword], c_bitvec_size))
 
-		if l_rphrase_changed != []: self.__mpdb_mgr.apply_bin_db_changes(l_rphrase_changed)
+		if l_rphrase_changed != []:
+			self.__mpdb_mgr.apply_bin_db_changes(l_rphrase_changed)
+			self.debug_test_mpdb_bins()
 
 		return self.__nd_el_bin_db, ilen, iphrase
 
