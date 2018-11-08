@@ -79,7 +79,8 @@ void vo_malloc_test(void) {
 	}
 #endif // TEST_MALLOC
 }
-void* vomalloc (size_t size) {
+
+void* vomalloc2 (size_t numels, size_t elsize) {
 #ifdef TEST_MALLOC
 	if (!b_malloc_init) {
 		vo_malloc_init();
@@ -91,7 +92,7 @@ void* vomalloc (size_t size) {
 //		printf("imalloc # %d hit for vo_call_num %d.\n", imalloc, vo_call_num);
 //		raise(SIGSEGV);
 //	}
-	void * p = malloc(size);
+	void * p = calloc(numels, elsize);
 #ifdef TEST_MALLOC
 	malloc_arr[imalloc] = true;
 //	char sbuf[32];
@@ -112,6 +113,11 @@ void* vomalloc (size_t size) {
 #endif // TEST_MALLOC
 	return p;
 }
+
+void* vomalloc(size_t size) {
+	return vomalloc2(size, 1);
+}
+
 
 void vofree (void* ptr) {
 	signal(SIGSEGV, handler);   // install our handler
@@ -149,6 +155,32 @@ void vofree (void* ptr) {
 #endif // TEST_MALLOC
 }
 
+void* voalloc (void * ptr, int * palloc_size, size_t elsize, size_t num_els) {
+	void * new_ptr;
+	if (ptr == NULL) {
+		if (*palloc_size > 0) {
+			printf("Error. NULL ptr with non zero allocated size.");
+			return NULL;
+		}
+		*palloc_size = num_els;
+		new_ptr =  vomalloc2(num_els, elsize);
+//		printf("%p allocated from new in size %d\n", new_ptr, (int)num_els);
+		return new_ptr;
+	}
+	if (num_els<=*palloc_size) {
+//		printf("%d <= %d so no need to alloc.\n", (int)num_els, *(int*)palloc_size);
+		return ptr;
+	}
+	void * oldp = ptr;
+//	int old_size = *palloc_size;
+	new_ptr = vomalloc2(num_els, elsize);
+//	printf("freeing %p grow from %d to %d alloc %p.\n", oldp, *(int*)palloc_size, (int)num_els, new_ptr);
+	memcpy(new_ptr, oldp, *palloc_size*elsize);
+	vofree(oldp);
+	*palloc_size = num_els;
+	return new_ptr;
+}
+
 typedef struct SIntList {
 	int * pl;
 	int len;
@@ -158,17 +190,21 @@ typedef struct SIntList {
 typedef struct SIntPairList {
 	intpair * pl;
 	int len;
+	int num_alloc;
 } tSIntPairList;
 
 typedef struct SStrList {
 	char ** pl;
 	int len;
+	int num_alloc;
 } tSStrList;
 
 typedef struct SPairDict {
 	int num_rows;
 	int num_cols;
 	int ** ppdata;
+	int num_rows_alloc;
+	int num_els_alloc; // num_els = num_rows * num_cols
 } tSPairDict;
 
 typedef int intquad[4];
@@ -177,6 +213,7 @@ typedef int intquad[4];
 void clear_pair_dict(tSPairDict * ppd);
 void str_list_clear(tSStrList * sl);
 
+// this function is used externally by the python code. It is not called from do_vo and therefore the memory must not persist
 void * str_list_create(int len) {
 	tSStrList * sl = (tSStrList*)vomalloc(sizeof(tSStrList));
 	sl->len = len;
@@ -185,20 +222,28 @@ void * str_list_create(int len) {
 	return (void*)sl;
 }
 
+// non-persistent memory version
 void str_list_set(void * hl, int ipos, char * val) {
 	tSStrList * sl = (tSStrList *)hl;
 	sl->pl[ipos] = val;
 }
 
+// note the void* for external use
 void str_list_delete(void * hl) {
 	tSStrList * sl = (tSStrList *)hl;
 	str_list_clear(sl);
 	vofree(sl);
 }
 
+
 void str_list_init(tSStrList * sl) {
 	sl->len = 0;
 	sl->pl = NULL;
+}
+
+void str_list_init2(tSStrList * sl) {
+	sl->len = 0;
+//	sl->pl = NULL;
 }
 
 //void str_list_set(tSStrList * sl, char** str_arr, int arr_len) {
@@ -219,6 +264,13 @@ void str_list_add_val(tSStrList * sl, char * val) {
 	sl->pl[old_len] = val;
 }
 
+void str_list_add_val2(tSStrList * sl, char * val) {
+	sl->pl = (char**)voalloc(sl->pl, &(sl->num_alloc), sizeof(char**), sl->len+1);
+	sl->pl[sl->len] = val;
+	sl->len++;
+}
+
+
 void str_list_change_one(tSStrList * sl, int idx, char * val) {
 	sl->pl[idx] = val;
 }
@@ -231,6 +283,19 @@ void str_list_reset_with_one_val(tSStrList * sl, char * val) {
 	str_list_add_val(sl, val);
 }
 
+void str_list_reset_with_one_val2(tSStrList * sl, char * val) {
+//	if (sl->len > 0) {
+//		vofree(sl->pl);
+//	}
+	sl->len = 0;
+	str_list_add_val2(sl, val);
+}
+
+void str_list_reset(tSStrList * sl) {
+	sl->len = 0;
+}
+
+
 void str_list_clear(tSStrList * sl) {
 	if (sl == NULL) {
 		return;
@@ -240,6 +305,17 @@ void str_list_clear(tSStrList * sl) {
 	}
 //	vofree(sl);
 }
+
+void str_list_clear2(tSStrList * sl) {
+	if (sl == NULL) {
+		return;
+	}
+	if (sl->num_alloc > 0) {
+		vofree(sl->pl);
+	}
+//	vofree(sl);
+}
+
 
 void str_list_print(tSStrList * sl) {
 	int i;
@@ -270,7 +346,7 @@ void str_l2_print(tSStrListList * psl2);
 void str_l2_add(tSStrListList * psl2, tSStrList * psl) { // char** str_arr, int arr_len) {
 	int old_len = psl2->len;
 	tSStrList * old_pl = psl2->pl;
-	printf("str_l2_add called. len=%d\n", psl2->len);
+//	printf("str_l2_add called. len=%d\n", psl2->len);
 	psl2->len++;
 	psl2->pl = (tSStrList *)vomalloc(sizeof(tSStrList)*psl2->len);
 	if (old_pl != NULL) {
@@ -392,6 +468,7 @@ typedef struct SPhraseEl {
 typedef struct SPhrase {
 	tSPhraseEl * pl;
 	int len;
+	int num_alloc;
 } tSPhrase;
 
 typedef struct SMatchPhrase {
@@ -435,7 +512,22 @@ void match_phrase_set(tSMatchPhrase * ppm, int istage, bool b_matched, tSPhrase 
 	ppm->istage = istage;
 	ppm->b_matched = b_matched;
 	ppm->phrase.len = phrase->len;
-	ppm->phrase.pl = (tSPhraseEl *)vomalloc(ppm->phrase.len * sizeof(tSPhraseEl));
+//	ppm->phrase.pl = (tSPhraseEl *)vomalloc(ppm->phrase.len * sizeof(tSPhraseEl));
+	for (iel=0;iel<ppm->phrase.len;iel++) {
+		ppm->phrase.pl[iel].el_type = phrase->pl[iel].el_type;
+		ppm->phrase.pl[iel].val = phrase->pl[iel].val;
+		ppm->phrase.pl[iel].cd = phrase->pl[iel].cd;
+	}
+	
+}
+
+void match_phrase_set2(tSMatchPhrase * ppm, int istage, bool b_matched, tSPhrase * phrase) {
+	int iel;
+	ppm->istage = istage;
+	ppm->b_matched = b_matched;
+	ppm->phrase.len = phrase->len;
+	ppm->phrase.pl = (tSPhraseEl*)voalloc(ppm->phrase.pl, &(ppm->phrase.num_alloc), sizeof(tSPhraseEl), ppm->phrase.len);
+//	ppm->phrase.pl = (tSPhraseEl *)vomalloc(ppm->phrase.len * sizeof(tSPhraseEl));
 	for (iel=0;iel<ppm->phrase.len;iel++) {
 		ppm->phrase.pl[iel].el_type = phrase->pl[iel].el_type;
 		ppm->phrase.pl[iel].val = phrase->pl[iel].val;
@@ -494,7 +586,7 @@ void app_mpdb_bin_free(void * happ) {
 		return;
 	}
 	int irec;
-	printf("app_mpdb_bin_free asked to free %d recs.\n", papp->mpdb_num_recs);
+//	printf("app_mpdb_bin_free asked to free %d recs.\n", papp->mpdb_num_recs);
 	for (irec=0;irec<papp->mpdb_num_recs;irec++) {
 		vofree(papp->mpdb_bins[irec]);
 	}
@@ -522,7 +614,7 @@ void app_mpdb_bin_rec_add(void * happ, char* rec) {
 	}
 	papp->mpdb_bins[old_num_recs] = (char*)vomalloc(sizeof(char)*papp->mpdb_rec_len);
 	memcpy(papp->mpdb_bins[old_num_recs], rec, sizeof(char)*papp->mpdb_rec_len);	
-	printf("app_mpdb_bin_rec_add. Array now %d x %d\n", papp->mpdb_num_recs, papp->mpdb_rec_len);
+//	printf("app_mpdb_bin_rec_add. Array now %d x %d\n", papp->mpdb_num_recs, papp->mpdb_rec_len);
 }
 
 void app_mpdb_bin_rec_del(void * happ, int irec) {
@@ -654,14 +746,14 @@ char* check_el_bin(void * happ, char * word) {
 
 char * get_word_by_id(tSVOApp * papp, int iel) {
 //	tSVOApp * papp = (tSVOApp *)happ;
-	printf("get_word_by_id returned %s\n", papp->l_els[iel]);
+//	printf("get_word_by_id returned %s\n", papp->l_els[iel]);
 	return papp->l_els[iel];
 }
 
 void ll_phrases_add_val(void * happ, int ilen, void * hsl) { // char** str_arr, int arr_len) {
 	tSVOApp * papp = (tSVOApp *)happ;
 	tSStrList * psl = (tSStrList *)hsl;
-	printf("ll_phrases_add_val called for ilen %d. Num ilens is %d\n", ilen, papp->num_ilens);
+//	printf("ll_phrases_add_val called for ilen %d. Num ilens is %d\n", ilen, papp->num_ilens);
 //	str_l2_print(&(papp->ll_phrases[ilen]));
 	str_l2_add(&(papp->ll_phrases[ilen]), psl); // str_arr, arr_len);
 }
@@ -677,7 +769,7 @@ void ll_phrases_add_ilen(void * happ) {
 		vofree(old_pl);
 	}
 	str_l2_init(&(papp->ll_phrases[old_len]));
-	printf("ll_phrases_add_ilen done. Num ilens is %d\n", papp->num_ilens);
+//	printf("ll_phrases_add_ilen done. Num ilens is %d\n", papp->num_ilens);
 	
 }
 
@@ -807,21 +899,21 @@ void mpdb_add_srphrase(void * hmpdb, int ilen, int iphrase) {
 		pmpdb->l_idb_mrks[idb][old_len] = (char)0;
 	}
 	
-	{
-		int idb, isrphrase;
-		printf("mpdb l_srphrases: [");
-		for (isrphrase=0; isrphrase<pmpdb->l_srphrases.len; isrphrase++) {
-			printf("(%d:%d), ", pmpdb->l_srphrases.pl[isrphrase][0], pmpdb->l_srphrases.pl[isrphrase][1]);
-		}
-		printf("]\n");
-		for (idb=0;idb<pmpdb->num_dbs;idb++) {
-			printf("idb: %d. [", idb);
-			for (isrphrase=0; isrphrase<pmpdb->l_srphrases.len; isrphrase++) {
-				printf("%hhd", pmpdb->l_idb_mrks[idb][isrphrase]);
-			}
-			printf("]\n");
-		}
-	}
+//	{
+//		int idb, isrphrase;
+//		printf("mpdb l_srphrases: [");
+//		for (isrphrase=0; isrphrase<pmpdb->l_srphrases.len; isrphrase++) {
+//			printf("(%d:%d), ", pmpdb->l_srphrases.pl[isrphrase][0], pmpdb->l_srphrases.pl[isrphrase][1]);
+//		}
+//		printf("]\n");
+//		for (idb=0;idb<pmpdb->num_dbs;idb++) {
+//			printf("idb: %d. [", idb);
+//			for (isrphrase=0; isrphrase<pmpdb->l_srphrases.len; isrphrase++) {
+//				printf("%hhd", pmpdb->l_idb_mrks[idb][isrphrase]);
+//			}
+//			printf("]\n");
+//		}
+//	}
 	
 }
 
@@ -836,9 +928,9 @@ void mpdb_set_idb_mrk(void * hmpdb, int idb, int isrphrase, char val) {
 //
 void mpdb_del_srphrase(void * hmpdb, int isrphrase) {
 	tSMPDB * pmpdb = (tSMPDB *)hmpdb;
-	printf("mpdb_del_srphrase called for isrphrase %d. %d phrases present.\n", isrphrase, pmpdb->l_srphrases.len);
+//	printf("mpdb_del_srphrase called for isrphrase %d. %d phrases present.\n", isrphrase, pmpdb->l_srphrases.len);
 	int rem_len = pmpdb->l_srphrases.len - isrphrase - 1;
-	printf("rem_len = %d. num_ids = %d.\n", rem_len, pmpdb->num_dbs);
+//	printf("rem_len = %d. num_ids = %d.\n", rem_len, pmpdb->num_dbs);
 	if (isrphrase >= pmpdb->l_srphrases.len) {
 		printf("mpdb_del_srphrase: Coding error. isrphrase (%d) >= pmpdb->l_srphrases.len (%d)\n", 
 				isrphrase, pmpdb->l_srphrases.len);
@@ -868,7 +960,7 @@ void mpdb_clear(void * hmpdb) {
 	}
 	hdestroy_r(&(pmpdb->d_dn_names));
 	vofree(pmpdb);
-	printf("Memory report: %d allocs and %d frees, %d unfreed\n", num_mallocs, num_frees, num_mallocs - num_frees);
+//	printf("Memory report: %d allocs and %d frees, %d unfreed\n", num_mallocs, num_frees, num_mallocs - num_frees);
 }
 
 
@@ -991,61 +1083,87 @@ void set_l_phrases_len(void * hgg, int * l_phrases_len, int * l_phrases_ilen, in
 
 typedef struct SVOState {
 	tSVOGG * pgg; // not owned here
-	tSNtVars * pnv;
 	tSMPDB * pmpdb;
+	int num_vars_alloc;
 	int num_vars;
+	tSNtVars * pnv;
 	int curr_var_num;
-//	int * l_phrases_len; // pointer to an IntArray created at the Python level - no malloc or free
-//	int l_phrases_len_len;
+	int max_phrase_len;
+	int phrase_starts_num_alloc;
 	int * l_phrase_starts; // 1 longer than l_phrases_len_len
+	int var_vals_num_alloc;
 	tSStrList* l_var_vals; // len num_vars
+	int var_locs_num_alloc;
 	int * l_var_locs; // len num_vars
-	//	int num_loc_pairs;
-	intpair * l_var_loc_pairs; // len num_vars
+	int var_all_locs_num_alloc;
 	tSIntPairList * l_var_all_locs; // len num_vars
-	tSPairDict * d_var_opts;
+	tSPairDict d_var_opts;
+	int src_pat_num_alloc;
+	int src_pat_num_els_alloc;
 	char *** ll_src_pat;
+	int hd_max_num_alloc;
+	int hd_max_num_els_alloc;
 	int ** ll_hd_max;
 	char * db_name; // not stored locally; like all strings
 	int mpdb_story_rphrase_size; // length of the following mrk arrays
+	int ilen_mrk_num_alloc;
 	char * l_ilen_mrk; // list of bools (char size) size of the srphrases of mpdb, true if the len of current stage matches the len of the ilen of the srphrase
+	int match_num_alloc;
 	char * m_match; // local match vector holding matches so far from mpdb story bin recs
+	int mrks_num_alloc;
 	char * m_mrks; // local match vector
 	tSPhrase l_phrase_found;
 	int stage_phrase_len; // length of next few arrays. A purely local value inside the stage loop
+	int b_unbound_num_alloc;
 	bool * l_b_unbound;
+	int i_unbound_num_alloc;
 	int * l_i_unbound;
-	int stage_vars_len;
-	tSIntList * l_stage_vars;
+	int i_null_phrases_num_alloc;
 	int i_null_phrases_len;
 	int * l_i_null_phrases;
 	int match_phrases_len;
+	int match_phrases_num_alloc;
 	tSMatchPhrase * l_match_phrases;
-	int match_bindings_len;
-	tSIntList * l_match_bindings;
 	tSPhrase l_story_phrase_found;
+	/*
+	// Not dealt with any of the test code yet
 	int num_test_phrases;
 	tSPhrase * l_test_phrases; // not just a pointer, a list.
 	int * l_test_stages;
 	struct hsearch_data  d_els;
 	int test_locs_len;
 	tSIntPairList * ll_test_locs;
+	 */
 	int replace_iopts_len; // len for the next few lists. All used to find var val replacements to the null phrase
+	int iopts_num_alloc;
 	int * l_iopts; // iopt of the val from var_vals that should be used to replace the var
+	int replace_iels_num_alloc;
 	int * l_replace_iels; // iel of the value of l_iopts and var_val_lens
+	int var_vals_lens_num_alloc;
 	int * l_var_vals_lens; // length of the list of vals for that iopt in l_var_vals
+	int product_perms_num_alloc;
+	int product_perms_els_num_alloc;
 	int ** l_product_perms; // holds the list possible combinations of l_var_vals_lens
 	tSPhrase perm_phrase;
 	// an array of int* each of which holds which var from var_vals was selected for this phrase
 	// lenght of the array is match_phrases_len, each of length num_vars. //This last is filled by the time this is used
 	// vars that are irrelvant for this phrase are kept at -1
+	int match_phrase_var_sels_num_alloc;
+	int match_phrase_var_sels_els_num_alloc;
 	int ** ll_match_phrase_var_sels; 
+	int match_phrase_stage_num_alloc;
 	int * l_match_phrase_stage; // Length match_phrases_len. States which stage the match_phrase belongs to.
 	int num_forbidden; // number of combs in the forbidden array next
+	int forbidden_combs_num_alloc;
+	int forbidden_combs_els_num_alloc;
 	int ** ll_forbidden_combs; // An array of lenght num_forbidden. Each num_vars ints long
+	int comb_vars_num_alloc;
 	int * l_comb_vars; // one array num_vars long. Used as a temp variable when translating a product array to all vars
 	int num_combos; // number of combos found. The length of the next array
+	int match_iphrase_combos_num_alloc;
+	int match_iphrase_combos_els_num_alloc;
 	int ** ll_match_iphrase_combos; // Each combo has length pvos->pgg->l_phrases_len_len. One index into l_match_phrases per stage
+	int comb_cand_num_alloc;
 	int * l_comb_cand; // len pvos->pgg->l_phrases_len_len
 } tSVOState;
 
@@ -1053,66 +1171,137 @@ typedef struct SVOState {
 //int num_vars = 0;
 //int curr_var_num = 0;
 
-void * init_vo(void * hgg, void * hmpdb, char * db_name, int call_num) {
-	printf("Memory report at init_vo: %d allocs and %d frees, %d unfreed\n", num_mallocs, num_frees, num_mallocs - num_frees);
-	printf("init_vo called.\n");
+void * create_vo(void) {
+	signal(SIGSEGV, handler);   // install our handler
+	printf("handler installed.\n");
+	tSVOState * pvos = (tSVOState *)vomalloc(sizeof(tSVOState));
+	pvos->num_vars_alloc = 0;
+	pvos->num_vars = 0;
+	pvos->pnv = NULL;
+	pvos->phrase_starts_num_alloc = 0;
+	pvos->l_phrase_starts = NULL;
+	pvos->var_vals_num_alloc = 0;
+	pvos->l_var_vals = NULL;
+	pvos->var_locs_num_alloc = 0;
+	pvos->l_var_locs = NULL;
+	pvos->var_all_locs_num_alloc = 0;
+	pvos->l_var_all_locs = NULL;
+	pvos->d_var_opts.num_rows_alloc = 0;
+	pvos->d_var_opts.num_els_alloc = 0;
+	pvos->d_var_opts.ppdata = NULL;
+	pvos->src_pat_num_alloc = 0;
+	pvos->src_pat_num_els_alloc = 0;
+	pvos->ll_src_pat = NULL;
+	pvos->hd_max_num_alloc = 0;
+	pvos->hd_max_num_els_alloc = 0;
+	pvos->ll_hd_max = NULL;
+	pvos->ilen_mrk_num_alloc = 0;
+	pvos->l_ilen_mrk = NULL;
+	pvos->match_num_alloc = 0;
+	pvos->m_match = NULL;
+	pvos->mrks_num_alloc = 0;
+	pvos->m_mrks = NULL;
+	pvos->b_unbound_num_alloc = 0;
+	pvos->l_b_unbound = NULL;
+	pvos->i_unbound_num_alloc = 0;
+	pvos->l_i_unbound = NULL;
+	pvos->i_null_phrases_len = 0;
+	pvos->i_null_phrases_num_alloc = 0;
+	pvos->l_i_null_phrases = NULL;
+	pvos->match_phrases_len = 0;
+	pvos->match_phrases_num_alloc = 0;
+	pvos->l_match_phrases = NULL;
+	pvos->l_story_phrase_found.num_alloc = 0;
+	pvos->l_story_phrase_found.len = 0;
+	pvos->l_story_phrase_found.pl = NULL;
+	pvos->iopts_num_alloc = 0;
+	pvos->l_iopts = NULL;
+	pvos->replace_iels_num_alloc = 0;
+	pvos->l_replace_iels = NULL;
+	pvos->var_vals_lens_num_alloc = 0;
+	pvos->l_var_vals_lens = NULL;
+	pvos->product_perms_num_alloc = 0;
+	pvos->product_perms_els_num_alloc = 0;
+	pvos->l_product_perms = NULL;
+	pvos->perm_phrase.num_alloc = 0;
+	pvos->perm_phrase.len = 0;
+	pvos->perm_phrase.pl = NULL;
+	pvos->match_phrase_var_sels_num_alloc = 0;
+	pvos->match_phrase_var_sels_els_num_alloc = 0;
+	pvos->ll_match_phrase_var_sels = NULL;
+	pvos->match_phrase_stage_num_alloc = 0;
+	pvos->l_match_phrase_stage = NULL;
+	pvos->forbidden_combs_num_alloc = 0;
+	pvos->forbidden_combs_els_num_alloc = 0;
+	pvos->ll_forbidden_combs = NULL;
+	pvos->comb_vars_num_alloc = 0;
+	pvos->l_comb_vars = NULL;
+	pvos->match_iphrase_combos_num_alloc = 0;
+	pvos->match_iphrase_combos_els_num_alloc = 0;
+	pvos->ll_match_iphrase_combos = NULL;
+	pvos->comb_cand_num_alloc = 0; 
+	pvos->l_comb_cand = NULL; 
+	
+	return (void *)pvos;
+}
+void * init_vo(void * hvos, void * hgg, void * hmpdb, char * db_name, int call_num) {
+//	printf("Memory report at init_vo: %d allocs and %d frees, %d unfreed\n", num_mallocs, num_frees, num_mallocs - num_frees);
+//	printf("init_vo called.\n");
 	vo_call_num = call_num;
 	vo_malloc_reset();
-	tSVOState * pvos = (tSVOState *)vomalloc(sizeof(tSVOState));
+	tSVOState * pvos = (tSVOState *)hvos;
 	
 	pvos->pgg = (tSVOGG *)hgg;
 	pvos->pmpdb = (tSMPDB*)hmpdb;
-	pvos->pnv = NULL;
 	pvos->num_vars = 0;
+//	pvos->pnv = NULL;
 	pvos->curr_var_num = 0;
-	pvos->l_var_vals = NULL;
-	pvos->l_var_locs = NULL;
-	pvos->l_phrase_starts = NULL;
-	pvos->l_var_loc_pairs = NULL;
-	pvos->l_var_all_locs = NULL;
-	pvos->d_var_opts = NULL;
-	pvos->ll_src_pat = NULL;
-	pvos->ll_hd_max = NULL;
+	pvos->max_phrase_len = 0;
+//	pvos->l_var_vals = NULL;
+//	pvos->l_var_locs = NULL;
+//	pvos->l_phrase_starts = NULL;
+//	pvos->l_var_all_locs = NULL;
+//	pvos->d_var_opts = NULL;
+//	pvos->ll_src_pat = NULL;
+//	pvos->ll_hd_max = NULL;
 	pvos->db_name = db_name;
 	pvos->mpdb_story_rphrase_size = 0;
-	pvos->l_ilen_mrk = NULL;
-	pvos->m_match = NULL;
-	pvos->m_mrks = NULL;
+//	pvos->l_ilen_mrk = NULL;
+//	pvos->m_match = NULL;
+//	pvos->m_mrks = NULL;
 	pvos->l_phrase_found.len = 0;
 	pvos->l_phrase_found.pl = NULL;
 	pvos->stage_phrase_len = 0;
-	pvos->l_b_unbound = NULL;
-	pvos->l_i_unbound = NULL;
-	pvos->stage_vars_len = 0;
-	pvos->l_stage_vars = NULL;
+//	pvos->l_b_unbound = NULL;
+//	pvos->l_i_unbound = NULL;
 	pvos->i_null_phrases_len = 0;
-	pvos->l_i_null_phrases = NULL;
+//	pvos->l_i_null_phrases = NULL;
 	pvos->match_phrases_len = 0;
-	pvos->l_match_phrases = NULL;
-	pvos->match_bindings_len = 0;
-	pvos->l_match_bindings = NULL;
+//	pvos->l_match_phrases = NULL;
 	pvos->l_story_phrase_found.len = 0;
-	pvos->l_story_phrase_found.pl = NULL;
+//	pvos->l_story_phrase_found.pl = NULL;
+	/*
 	pvos->num_test_phrases = 0;
 	pvos->l_test_phrases = NULL; // only holding pointer to other memory allocs
 	pvos->l_test_stages = NULL; // one stage num for each pointer above. Needs freeing of memory
 	pvos->test_locs_len = 0;
 	pvos->ll_test_locs = NULL;
+	 */
 	pvos->replace_iopts_len = 0;
-	pvos->l_iopts = NULL;
-	pvos->l_replace_iels = NULL;
-	pvos->l_var_vals_lens = NULL;
-	pvos->l_product_perms = NULL;
+//	pvos->l_iopts = NULL;
+//	pvos->l_replace_iels = NULL;
+//	pvos->l_var_vals_lens = NULL;
+//	pvos->l_product_perms = NULL;
 	pvos->perm_phrase.len = 0;
-	pvos->perm_phrase.pl = NULL;
-	pvos->ll_match_phrase_var_sels = NULL;
-	pvos->l_match_phrase_stage = NULL;
+//	pvos->perm_phrase.pl = NULL;
+//	pvos->ll_match_phrase_var_sels = NULL;
+//	pvos->l_match_phrase_stage = NULL;
 	pvos->num_forbidden = 0;
-	pvos->ll_forbidden_combs = NULL;
-	pvos->l_comb_vars = NULL;
+//	pvos->ll_forbidden_combs = NULL;
+//	pvos->l_comb_vars = NULL;
 	pvos->num_combos = 0; 
-	pvos->ll_match_iphrase_combos = NULL;
-	pvos->l_comb_cand = NULL; 
+//	pvos->ll_match_iphrase_combos = NULL;
+//	pvos->l_comb_cand = NULL; 
 	
 	return (void *)pvos;
 }
@@ -1120,31 +1309,155 @@ void * init_vo(void * hgg, void * hmpdb, char * db_name, int call_num) {
 void free_vo(void * hvos) {
 	tSVOState * pvos = (tSVOState *)hvos;
 
+//	if (pvos->l_comb_cand != NULL) {
+//		vofree(pvos->l_comb_cand);
+//	}
+//	if (pvos->ll_match_iphrase_combos != NULL) {
+//		for (int i=0; i<pvos->num_combos;i++) {
+//			vofree(pvos->ll_match_iphrase_combos[i]);
+//		}
+//		vofree(pvos->ll_match_iphrase_combos);
+//	}
+//	if (pvos->l_comb_vars != NULL) {
+//		vofree(pvos->l_comb_vars);
+//	}
+//	if (pvos->ll_forbidden_combs != NULL) {
+//		for (int i=0;i<pvos->num_forbidden;i++) {
+//			vofree(pvos->ll_forbidden_combs[i]);
+//		}
+//		vofree(pvos->ll_forbidden_combs);
+//	}
+//	if (pvos->l_match_phrase_stage != NULL) {
+//		vofree(pvos->l_match_phrase_stage);
+//	}
+//	if (pvos->ll_match_phrase_var_sels != NULL) {
+//		for (int imatch=0;imatch<pvos->match_phrases_len;imatch++) {
+//			vofree(pvos->ll_match_phrase_var_sels[imatch]);
+//		}
+//		vofree(pvos->ll_match_phrase_var_sels);
+//	}
+//	if (pvos->perm_phrase.pl != NULL) {
+//		vofree(pvos->perm_phrase.pl);
+//		pvos->perm_phrase.len=0;
+//	}
+////	perm_free(pvos->l_product_perms);
+//	if (pvos->l_var_vals_lens != NULL) {
+//		vofree(pvos->l_var_vals_lens);
+//	}
+//	if (pvos->l_replace_iels != NULL) {
+//		vofree(pvos->l_replace_iels);
+//	}
+//	if (pvos->l_iopts != NULL) {
+//		vofree(pvos->l_iopts);
+//	}
+	/*
+	if (pvos->ll_test_locs != NULL) {
+		printf("Error! ll_test_locs must be freed in the test_for_unexpected double function itself.\n");
+	
+	}
+	if (pvos->l_test_stages != NULL) {
+		vofree(pvos->l_test_stages);
+	}
+	 */
+	// no free of pvos->l_test_phrases. Holder comment.
+//	if (pvos->l_story_phrase_found.pl != NULL) {
+//		vofree(pvos->l_story_phrase_found.pl);
+//	}
+//	if (pvos->l_match_phrases != NULL) {
+//		int iphrase;
+//		for (iphrase=0;iphrase<pvos->match_phrases_len;iphrase++) {
+//			vofree(pvos->l_match_phrases[iphrase].phrase.pl);
+//		}
+//		vofree(pvos->l_match_phrases);
+//	}
+//	if (pvos->l_i_null_phrases != NULL) {
+//		vofree(pvos->l_i_null_phrases);
+//	}
+//	if (pvos->l_b_unbound != NULL) {
+//		vofree(pvos->l_b_unbound);
+//	}
+//	if (pvos->l_i_unbound != NULL) {
+//		vofree(pvos->l_i_unbound);
+//	}
+//	if (pvos->l_phrase_found.pl != NULL) {
+//		vofree(pvos->l_phrase_found.pl);
+//	}
+//	if (pvos->m_mrks != NULL) {
+//		vofree(pvos->m_mrks);
+//	}
+//	if (pvos->m_match != NULL) {
+//		vofree(pvos->m_match);
+//	}
+//	if (pvos->l_ilen_mrk != NULL) {
+//		vofree(pvos->l_ilen_mrk);
+//	}
+//	if (pvos->ll_src_pat != NULL) {
+//		int iphrase;
+//		for (iphrase=0;iphrase<pvos->pgg->l_phrases_len_len;iphrase++) {
+//			vofree(pvos->ll_src_pat[iphrase]);
+//			vofree(pvos->ll_hd_max[iphrase]);
+//		}
+//		vofree(pvos->ll_src_pat);
+//		vofree(pvos->ll_hd_max);
+//	}
+	if (pvos->num_vars > 0) {
+//		if (pvos->l_var_vals != NULL) {
+//			int il;
+//			for (il=0; il<pvos->num_vars; il++) {
+////				printf("deleting: ");
+////				str_list_print(&(pvos->l_var_vals[il]));
+//				str_list_clear(&(pvos->l_var_vals[il]));
+//			}
+//			vofree(pvos->l_var_vals);
+//		}
+//		if (pvos->l_var_locs != NULL) {
+//			vofree(pvos->l_var_locs);
+//		}
+//		vofree(pvos->pnv);
+	}
+//	if (pvos->l_phrase_starts != NULL) {
+//		vofree(pvos->l_phrase_starts);
+//	}
+//	if (pvos->l_var_all_locs != NULL) {
+//		int il;
+//		for (il=0; il<pvos->num_vars; il++) {
+//			vofree(pvos->l_var_all_locs[il].pl);
+//		}
+//		vofree(pvos->l_var_all_locs);
+//	}
+//	if (pvos->d_var_opts != NULL) {
+//		clear_pair_dict(&(pvos->d_var_opts));
+//	}
+
+//	vofree(pvos);
+//	printf("Memory report on vo free: %d allocs and %d frees, %d unfreed\n", num_mallocs, num_frees, num_mallocs - num_frees);
+	vo_malloc_test();
+	vo_call_num = -1;
+
+}
+
+// for now this function is not called. However, best to code freeing as we code allocation
+void vo_destroy(void * hvos) {
+	tSVOState * pvos = (tSVOState *)hvos;
 	if (pvos->l_comb_cand != NULL) {
 		vofree(pvos->l_comb_cand);
 	}
 	if (pvos->ll_match_iphrase_combos != NULL) {
-		for (int i=0; i<pvos->num_combos;i++) {
-			vofree(pvos->ll_match_iphrase_combos[i]);
-		}
+		vofree(pvos->ll_match_iphrase_combos[0]);
 		vofree(pvos->ll_match_iphrase_combos);
 	}
 	if (pvos->l_comb_vars != NULL) {
 		vofree(pvos->l_comb_vars);
 	}
 	if (pvos->ll_forbidden_combs != NULL) {
-		for (int i=0;i<pvos->num_forbidden;i++) {
-			vofree(pvos->ll_forbidden_combs[i]);
-		}
+		vofree(pvos->ll_forbidden_combs[0]);
 		vofree(pvos->ll_forbidden_combs);
 	}
 	if (pvos->l_match_phrase_stage != NULL) {
 		vofree(pvos->l_match_phrase_stage);
 	}
 	if (pvos->ll_match_phrase_var_sels != NULL) {
-		for (int imatch=0;imatch<pvos->match_phrases_len;imatch++) {
-			vofree(pvos->ll_match_phrase_var_sels[imatch]);
-		}
+		vofree(pvos->ll_match_phrase_var_sels[0]);
 		vofree(pvos->ll_match_phrase_var_sels);
 	}
 	if (pvos->perm_phrase.pl != NULL) {
@@ -1161,40 +1474,8 @@ void free_vo(void * hvos) {
 	if (pvos->l_iopts != NULL) {
 		vofree(pvos->l_iopts);
 	}
-	if (pvos->ll_test_locs != NULL) {
-		printf("Error! ll_test_locs must be freed in the test_for_unexpected double function itself.\n");
-	
-	}
-	if (pvos->l_test_stages != NULL) {
-		vofree(pvos->l_test_stages);
-	}
-	// no free of pvos->l_test_phrases. Holder comment.
-	if (pvos->l_story_phrase_found.pl != NULL) {
-		vofree(pvos->l_story_phrase_found.pl);
-	}
-	if (pvos->l_match_bindings != NULL) {
-		int i;
-		for(i=0;i<pvos->match_bindings_len;i++) {
-			vofree(pvos->l_match_bindings[i].pl);
-		}
-		vofree(pvos->l_match_bindings);
-	}
-	if (pvos->l_match_phrases != NULL) {
-		int iphrase;
-		for (iphrase=0;iphrase<pvos->match_phrases_len;iphrase++) {
-			vofree(pvos->l_match_phrases[iphrase].phrase.pl);
-		}
-		vofree(pvos->l_match_phrases);
-	}
 	if (pvos->l_i_null_phrases != NULL) {
 		vofree(pvos->l_i_null_phrases);
-	}
-	if (pvos->l_stage_vars != NULL) {
-		int istage = 0;
-		for (istage=0;istage<pvos->stage_vars_len;istage++) {
-			int_list_clear(&(pvos->l_stage_vars[istage]));
-		}
-		vofree(pvos->l_stage_vars);
 	}
 	if (pvos->l_b_unbound != NULL) {
 		vofree(pvos->l_b_unbound);
@@ -1202,8 +1483,14 @@ void free_vo(void * hvos) {
 	if (pvos->l_i_unbound != NULL) {
 		vofree(pvos->l_i_unbound);
 	}
-	if (pvos->l_phrase_found.pl != NULL) {
-		vofree(pvos->l_phrase_found.pl);
+	if (pvos->l_story_phrase_found.pl != NULL) {
+		vofree(pvos->l_story_phrase_found.pl);
+	}
+	if (pvos->l_match_phrases != NULL) {
+		for (int iphrase=0;iphrase<pvos->match_phrases_num_alloc;iphrase++) {
+			vofree(pvos->l_match_phrases[iphrase].phrase.pl);
+		}
+		vofree(pvos->l_match_phrases);
 	}
 	if (pvos->m_mrks != NULL) {
 		vofree(pvos->m_mrks);
@@ -1215,63 +1502,64 @@ void free_vo(void * hvos) {
 		vofree(pvos->l_ilen_mrk);
 	}
 	if (pvos->ll_src_pat != NULL) {
-		int iphrase;
-		for (iphrase=0;iphrase<pvos->pgg->l_phrases_len_len;iphrase++) {
-			vofree(pvos->ll_src_pat[iphrase]);
-			vofree(pvos->ll_hd_max[iphrase]);
-		}
+//		int iphrase;
+//		for (iphrase=0;iphrase<pvos->pgg->l_phrases_len_len;iphrase++) {
+//			vofree(pvos->ll_src_pat[iphrase]);
+//			vofree(pvos->ll_hd_max[iphrase]);
+//		}
+		vofree(pvos->ll_src_pat[0]);
 		vofree(pvos->ll_src_pat);
+		vofree(pvos->ll_hd_max[0]);
 		vofree(pvos->ll_hd_max);
 	}
-	if (pvos->num_vars > 0) {
-		if (pvos->l_var_vals != NULL) {
-			int il;
-			for (il=0; il<pvos->num_vars; il++) {
-//				printf("deleting: ");
-//				str_list_print(&(pvos->l_var_vals[il]));
-				str_list_clear(&(pvos->l_var_vals[il]));
-			}
-			vofree(pvos->l_var_vals);
-		}
-		if (pvos->l_var_locs != NULL) {
-			vofree(pvos->l_var_locs);
-		}
-		vofree(pvos->pnv);
-	}
-	if (pvos->l_phrase_starts != NULL) {
-		vofree(pvos->l_phrase_starts);
-	}
-	if (pvos->l_var_loc_pairs != NULL) {
-		vofree(pvos->l_var_loc_pairs);
+	if (pvos->d_var_opts.ppdata != NULL) {
+		clear_pair_dict(&(pvos->d_var_opts));
 	}
 	if (pvos->l_var_all_locs != NULL) {
 		int il;
-		for (il=0; il<pvos->num_vars; il++) {
+		for (il=0; il<pvos->var_all_locs_num_alloc; il++) {
 			vofree(pvos->l_var_all_locs[il].pl);
 		}
 		vofree(pvos->l_var_all_locs);
 	}
-	if (pvos->d_var_opts != NULL) {
-		clear_pair_dict(pvos->d_var_opts);
+	if (pvos->l_var_locs != NULL) {
+		vofree(pvos->l_var_locs);
 	}
-
+	if (pvos->l_var_vals != NULL) {
+		int il;
+		for (il=0; il<pvos->var_vals_num_alloc; il++) {
+//				printf("deleting: ");
+//				str_list_print(&(pvos->l_var_vals[il]));
+			str_list_clear2(&(pvos->l_var_vals[il]));
+		}
+		vofree(pvos->l_var_vals);
+	}
+	if (pvos->l_phrase_starts != NULL) {
+		vofree(pvos->l_phrase_starts);
+	}
+	if (pvos->pnv != NULL) {
+		vofree(pvos->pnv);
+	}
 	vofree(pvos);
-	printf("Memory report on vo free: %d allocs and %d frees, %d unfreed\n", num_mallocs, num_frees, num_mallocs - num_frees);
-	vo_malloc_test();
-	vo_call_num = -1;
-
+	
 }
 
-
-tSPairDict * create_pair_dict(int num_rows, int num_cols) {
-	tSPairDict * ppd = (tSPairDict *)vomalloc(sizeof(tSPairDict));
+tSPairDict * create_pair_dict(tSPairDict * ppd, int num_rows, int num_cols) {
+//	tSPairDict * ppd = (tSPairDict *)vomalloc(sizeof(tSPairDict));
 	int r,c;
 
 	ppd->num_rows = num_rows;
 	ppd->num_cols = num_cols;
-	ppd->ppdata = (int **)vomalloc(sizeof(int*)*num_rows);
-	for (r=0; r<num_rows; r++) {
-		ppd->ppdata[r] = (int *)vomalloc(sizeof(int)*num_cols);
+	int num_els = ppd->num_rows * ppd->num_cols;
+	ppd->ppdata = (int **)voalloc(ppd->ppdata, &(ppd->num_rows_alloc), sizeof(int*), ppd->num_rows);
+//	ppd->ppdata = (int **)vomalloc(sizeof(int*)*num_rows);
+	ppd->ppdata[0] = (int *)voalloc(ppd->ppdata[0], &(ppd->num_els_alloc), sizeof(int), num_els);
+	int * p = ppd->ppdata[0];
+	for (r=0; r<num_rows; r++, p+=ppd->num_cols) {
+//		ppd->ppdata[r] = (int *)vomalloc(sizeof(int)*num_cols);
+		if (r > 0) {
+			ppd->ppdata[r] = p;
+		}
 		for (c=0; c<num_cols; c++) {
 			ppd->ppdata[r][c] = -1;
 		}
@@ -1279,12 +1567,18 @@ tSPairDict * create_pair_dict(int num_rows, int num_cols) {
 	return ppd;
 }
 
+// to be called for real free, not reset -1
 void clear_pair_dict(tSPairDict * ppd) {
-	int r;
-
-	for (r=0; r<ppd->num_rows; r++) {
-		vofree(ppd->ppdata[r]);
+	if (ppd->ppdata == NULL) {
+		printf("Error! Attempting to clear already NULL pair dict.\n");
+		raise(SIGSEGV);
 	}
+//	int r;
+//
+//	for (r=0; r<ppd->num_rows; r++) {
+//		vofree(ppd->ppdata[r]);
+//	}
+	vofree(ppd->ppdata[0]);
 	vofree(ppd->ppdata);
 
 	vofree(ppd);
@@ -1312,65 +1606,53 @@ void pair_dict_print(tSPairDict * ppd) {
 	}
 }
 
-void pair_dict_grow(tSPairDict * ppd, int num_rows, int num_cols) {
-	int r,c;
-	int ** old_ppdata = ppd->ppdata;
-	int old_num_rows = ppd->num_rows;
-	int old_num_cols = ppd->num_cols;
-
-	assert(num_rows >= old_num_rows && num_cols >= old_num_cols);
-
-	ppd->ppdata = (int **)vomalloc(sizeof(int*)*num_rows);
-	for (r=0; r<num_rows; r++) {
-		int start_col = 0;
-		ppd->ppdata[r] = (int *)vomalloc(sizeof(int)*num_cols);
-		if (r < old_num_rows) {
-			int * old_row = old_ppdata[r];
-			memcpy(ppd->ppdata[r], old_row, sizeof(int)*old_num_cols);
-			vofree(old_row);
-			start_col = old_num_cols;
-		}
-		for (c=start_col; c<num_cols; c++) {
-			ppd->ppdata[r][c] = -1;
-		}
-	}
-	vofree(old_ppdata);
-
-
-	ppd->num_rows = num_rows;
-	ppd->num_cols = num_cols;
-
-}
-
+// removed because not used. 
+//void pair_dict_grow(tSPairDict * ppd, int num_rows, int num_cols) {
+//	int r,c;
+//	int ** old_ppdata = ppd->ppdata;
+//	int old_num_rows = ppd->num_rows;
+//	int old_num_cols = ppd->num_cols;
+//
+//	assert(num_rows >= old_num_rows && num_cols >= old_num_cols);
+//
+//	ppd->ppdata = (int **)vomalloc(sizeof(int*)*num_rows);
+//	for (r=0; r<num_rows; r++) {
+//		int start_col = 0;
+//		ppd->ppdata[r] = (int *)vomalloc(sizeof(int)*num_cols);
+//		if (r < old_num_rows) {
+//			int * old_row = old_ppdata[r];
+//			memcpy(ppd->ppdata[r], old_row, sizeof(int)*old_num_cols);
+//			vofree(old_row);
+//			start_col = old_num_cols;
+//		}
+//		for (c=start_col; c<num_cols; c++) {
+//			ppd->ppdata[r][c] = -1;
+//		}
+//	}
+//	vofree(old_ppdata);
+//
+//
+//	ppd->num_rows = num_rows;
+//	ppd->num_cols = num_cols;
+//
+//}
+//
 void set_num_vars(void * hvos, int n) {
-	int old_num_vars;
-	tSNtVars * old_pnv;
+//	int old_num_vars;
+//	tSNtVars * old_pnv;
 	tSVOState * pvos = (tSVOState *)hvos;
 
-	old_num_vars = pvos->num_vars;
 	pvos->num_vars = n;
-	old_pnv = pvos->pnv;
-	pvos->pnv = (tSNtVars *)vomalloc(sizeof(tSNtVars) * pvos->num_vars);
-	memcpy(pvos->pnv, old_pnv, sizeof(tSNtVars) * old_num_vars);
-	if (old_num_vars > 0) {
-		vofree(old_pnv);
-	}
+//	old_num_vars = pvos->num_vars;
+//	old_pnv = pvos->pnv;
+//	pvos->pnv = (tSNtVars *)vomalloc(sizeof(tSNtVars) * pvos->num_vars);
+//	memcpy(pvos->pnv, old_pnv, sizeof(tSNtVars) * old_num_vars);
+//	if (old_num_vars > 0) {
+//		vofree(old_pnv);
+//	}
+	pvos->pnv = (tSNtVars *)voalloc(pvos->pnv, &(pvos->num_vars_alloc), sizeof(tSNtVars), pvos->num_vars);
+//	printf("alloc size now %d\n", pvos->num_vars_alloc);
 }
-
-//void set_l_phrases_len(void * hvos, int * l_phrases_len, int len) {
-//	tSVOState * pvos = (tSVOState *)hvos;
-//
-//	pvos->l_phrases_len = l_phrases_len;
-//	pvos->l_phrases_len_len = len;
-////	{
-////		int i;
-////		printf("set_l_phrases_len: l_phrases_len: [");
-////		for (i=0; i<pvos->l_phrases_len_len; i++) {
-////			printf("%d,", pvos->l_phrases_len[i]);
-////		}
-////		printf("]\n");
-////	}
-//}
 
 
 void cnt_vars(void * hvos, int loc, int b_bound, int b_must_bind, char * val, double cd, int iext_var) {
@@ -1378,6 +1660,7 @@ void cnt_vars(void * hvos, int loc, int b_bound, int b_must_bind, char * val, do
 	tSVOState * pvos = (tSVOState *)hvos;
 	nv.loc = loc, nv.b_bound = b_bound, nv.b_must_bind = b_must_bind, nv.val = val;
 	nv.cd = cd, nv.iext_var = iext_var; nv.b_resolved = 0;
+//	printf("ptr %p, alloc size %d, curr %d\n", pvos->pnv, pvos->num_vars_alloc, pvos->curr_var_num);
 	pvos->pnv[pvos->curr_var_num++] = nv;
 
 	//	int i;
@@ -1429,15 +1712,16 @@ int bin_idx_best_match(char ** db, char * q, int dbsize, int binsize) {
 			idx_best = i;
 		}
 	}
-	printf("bin_idx_best_match returning best = %d, match_count = %d\n", idx_best, best_count);
+//	printf("bin_idx_best_match returning best = %d, match_count = %d\n", idx_best, best_count);
 	return idx_best;
 }
 
 void convert_wlist_to_phrase(tSPhrase * pphrase, tSStrList * psl) {
 	int iel;
 	pphrase->len = psl->len;
-	pphrase->pl = (tSPhraseEl *)vomalloc(sizeof(tSPhraseEl)*pphrase->len);
-	printf("convert_wlist_to_phrase allocated ptr at %p.\n", pphrase->pl);
+	pphrase->pl = (tSPhraseEl*)voalloc(pphrase->pl, &(pphrase->num_alloc), sizeof(tSPhraseEl), pphrase->len);
+//	pphrase->pl = (tSPhraseEl *)vomalloc(sizeof(tSPhraseEl)*pphrase->len);
+//	printf("convert_wlist_to_phrase allocated ptr at %p.\n", pphrase->pl);
 	for (iel=0;iel<pphrase->len;iel++) {
 		phrase_el_init(&(pphrase->pl[iel]), etRecDefObj, psl->pl[iel], -1.0 );
 	}
@@ -1453,6 +1737,8 @@ void bin_logical_and(char * dest, char * src1, char * src2, int len) {
 	}
 }
 
+/*
+ * candidate for remove
 bool test_for_unexpected_double(tSVOState * pvos) {
 	int iistage;
 	unsigned hret = 0;
@@ -1498,7 +1784,7 @@ bool test_for_unexpected_double(tSVOState * pvos) {
 				int ii;
 				for (ii=0;ii<l_pos->len;ii++) {
 					intpair * ppos = &(l_pos->pl[ii]);
-					int ivar = pair_dict_get(pvos->d_var_opts, (*ppos)[0], (*ppos)[1]);
+					int ivar = pair_dict_get(&(pvos->d_var_opts), (*ppos)[0], (*ppos)[1]);
 					if (ivar == -1) {
 						b_bad_match_found = true;
 						break; // out of ii loop
@@ -1523,7 +1809,6 @@ bool test_for_unexpected_double(tSVOState * pvos) {
 					break; // out of iel loop
 				}
 				
-//				tSIntPairList * l_pos = &(pvos->ll_test_locs[ipos]);
 				{
 					intpair * old_pl = l_pos->pl;
 					int old_len = l_pos->len;
@@ -1554,22 +1839,31 @@ bool test_for_unexpected_double(tSVOState * pvos) {
 	hdestroy_r(&(pvos->d_els));
 	return b_bad_match_found;
 }
-
+*/
+//void match_phrase_append(tSVOState * pvos, int istage, bool b_matched, tSPhrase * pphrase) {
+//	tSMatchPhrase * old_l_match_phrases = pvos->l_match_phrases;
+//	int old_match_phrases_len = pvos->match_phrases_len;
+//	pvos->match_phrases_len++;
+//	pvos->l_match_phrases = (tSMatchPhrase *)vomalloc(sizeof(tSMatchPhrase)*pvos->match_phrases_len);
+//	if (old_l_match_phrases != NULL) {
+//		memcpy(pvos->l_match_phrases, old_l_match_phrases, sizeof(tSMatchPhrase)*old_match_phrases_len);
+//		vofree(old_l_match_phrases);
+//	}
+//	match_phrase_set(	&(pvos->l_match_phrases[old_match_phrases_len]), 
+//						istage, b_matched, pphrase);
+//}
+//
 void match_phrase_append(tSVOState * pvos, int istage, bool b_matched, tSPhrase * pphrase) {
-	tSMatchPhrase * old_l_match_phrases = pvos->l_match_phrases;
 	int old_match_phrases_len = pvos->match_phrases_len;
 	pvos->match_phrases_len++;
-	pvos->l_match_phrases = (tSMatchPhrase *)vomalloc(sizeof(tSMatchPhrase)*pvos->match_phrases_len);
-	if (old_l_match_phrases != NULL) {
-		memcpy(pvos->l_match_phrases, old_l_match_phrases, sizeof(tSMatchPhrase)*old_match_phrases_len);
-		vofree(old_l_match_phrases);
-	}
-	match_phrase_set(	&(pvos->l_match_phrases[old_match_phrases_len]), 
+	pvos->l_match_phrases = (tSMatchPhrase*)voalloc(pvos->l_match_phrases, &(pvos->match_phrases_num_alloc), 
+													sizeof(tSMatchPhrase), pvos->match_phrases_len);
+	match_phrase_set2(	&(pvos->l_match_phrases[old_match_phrases_len]), 
 						istage, b_matched, pphrase);
 }
 
 void match_phrase_var_sel_append(tSVOState * pvos, int istage) {
-	printf("match_phrase_var_sel_append called.\n");
+//	printf("match_phrase_var_sel_append called.\n");
 	int ** old_var_sels = pvos->ll_match_phrase_var_sels;
 	int * old_stages = pvos->l_match_phrase_stage;
 	int old_len = pvos->match_phrases_len - 1;
@@ -1587,30 +1881,42 @@ void match_phrase_var_sel_append(tSVOState * pvos, int istage) {
 		(*new_var_sels)[ivar] = -1;
 	}
 	for (int iel=0;iel<pvos->pgg->l_phrases_len[istage];iel++) {
-		int ivar = pair_dict_get(pvos->d_var_opts, istage, iel);
+		int ivar = pair_dict_get(&(pvos->d_var_opts), istage, iel);
 		(*new_var_sels)[ivar] = 0;
 	}
 	pvos->l_match_phrase_stage[old_len] = istage;
-	printf("match_phrase_var_sel_append returning.\n");
+//	printf("match_phrase_var_sel_append returning.\n");
 }
 
-void match_bindings_append_for_stage(tSVOState * pvos, int istage) {
-	tSIntList * old_l_match_bindings = pvos->l_match_bindings;
-	int old_match_bindings_len = pvos->match_bindings_len;
-	int ibind;
-	pvos->match_bindings_len++;
-	pvos->l_match_bindings = (tSIntList*)vomalloc(sizeof(tSIntList)*pvos->match_bindings_len);
-	if (old_l_match_bindings != NULL) {
-		memcpy(pvos->l_match_bindings, old_l_match_bindings, sizeof(tSIntList)*old_match_bindings_len);
-		vofree(old_l_match_bindings);
+void match_phrase_var_sel_append2(tSVOState * pvos, int istage) {
+//	printf("match_phrase_var_sel_append called.\n");
+//	int ** old_var_sels = pvos->ll_match_phrase_var_sels;
+//	int * old_stages = pvos->l_match_phrase_stage;
+	int old_len = pvos->match_phrases_len - 1;
+	pvos->ll_match_phrase_var_sels = 
+			(int**)voalloc(	pvos->ll_match_phrase_var_sels, &(pvos->match_phrase_var_sels_num_alloc),
+							sizeof(int*), pvos->match_phrases_len);
+	pvos->ll_match_phrase_var_sels[0] = 
+			(int*)voalloc(	pvos->ll_match_phrase_var_sels[0], &(pvos->match_phrase_var_sels_els_num_alloc),
+							sizeof(int), pvos->match_phrases_len*pvos->num_vars);
+	int * pb = pvos->ll_match_phrase_var_sels[0];
+	for (int imatch=0;imatch<pvos->match_phrases_len;imatch++, pb += pvos->num_vars) {
+		pvos->ll_match_phrase_var_sels[imatch] = pb;
 	}
-	tSIntList * new_match_binding = &(pvos->l_match_bindings[old_match_bindings_len]);
-	new_match_binding->len = 1+pvos->l_stage_vars[istage].len;
-	new_match_binding->pl = (int*)vomalloc(sizeof(int)*new_match_binding->len);
-	new_match_binding->pl[0] = istage;
-	for (ibind=1;ibind<new_match_binding->len;ibind++) {
-		new_match_binding->pl[ibind] = 0;
+	pvos->l_match_phrase_stage = (int*)voalloc(pvos->l_match_phrase_stage, &(pvos->match_phrase_stage_num_alloc),
+												sizeof(int), pvos->match_phrases_len);
+//	pvos->l_match_phrase_stage = (int*)vomalloc(sizeof(int)*pvos->match_phrases_len);
+	int ** new_var_sels = &(pvos->ll_match_phrase_var_sels[old_len]);
+//	*new_var_sels = (int*)vomalloc(sizeof(int)*pvos->num_vars);
+	for (int ivar=0; ivar<pvos->num_vars;ivar++) {
+		(*new_var_sels)[ivar] = -1;
 	}
+	for (int iel=0;iel<pvos->pgg->l_phrases_len[istage];iel++) {
+		int ivar = pair_dict_get(&(pvos->d_var_opts), istage, iel);
+		(*new_var_sels)[ivar] = 0;
+	}
+	pvos->l_match_phrase_stage[old_len] = istage;
+//	printf("match_phrase_var_sel_append returning.\n");
 }
 
 int * int_arr_add_val(int * arr, int len, int val)
@@ -1623,6 +1929,19 @@ int * int_arr_add_val(int * arr, int len, int val)
 	new_arr[len] = val;
 	return new_arr;
 }
+
+int * int_arr_add_val2(int * arr, int* palloc_len, int len, int val)
+{
+	arr = (int*)voalloc(arr, palloc_len, sizeof(int), len+1);
+//	int*new_arr = (int*)vomalloc(sizeof(int)*(len+1));
+//	if (arr != NULL) {
+//		memcpy(new_arr, arr, sizeof(int)*len);
+//		vofree(arr);
+//	}
+	arr[len] = val;
+	return arr;
+}
+
 
 void product_fill(int num_in, int * l_in, int ** l_out, int pos) {
 	if (num_in==0) {
@@ -1664,16 +1983,46 @@ void cartesian_product(int len_in, int * l_in, int *** pout, int * pnum_out) {
 	product_fill(len_in, l_in, l_out,0);
 	*pnum_out = num_out;
 	*pout = l_out;
-	printf("Cartesian product perms for length %d:\n", len_in);
-	for (int iout = 0; iout < num_out; iout++) {
-		printf("%d: ", iout);
-		for (int ii=0; ii<len_in;ii++) {
-			printf("%d, ", l_out[iout][ii]);
-		}
-		printf("\n");
-	}
+//	printf("Cartesian product perms for length %d:\n", len_in);
+//	for (int iout = 0; iout < num_out; iout++) {
+//		printf("%d: ", iout);
+//		for (int ii=0; ii<len_in;ii++) {
+//			printf("%d, ", l_out[iout][ii]);
+//		}
+//		printf("\n");
+//	}
 	
 }
+
+void cartesian_product2(int len_in, int * l_in, int *** pout, int * pout_alloc_len, int * pout_els_alloc_len, 
+						int * pnum_out) {
+	int num_out = 1;
+	for (int iin = 0; iin < len_in; iin++) {
+		num_out *= l_in[iin];
+	}
+	int ** l_out = *pout;
+	l_out = (int**)voalloc(l_out, pout_alloc_len, sizeof(int*), num_out);
+	int *buf = l_out[0];
+	buf = (int*)voalloc(buf, pout_els_alloc_len, sizeof(int), num_out*len_in);
+//	printf("cartesian_product allocated %p and %p.\n", buf, l_out);
+	int* pbuf = buf;
+	for (int iout = 0; iout < num_out; iout++, pbuf+=len_in) {
+		l_out[iout] = pbuf;
+	}
+	product_fill(len_in, l_in, l_out,0);
+	*pnum_out = num_out;
+	*pout = l_out;
+//	printf("Cartesian product perms for length %d:\n", len_in);
+//	for (int iout = 0; iout < num_out; iout++) {
+//		printf("%d: ", iout);
+//		for (int ii=0; ii<len_in;ii++) {
+//			printf("%d, ", l_out[iout][ii]);
+//		}
+//		printf("\n");
+//	}
+	
+}
+
 
 void perm_free(int** l_out) {
 	if (l_out != NULL) {
@@ -1736,13 +2085,12 @@ int get_combo_val(void * hvos, int icombo, int ival) {
 }
 
 int do_vo(void * hvos) {
-	signal(SIGSEGV, handler);   // install our handler
+//	signal(SIGSEGV, handler);   // install our handler
 
 	tSVOState * pvos = (tSVOState *)hvos;
 	tSVOApp * papp = pvos->pgg->pApp;
 	int i,j;
 	int num_loc_pairs = 0;
-	int max_phrase_len = 0;
 
 	// put the values we already know in l_var_vals. This array holds all the possible
 	// values for all vars through all the phrases of the rule. For some of the elements of
@@ -1762,17 +2110,19 @@ int do_vo(void * hvos) {
 	// the phrases of the rule
 	// Lastly, it is completed by adding all the remaining els of the phrase.
 	// The Later and Lastly are not done here, they are implmented.. later.
-	pvos->l_var_vals = (tSStrList *)vomalloc(pvos->num_vars*sizeof(tSStrList));
-	pvos->l_var_locs = (int *)vomalloc(pvos->num_vars*sizeof(int));
+//	pvos->l_var_vals = (tSStrList *)vomalloc(pvos->num_vars*sizeof(tSStrList));
+	pvos->l_var_vals = (tSStrList *)voalloc(pvos->l_var_vals, &(pvos->var_vals_num_alloc), 
+											sizeof(tSStrList), pvos->num_vars);
+	pvos->l_var_locs = (int *)voalloc(pvos->l_var_locs, &(pvos->var_locs_num_alloc), 
+											sizeof(int), pvos->num_vars);
+//	pvos->l_var_locs = (int *)vomalloc(pvos->num_vars*sizeof(int));
 	for (i=0; i<pvos->num_vars; i++) {
-		str_list_init(&(pvos->l_var_vals[i]));
+		str_list_init2(&(pvos->l_var_vals[i]));
 		if (pvos->pnv[i].b_bound) {
-			str_list_add_val(&(pvos->l_var_vals[i]), pvos->pnv[i].val);
-//			pvos->l_var_vals[i] = pvos->pnv[i].val;
+			str_list_add_val2(&(pvos->l_var_vals[i]), pvos->pnv[i].val);
 		}
 		else {
-			str_list_add_val(&(pvos->l_var_vals[i]), NULL);
-//			pvos->l_var_vals[i] = NULL;
+			str_list_add_val2(&(pvos->l_var_vals[i]), NULL);
 		}
 		pvos->l_var_locs[i] = pvos->pnv[i].loc;
 	}
@@ -1795,12 +2145,15 @@ int do_vo(void * hvos) {
 	// of elements in the structure. Using this we can find the ivar (or iopt) of the element. 
 	// We also maintain a list of locations where each var appears in the rule. l_var_all_locs
 	// Finally, we also maintin the list of first location for the var, l_var_loc_pairs. This is the source copied to other locations
-	pvos->l_phrase_starts = (int *)vomalloc((pvos->pgg->l_phrases_len_len+1)*sizeof(int));
+	pvos->max_phrase_len = 0;
+	pvos->l_phrase_starts = (int *)voalloc(	pvos->l_phrase_starts, &(pvos->phrase_starts_num_alloc), 
+											sizeof(int), pvos->pgg->l_phrases_len_len+1);
+//	pvos->l_phrase_starts = (int *)vomalloc((pvos->pgg->l_phrases_len_len+1)*sizeof(int));
 	pvos->l_phrase_starts[0] = 0;
 	for (i=0; i<pvos->pgg->l_phrases_len_len; i++) {
 		pvos->l_phrase_starts[i+1] = pvos->l_phrase_starts[i] + pvos->pgg->l_phrases_len[i];
-		if (pvos->pgg->l_phrases_len[i] > max_phrase_len) {
-			max_phrase_len = pvos->pgg->l_phrases_len[i];
+		if (pvos->pgg->l_phrases_len[i] > pvos->max_phrase_len) {
+			pvos->max_phrase_len = pvos->pgg->l_phrases_len[i];
 		}
 	}
 	for (i=0; i<pvos->num_vars; i++) {
@@ -1814,9 +2167,10 @@ int do_vo(void * hvos) {
 	if (num_loc_pairs != pvos->num_vars) {
 		printf("Coding error! num_loc_pairs != pvos->num_vars");
 	}
-	pvos->l_var_loc_pairs = (intpair *)vomalloc(pvos->num_vars*sizeof(intpair));
-	pvos->l_var_all_locs = (tSIntPairList *)vomalloc(pvos->num_vars*sizeof(tSIntPairList));
-	pvos->d_var_opts = create_pair_dict(pvos->pgg->l_phrases_len_len, max_phrase_len);
+	pvos->l_var_all_locs = (tSIntPairList *)voalloc(pvos->l_var_all_locs, &(pvos->var_all_locs_num_alloc), 
+													sizeof(tSIntPairList), pvos->num_vars);
+//	pvos->l_var_all_locs = (tSIntPairList *)vomalloc(pvos->num_vars*sizeof(tSIntPairList));
+	create_pair_dict(&(pvos->d_var_opts), pvos->pgg->l_phrases_len_len, pvos->max_phrase_len);
 	{
 		int icurr_loc = 0;
 		int iopt, itlen;
@@ -1825,14 +2179,15 @@ int do_vo(void * hvos) {
 				if (pvos->l_var_locs[iopt] < pvos->l_phrase_starts[itlen]) {
 					int r = itlen-1;
 					int c = pvos->l_var_locs[iopt]-pvos->l_phrase_starts[itlen-1];
-					pvos->l_var_loc_pairs[icurr_loc][0] = r;
-					pvos->l_var_loc_pairs[icurr_loc][1] = c;
 					// The first location (expressed as istage/iel pair is stored now in all_locs but will be added to later.
-					pvos->l_var_all_locs[icurr_loc].len = 1;
-					pvos->l_var_all_locs[icurr_loc].pl = (intpair*)vomalloc(sizeof(intpair));
-					pvos->l_var_all_locs[icurr_loc].pl[0][0] = r;
-					pvos->l_var_all_locs[icurr_loc].pl[0][1] = c;
-					pair_dict_set(pvos->d_var_opts, r, c, icurr_loc);
+					tSIntPairList * new_var_locs = &(pvos->l_var_all_locs[icurr_loc]);
+					new_var_locs->len = 1;
+					new_var_locs->pl = (intpair *)voalloc(	new_var_locs->pl, &(new_var_locs->num_alloc), 
+															sizeof(intpair), 1);
+//					pvos->l_var_all_locs[icurr_loc].pl = (intpair*)vomalloc(sizeof(intpair));
+					new_var_locs->pl[0][0] = r;
+					new_var_locs->pl[0][1] = c;
+					pair_dict_set(&(pvos->d_var_opts), r, c, icurr_loc);
 					icurr_loc++;
 					break;
 				}
@@ -1860,12 +2215,23 @@ int do_vo(void * hvos) {
 	// This will be used to make copies of the data to secondary locations belonging to the same var
 	{
 		int iphrase;
-		pvos->ll_src_pat = (char ***)vomalloc(pvos->pgg->l_phrases_len_len*sizeof(char**));
-		pvos->ll_hd_max = (int **)vomalloc(pvos->pgg->l_phrases_len_len*sizeof(int*));
+		pvos->ll_src_pat = (char ***)voalloc(	pvos->ll_src_pat, &(pvos->src_pat_num_alloc), 
+												sizeof(char**), pvos->pgg->l_phrases_len_len);
+		pvos->ll_src_pat[0] = (char **)voalloc(	pvos->ll_src_pat[0], &(pvos->src_pat_num_els_alloc), 
+												sizeof(char*), pvos->pgg->l_phrases_len_len * pvos->max_phrase_len);
+		
+//		pvos->ll_src_pat = (char ***)vomalloc(pvos->pgg->l_phrases_len_len*sizeof(char**));
+		pvos->ll_hd_max = (int **)voalloc(	pvos->ll_hd_max, &(pvos->hd_max_num_alloc), 
+											sizeof(int*), pvos->pgg->l_phrases_len_len);
+		pvos->ll_hd_max[0] = (int *)voalloc(	pvos->ll_hd_max[0], &(pvos->hd_max_num_els_alloc), 
+												sizeof(int), pvos->pgg->l_phrases_len_len * pvos->max_phrase_len);
+//		pvos->ll_hd_max = (int **)vomalloc(pvos->pgg->l_phrases_len_len*sizeof(int*));
 		for (iphrase=0;iphrase<pvos->pgg->l_phrases_len_len;iphrase++) {
 			int iel;
-			pvos->ll_src_pat[iphrase] = (char**)vomalloc(pvos->pgg->l_phrases_len[iphrase]*sizeof(char*));
-			pvos->ll_hd_max[iphrase] = (int*)vomalloc(pvos->pgg->l_phrases_len[iphrase]*sizeof(int));
+			pvos->ll_src_pat[iphrase] = pvos->ll_src_pat[0] + (pvos->max_phrase_len * iphrase);
+			pvos->ll_hd_max[iphrase] = pvos->ll_hd_max[0] + (pvos->max_phrase_len * iphrase);
+//			pvos->ll_src_pat[iphrase] = (char**)vomalloc(pvos->pgg->l_phrases_len[iphrase]*sizeof(char*));
+//			pvos->ll_hd_max[iphrase] = (int*)vomalloc(pvos->pgg->l_phrases_len[iphrase]*sizeof(int));
 			for (iel=0; iel<pvos->pgg->l_phrases_len[iphrase];iel++) {
 				pvos->ll_src_pat[iphrase][iel] = pvos->pgg->l_els_reps[pvos->l_phrase_starts[iphrase]+iel];
 				pvos->ll_hd_max[iphrase][iel] = pvos->pgg->l_hd_max[pvos->l_phrase_starts[iphrase]+iel];
@@ -1892,14 +2258,13 @@ int do_vo(void * hvos) {
 		int ivar;
 		int iopt_now = pvos->num_vars;
 		int num_new_vars = 0;
-//		int * var_loc_adds;
 		for (ivar=0; ivar < pvos->pgg->l_wlist_vars_len; ivar++) {
 			int * wlist_var = pvos->pgg->l_wlist_vars[ivar];
 			int src_istage = wlist_var[0];
 			int src_iel = wlist_var[1];
 			// The following checks that the var was not already set externally
 			// In the current heavy-malloc implementation, we count the mallocs to avoid having to malloc each one REMOVE THIS COMMENT WHEN MOVING TO STATIC MALLOC!
-			int iopt = pair_dict_get(pvos->d_var_opts, src_istage, src_iel);
+			int iopt = pair_dict_get(&(pvos->d_var_opts), src_istage, src_iel);
 			if (iopt == -1) {
 				// This code is not quite right. Once we add vars, later refs to the
 				// the same var will not be -1. Better to add as necessary and not pre-count
@@ -1910,38 +2275,43 @@ int do_vo(void * hvos) {
 			int old_num_vars = pvos->num_vars;
 			pvos->num_vars += num_new_vars;
 			{
-				tSNtVars * old_pnv = pvos->pnv;
-				pvos->pnv = (tSNtVars *)vomalloc(sizeof(tSNtVars) * pvos->num_vars);
-				memcpy(pvos->pnv, old_pnv, sizeof(tSNtVars) * old_num_vars);
-				vofree(old_pnv);
+//				tSNtVars * old_pnv = pvos->pnv;
+//				pvos->pnv = (tSNtVars *)vomalloc(sizeof(tSNtVars) * pvos->num_vars);
+//				memcpy(pvos->pnv, old_pnv, sizeof(tSNtVars) * old_num_vars);
+//				vofree(old_pnv);
+				pvos->pnv = (tSNtVars *)voalloc(pvos->pnv, &(pvos->num_vars_alloc), sizeof(tSNtVars), pvos->num_vars);
+//				printf("alloc size now %d\n", pvos->num_vars_alloc);
+
 			}
 			{
-				tSStrList * old_l_var_vals = pvos->l_var_vals;				
-				pvos->l_var_vals = (tSStrList*)vomalloc(pvos->num_vars*sizeof(tSStrList));
-				memcpy(pvos->l_var_vals, old_l_var_vals, sizeof(tSStrList) * old_num_vars);
-				vofree(old_l_var_vals);
+				pvos->l_var_vals = (tSStrList *)voalloc(pvos->l_var_vals, &(pvos->var_vals_num_alloc), 
+														sizeof(tSStrList), pvos->num_vars);
+//				tSStrList * old_l_var_vals = pvos->l_var_vals;				
+//				pvos->l_var_vals = (tSStrList*)vomalloc(pvos->num_vars*sizeof(tSStrList));
+//				memcpy(pvos->l_var_vals, old_l_var_vals, sizeof(tSStrList) * old_num_vars);
+//				vofree(old_l_var_vals);
 				for (ivar=old_num_vars; ivar < pvos->num_vars; ivar++) {
-					str_list_init(&(pvos->l_var_vals[ivar]));
+					str_list_init2(&(pvos->l_var_vals[ivar]));
 				}
 			}
 //			do the same for l_var_all_locs but figure out the pair list thingy
 			{
-				tSIntPairList * old_var_locs = pvos->l_var_all_locs;
-				int ivar;
-				pvos->l_var_all_locs = (tSIntPairList *)vomalloc(pvos->num_vars*sizeof(tSIntPairList));
-				memcpy(pvos->l_var_all_locs, old_var_locs, sizeof(tSIntPairList)*old_num_vars);
-				for (ivar=old_num_vars; ivar < pvos->num_vars; ivar++) {
+				pvos->l_var_all_locs = (tSIntPairList *)voalloc(pvos->l_var_all_locs, &(pvos->var_all_locs_num_alloc), 
+																sizeof(tSIntPairList), pvos->num_vars);
+//				tSIntPairList * old_var_locs = pvos->l_var_all_locs;
+//				pvos->l_var_all_locs = (tSIntPairList *)vomalloc(pvos->num_vars*sizeof(tSIntPairList));
+//				memcpy(pvos->l_var_all_locs, old_var_locs, sizeof(tSIntPairList)*old_num_vars);
+				for (int ivar=old_num_vars; ivar < pvos->num_vars; ivar++) {
 					pvos->l_var_all_locs[ivar].len = 2;
-					pvos->l_var_all_locs[ivar].pl = (intpair*)vomalloc(2 * sizeof(intpair));
+					pvos->l_var_all_locs[ivar].pl = (intpair *)voalloc(	pvos->l_var_all_locs[ivar].pl, 
+													&(pvos->l_var_all_locs[ivar].num_alloc), 
+													sizeof(intpair), 2);
+//					pvos->l_var_all_locs[ivar].pl = (intpair*)vomalloc(2 * sizeof(intpair));
 				}
-				vofree(old_var_locs);
+//				vofree(old_var_locs);
 			}
 			iopt_now = old_num_vars;
 		}
-//		var_loc_adds = (int *)vomalloc(pvos->num_vars*sizeof(int));
-//		memset(var_loc_adds, 0, sizeof(int)*pvos->num_vars);
-//		printf("l_wlist_vars:\n");
-//		printf("l_wlist_vars_len = %d\n", pvos->pgg->l_wlist_vars_len);
 		// The way vars are stored in the rule structure (pgg), is in pairs of src and dest. The original location
 		// does not have its own entry; only when a later el makes a ref to an earlier el, is it called a var.
 		// Therefore, the earlier entry is either an already known var or a new one.
@@ -1952,21 +2322,21 @@ int do_vo(void * hvos) {
 			int dest_istage = wlist_var[2];
 			int dest_iel = wlist_var[3];
 //			printf("%d: src: %d, %d. dest: %d, %d.\n", ivar, src_istage, src_iel, dest_istage, dest_iel);
-			int iopt = pair_dict_get(pvos->d_var_opts, src_istage, src_iel);
-			printf("ivar: %d. iopt = %d. iopt_now = %d. pvos->num_vars = %d\n", ivar, iopt, iopt_now, pvos->num_vars);
+			int iopt = pair_dict_get(&(pvos->d_var_opts), src_istage, src_iel);
+//			printf("ivar: %d. iopt = %d. iopt_now = %d. pvos->num_vars = %d\n", ivar, iopt, iopt_now, pvos->num_vars);
 			if (iopt == -1) {
 				tSNtVars nv;
 				nv.loc = pvos->l_phrase_starts[src_istage]+src_iel, nv.b_bound = 0, nv.b_must_bind = 0, nv.val = NULL;
 				nv.cd = 0., nv.iext_var = -1, nv.b_resolved = 0;
 				pvos->pnv[iopt_now] = nv;
-				pair_dict_set(pvos->d_var_opts, src_istage, src_iel, iopt_now);
-				pair_dict_set(pvos->d_var_opts, dest_istage, dest_iel, iopt_now);
+				pair_dict_set(&(pvos->d_var_opts), src_istage, src_iel, iopt_now);
+				pair_dict_set(&(pvos->d_var_opts), dest_istage, dest_iel, iopt_now);
 				pvos->l_var_all_locs[iopt_now].pl[0][0] = src_istage;
 				pvos->l_var_all_locs[iopt_now].pl[0][1] = src_iel;
 				pvos->l_var_all_locs[iopt_now].pl[1][0] = dest_istage;
 				pvos->l_var_all_locs[iopt_now].pl[1][1] = dest_iel;
 				// Fear not. A later test for whether the hd_max is zero will *replace* the NULL with an exact value string
-				str_list_add_val(&(pvos->l_var_vals[iopt_now]), NULL);
+				str_list_add_val2(&(pvos->l_var_vals[iopt_now]), NULL);
 				iopt_now++;
 			}
 			else {
@@ -1979,12 +2349,9 @@ int do_vo(void * hvos) {
 				memcpy(p_var_locs->pl, old_pl, old_len*sizeof(intpair));
 				vofree(old_pl);
 				p_var_locs->pl[old_len][0] = dest_istage, p_var_locs->pl[old_len][1] = dest_iel;
-				pair_dict_set(pvos->d_var_opts, dest_istage, dest_iel, iopt);
-//				var_loc_adds[iopt]++;
+				pair_dict_set(&(pvos->d_var_opts), dest_istage, dest_iel, iopt);
 			}
-//			printf("end if iopt == -1\n");
 		}
-//		vofree(var_loc_adds);
 //		{
 //			int icurr_loc;
 //			printf("l_var_all_locs: [");
@@ -1998,7 +2365,7 @@ int do_vo(void * hvos) {
 //				printf(" ], ");
 //			}
 //			printf("]\n");
-//			pair_dict_print(pvos->d_var_opts);
+//			pair_dict_print(&(pvos->d_var_opts));
 //		}
 	}
 
@@ -2026,7 +2393,7 @@ int do_vo(void * hvos) {
 			// or maybe it is defensive code against the possibility of the code above changing. In which case
 			// an assert would be more appropriate
 			if (!var_opt->b_resolved) {
-				printf("Resolving var %d. stage %d, iel %d\n", iopt, src_istage, src_iel);
+//				printf("Resolving var %d. stage %d, iel %d\n", iopt, src_istage, src_iel);
 				bool b_set_by_int = true;
 				char* int_els_rep = pvos->ll_src_pat[src_istage][src_iel];
 				int int_hd_max = pvos->ll_hd_max[src_istage][src_iel];
@@ -2040,9 +2407,9 @@ int do_vo(void * hvos) {
 						ext_hd_max = (int)((double)(papp->bitvec_size) * (1. - var_opt->cd));
 					}
 					max_of_max_hd = max(int_hd_max, ext_hd_max);
-					printf("bin_diff = %d, max_of_max_hd = %d\n", bin_diff, max_of_max_hd);
+//					printf("bin_diff = %d, max_of_max_hd = %d\n", bin_diff, max_of_max_hd);
 					if (bin_diff > max_of_max_hd) {
-						printf("Exiting! \n");
+//						printf("Exiting! \n");
 						return 0;
 					}
 					if (int_hd_max > ext_hd_max) {
@@ -2052,19 +2419,19 @@ int do_vo(void * hvos) {
 						var_opt->b_resolved=true;
 					}
 				}
-				printf("Resolving by int is %s\n", (b_set_by_int ? "True" : "False"));
+//				printf("Resolving by int is %s\n", (b_set_by_int ? "True" : "False"));
 				if (b_set_by_int) {
 					int nd_el_match_idx = bin_idx_best_match(	papp->el_bin_db, int_els_rep,
 																papp->el_bin_db_len, papp->bitvec_size);
 					char *el_word = get_word_by_id(papp, nd_el_match_idx);
 					bool b_exact = (pvos->ll_hd_max[src_istage][src_iel] == 0);
-					printf(	"Resolving exact = %s. hd_max = %d \n", (b_set_by_int ? "True" : "False"), 
-							(pvos->ll_hd_max[src_istage][src_iel]));
+//					printf(	"Resolving exact = %s. hd_max = %d \n", (b_set_by_int ? "True" : "False"), 
+//							(pvos->ll_hd_max[src_istage][src_iel]));
 					var_opt->b_bound=b_exact, var_opt->b_must_bind=b_exact, var_opt->val = el_word;
 					var_opt->b_resolved = true;
 					var_opt->cd = 1.-((double)((pvos->ll_hd_max[src_istage][src_iel]) / papp->bitvec_size));
 					if (b_exact) {
-						str_list_reset_with_one_val(&(pvos->l_var_vals[iopt]), el_word);
+						str_list_reset_with_one_val2(&(pvos->l_var_vals[iopt]), el_word);
 					}
 				}
 			}
@@ -2098,7 +2465,7 @@ int do_vo(void * hvos) {
 				int phrase_len = pvos->pgg->l_phrases_len[istage];
 				int iel;
 				for (iel=0; iel<phrase_len;iel++) {
-					int ivar = pair_dict_get(pvos->d_var_opts, istage, iel);
+					int ivar = pair_dict_get(&(pvos->d_var_opts), istage, iel);
 					int old_num_vars = pvos->num_vars;
 //					if (ivar != -1 || pvos->ll_hd_max[istage][iel] == 0)
 //						continue;
@@ -2106,7 +2473,7 @@ int do_vo(void * hvos) {
 						continue;
 					int hd_max =  pvos->ll_hd_max[istage][iel];
 					pvos->num_vars++;
-					pair_dict_set(pvos->d_var_opts, istage, iel, old_num_vars);
+					pair_dict_set(&(pvos->d_var_opts), istage, iel, old_num_vars);
 					// The following function is computationally expensive
 					// Its only justification is the readability of the output
 					// later version of this code could rely only on the bitvectors 
@@ -2115,34 +2482,44 @@ int do_vo(void * hvos) {
 																papp->el_bin_db_len, papp->bitvec_size);
 					char *el_word = get_word_by_id(papp, nd_el_match_idx);
 					bool b_exact = (hd_max == 0);
-					// The following blocks are just a womewhat wordy way of increasing the size of the num_vars 
+					// The following blocks are just a somewhat wordy way of increasing the size of the num_vars 
 					// related arrays
 					{
-						tSNtVars * old_pnv = pvos->pnv;
+//						tSNtVars * old_pnv = pvos->pnv;
 						tSNtVars nv;
-						pvos->pnv = (tSNtVars *)vomalloc(sizeof(tSNtVars) * pvos->num_vars);
-						memcpy(pvos->pnv, old_pnv, sizeof(tSNtVars) * old_num_vars);
-						vofree(old_pnv);
+//						pvos->pnv = (tSNtVars *)vomalloc(sizeof(tSNtVars) * pvos->num_vars);
+//						memcpy(pvos->pnv, old_pnv, sizeof(tSNtVars) * old_num_vars);
+//						vofree(old_pnv);
+						pvos->pnv = (tSNtVars *)voalloc(pvos->pnv, &(pvos->num_vars_alloc), sizeof(tSNtVars), pvos->num_vars);
+
 						nv.loc = pvos->l_phrase_starts[istage]+iel, nv.b_bound = b_exact, nv.b_must_bind = false;
 						nv.val = el_word, nv.b_resolved = 0, nv.iext_var = -1;
 						nv.cd = 1. - ((double)(pvos->ll_hd_max[istage][iel]) / papp->bitvec_size) ; 
 						pvos->pnv[old_num_vars] = nv;
 					}
 					{
-						tSStrList * old_l_var_vals = pvos->l_var_vals;				
-						pvos->l_var_vals = (tSStrList*)vomalloc(pvos->num_vars*sizeof(tSStrList));
-						memcpy(pvos->l_var_vals, old_l_var_vals, sizeof(tSStrList) * old_num_vars);
-						vofree(old_l_var_vals);
-						str_list_init(&(pvos->l_var_vals[old_num_vars]));
-						str_list_add_val(&(pvos->l_var_vals[old_num_vars]), (b_exact ? el_word : NULL));
+						pvos->l_var_vals = (tSStrList *)voalloc(pvos->l_var_vals, &(pvos->var_vals_num_alloc), 
+																sizeof(tSStrList), pvos->num_vars);
+//						tSStrList * old_l_var_vals = pvos->l_var_vals;				
+//						pvos->l_var_vals = (tSStrList*)vomalloc(pvos->num_vars*sizeof(tSStrList));
+//						memcpy(pvos->l_var_vals, old_l_var_vals, sizeof(tSStrList) * old_num_vars);
+//						vofree(old_l_var_vals);
+						str_list_init2(&(pvos->l_var_vals[old_num_vars]));
+						str_list_add_val2(&(pvos->l_var_vals[old_num_vars]), (b_exact ? el_word : NULL));
 					}
 					{
-						tSIntPairList * old_var_locs = pvos->l_var_all_locs;
-						pvos->l_var_all_locs = (tSIntPairList *)vomalloc(pvos->num_vars*sizeof(tSIntPairList));
-						memcpy(pvos->l_var_all_locs, old_var_locs, sizeof(tSIntPairList)*old_num_vars);
+						pvos->l_var_all_locs = (tSIntPairList *)voalloc(pvos->l_var_all_locs, 
+																		&(pvos->var_all_locs_num_alloc), 
+																		sizeof(tSIntPairList), pvos->num_vars);
+//						tSIntPairList * old_var_locs = pvos->l_var_all_locs;
+//						pvos->l_var_all_locs = (tSIntPairList *)vomalloc(pvos->num_vars*sizeof(tSIntPairList));
+//						memcpy(pvos->l_var_all_locs, old_var_locs, sizeof(tSIntPairList)*old_num_vars);
 						pvos->l_var_all_locs[old_num_vars].len = 1;
-						pvos->l_var_all_locs[old_num_vars].pl = (intpair*)vomalloc(sizeof(intpair));
-						vofree(old_var_locs);
+						pvos->l_var_all_locs[old_num_vars].pl = (intpair *)voalloc(	pvos->l_var_all_locs[old_num_vars].pl, 
+																					&(pvos->l_var_all_locs[old_num_vars].num_alloc), 
+																					sizeof(intpair), 1);
+//						pvos->l_var_all_locs[old_num_vars].pl = (intpair*)vomalloc(sizeof(intpair));
+//						vofree(old_var_locs);
 						pvos->l_var_all_locs[old_num_vars].pl[0][0] = istage;
 						pvos->l_var_all_locs[old_num_vars].pl[0][1] = iel;
 					}
@@ -2150,59 +2527,59 @@ int do_vo(void * hvos) {
 				
 			}
 		}
-		{
-			int i;
-			printf("ll_hd_max: \n");
-			for (i=0; i<pvos->pgg->l_phrases_len_len; i++) {
-				int j;
-				printf("stage %d: [", i);
-				for (j=0; j<pvos->pgg->l_phrases_len[i];j++) {
-					printf("%d, ", pvos->ll_hd_max[i][j]);
-				}
-				printf("], ");
-			}
-			printf("\n");
-			printf("ll_src_pat: \n");
-			for (i=0; i<pvos->pgg->l_phrases_len_len; i++) {
-				int j;
-				printf("stage %d: [", i);
-				for (j=0; j<pvos->pgg->l_phrases_len[i];j++) {
-					int k;
-					for (k=0;k<papp->bitvec_size;k++) {
-						printf("%hhd", pvos->ll_src_pat[i][j][k]);
-					}
-					printf(", ");
-				}
-				printf("], ");
-			}
-			printf("\n");
-			printf("l_vars: \n");
-			for (iopt=0; iopt<pvos->num_vars; iopt++) {
-				tSNtVars * var_opt = &(pvos->pnv[iopt]);
-				print_nt_var(var_opt);
-			}
-			printf("l_var_vals: \n");
-			for (iopt=0; iopt<pvos->num_vars; iopt++) {
-				tSStrList * sl = &(pvos->l_var_vals[iopt]);
-				printf("%d: ", iopt);
-				str_list_print(sl);
-			}
-			{
-				int icurr_loc;
-				printf("l_var_all_locs: [");
-				for (icurr_loc=0; icurr_loc<pvos->num_vars; icurr_loc++) {
-					int ipair;
-					tSIntPairList * ppl = &(pvos->l_var_all_locs[icurr_loc]);
-					printf(" [ ");
-					for (ipair=0; ipair<ppl->len; ipair++) {
-						printf("(%d, %d), ", ppl->pl[ipair][0] , ppl->pl[ipair][1] );
-					}
-					printf(" ], ");
-				}
-				printf("]\n");
-				pair_dict_print(pvos->d_var_opts);
-			}
-		}
+//		{
+//			int i;
+//			printf("ll_hd_max: \n");
+//			for (i=0; i<pvos->pgg->l_phrases_len_len; i++) {
+//				int j;
+//				printf("stage %d: [", i);
+//				for (j=0; j<pvos->pgg->l_phrases_len[i];j++) {
+//					printf("%d, ", pvos->ll_hd_max[i][j]);
+//				}
+//				printf("], ");
+//			}
+//			printf("\n");
+//			printf("ll_src_pat: \n");
+//			for (i=0; i<pvos->pgg->l_phrases_len_len; i++) {
+//				int j;
+//				printf("stage %d: [", i);
+//				for (j=0; j<pvos->pgg->l_phrases_len[i];j++) {
+//					int k;
+//					for (k=0;k<papp->bitvec_size;k++) {
+//						printf("%hhd", pvos->ll_src_pat[i][j][k]);
+//					}
+//					printf(", ");
+//				}
+//				printf("], ");
+//			}
+//			printf("\n");
+//			printf("l_vars: \n");
+//			for (iopt=0; iopt<pvos->num_vars; iopt++) {
+//				tSNtVars * var_opt = &(pvos->pnv[iopt]);
+//				print_nt_var(var_opt);
+//			}
+//			printf("l_var_vals: \n");
+//			for (iopt=0; iopt<pvos->num_vars; iopt++) {
+//				tSStrList * sl = &(pvos->l_var_vals[iopt]);
+//				printf("%d: ", iopt);
+//				str_list_print(sl);
+//			}
+//			{
+//				int icurr_loc;
+//				printf("l_var_all_locs: [");
+//				for (icurr_loc=0; icurr_loc<pvos->num_vars; icurr_loc++) {
+//					int ipair;
+//					tSIntPairList * ppl = &(pvos->l_var_all_locs[icurr_loc]);
+//					printf(" [ ");
+//					for (ipair=0; ipair<ppl->len; ipair++) {
+//						printf("(%d, %d), ", ppl->pl[ipair][0] , ppl->pl[ipair][1] );
+//					}
+//					printf(" ], ");
+//				}
+//				printf("]\n");
+//				pair_dict_print(&(pvos->d_var_opts));
+//			}
+//		}
     }
 	{
 		// part b
@@ -2224,27 +2601,23 @@ int do_vo(void * hvos) {
 		// nd_default_idb_mrk is the array of markers across records, specifiying which records this particular
 		// agent/database believes to be true
 		nd_default_idb_mrk = pvos->pmpdb->l_idb_mrks[idb]; //  mpdb_mgr.get_nd_idb_mrk(idb)
-		if (vo_call_num == 54552) {
-			
-			printf("vo_call_num: %d. default idb mrk for %s: idb %d\n", vo_call_num, pvos->db_name, idb);
-			for (int irec=0;irec<papp->mpdb_num_recs;irec++) {
-				printf("%hhd",nd_default_idb_mrk[irec]);
-			}
-			printf("\n");
-		}
-		// Set up the stage_vars array. One list for each phrase/stage of the vars affecting that stage
-		// Currently considering doing this so that this data structure is not needed.
-		pvos->stage_vars_len = pvos->pgg->l_phrases_len_len;
-		pvos->l_stage_vars = (tSIntList*)vomalloc(sizeof(tSIntList)*pvos->stage_vars_len);
-		for (istage=0;istage<pvos->pgg->l_phrases_len_len;istage++) {
-			int_list_init(&(pvos->l_stage_vars[istage]));
-		}
+//		if (vo_call_num == 54552) {
+//			
+//			printf("vo_call_num: %d. default idb mrk for %s: idb %d\n", vo_call_num, pvos->db_name, idb);
+//			for (int irec=0;irec<papp->mpdb_num_recs;irec++) {
+//				printf("%hhd",nd_default_idb_mrk[irec]);
+//			}
+//			printf("\n");
+//		}
 		// Set up a number of marker arrays across records of the database. These are used to eventually mark
 		// in m_match those phrase matched by this phrase of the rule itself
 		pvos->mpdb_story_rphrase_size = pl_story_rphrases->len;
-		pvos->l_ilen_mrk = (char*)vomalloc(pvos->mpdb_story_rphrase_size*sizeof(char));
-		pvos->m_match = (char*)vomalloc(pvos->mpdb_story_rphrase_size*sizeof(char));
-		pvos->m_mrks = (char*)vomalloc(pvos->mpdb_story_rphrase_size*sizeof(char));
+		pvos->l_ilen_mrk = (char*)voalloc(pvos->l_ilen_mrk, &(pvos->ilen_mrk_num_alloc), sizeof(char), pvos->mpdb_story_rphrase_size);
+		pvos->m_match = (char*)voalloc(pvos->m_match, &(pvos->match_num_alloc), sizeof(char), pvos->mpdb_story_rphrase_size);
+		pvos->m_mrks = (char*)voalloc(pvos->m_mrks, &(pvos->mrks_num_alloc), sizeof(char), pvos->mpdb_story_rphrase_size);
+//		pvos->l_ilen_mrk = (char*)vomalloc(pvos->mpdb_story_rphrase_size*sizeof(char));
+//		pvos->m_match = (char*)vomalloc(pvos->mpdb_story_rphrase_size*sizeof(char));
+//		pvos->m_mrks = (char*)vomalloc(pvos->mpdb_story_rphrase_size*sizeof(char));
 		for (istage=0;istage<pvos->pgg->l_phrases_len_len;istage++) {
 			int phrase_len = pvos->pgg->l_phrases_len[istage];
 			int isr, iel;
@@ -2253,7 +2626,6 @@ int do_vo(void * hvos) {
 			for (isr=0;isr<pl_story_rphrases->len;isr++) {
 				pvos->l_ilen_mrk[isr] = ((pvos->pgg->l_phrases_ilen[istage] == pl_story_rphrases->pl[isr][0]) 
 										? (char)1 : (char)0);
-//				pvos->m_match[isr] = (char)1;
 			}
 			// Mark records that are the same len and also believed by this agent
 			bin_logical_and(pvos->m_mrks, nd_default_idb_mrk, pvos->l_ilen_mrk, pvos->mpdb_story_rphrase_size);
@@ -2269,17 +2641,19 @@ int do_vo(void * hvos) {
 			for (iel=0;iel<phrase_len;iel++) {
 				phrase_el_init(&(pvos->l_phrase_found.pl[iel]), etRecDefNone, NULL, -1.0);
 			}
-			if (pvos->l_b_unbound != NULL) {
-				vofree(pvos->l_b_unbound);
-			}
-			if (pvos->l_i_unbound != NULL) {
-				vofree(pvos->l_i_unbound);				
-			}
+//			if (pvos->l_b_unbound != NULL) {
+//				vofree(pvos->l_b_unbound);
+//			}
+//			if (pvos->l_i_unbound != NULL) {
+//				vofree(pvos->l_i_unbound);				
+//			}
 			pvos->stage_phrase_len = phrase_len;
-			pvos->l_b_unbound = (bool *)vomalloc(sizeof(bool)*pvos->stage_phrase_len);
-			pvos->l_i_unbound = (int *)vomalloc(sizeof(int)*pvos->stage_phrase_len);
+			pvos->l_b_unbound = (bool*)voalloc(pvos->l_b_unbound, &(pvos->b_unbound_num_alloc), sizeof(bool), pvos->stage_phrase_len);
+			pvos->l_i_unbound = (int*)voalloc(pvos->l_i_unbound, &(pvos->i_unbound_num_alloc), sizeof(int), pvos->stage_phrase_len);
+//			pvos->l_b_unbound = (bool *)vomalloc(sizeof(bool)*pvos->stage_phrase_len);
+//			pvos->l_i_unbound = (int *)vomalloc(sizeof(int)*pvos->stage_phrase_len);
 			for (iel=0;iel<phrase_len;iel++) {
-				int iopt = pair_dict_get(pvos->d_var_opts, istage, iel);
+				int iopt = pair_dict_get(&(pvos->d_var_opts), istage, iel);
 				char* src_pat = pvos->ll_src_pat[istage][iel];
 				int hd_max = pvos->ll_hd_max[istage][iel];
 				int match_start = iel * papp->bitvec_size;
@@ -2291,14 +2665,6 @@ int do_vo(void * hvos) {
 					printf("Error at stage %d, iel %d.\n", istage, iel);
 					assert(false);
 				}
-//				if (iopt == -1 || !pvos->pnv[iopt].b_bound) {
-//					int nd_el_match_idx = bin_idx_best_match(	papp->el_bin_db, src_pat,
-//																papp->el_bin_db_len, papp->bitvec_size);
-//					el_word = get_word_by_id(papp, nd_el_match_idx);
-//				}
-//				else {
-//					el_word = pvos->pnv[iopt].val;
-//				}
 				el_word = pvos->pnv[iopt].val;
 				
 				if (hd_max == 0) {
@@ -2339,110 +2705,57 @@ int do_vo(void * hvos) {
 			} // end loop iel over phrase len
 			// following makes little sense, but exists in the original pyhton code
 			bin_logical_and(pvos->m_match, pvos->m_match, pvos->m_mrks, papp->mpdb_num_recs);
-			// one extra piece. Build a table of var idxs that are used for each el of the stage. At this point
-			// even though we are in the middle of the stages loop we can say that we know the var table for this stage
-			// as comment before, not sure we really need this data structure
-			{
-				int ivar;
-				for(ivar=0;ivar<pvos->num_vars;ivar++) {
-					tSNtVars * var = &(pvos->pnv[ivar]);
-					tSIntPairList * var_all_locs = &(pvos->l_var_all_locs[ivar]);
-					int iloc;
-					if (var->b_bound) {
-						continue;
-					}
-					for (iloc=0;iloc<var_all_locs->len;iloc++) {
-						intpair * var_loc = &(var_all_locs->pl[iloc]);
-						if ((*var_loc)[0] == istage) {
-							int_list_add_val(&(pvos->l_stage_vars[istage]), ivar);
-						}
-					}
-				}
-			}
 			
-			{
-				int irec, iistage, iel;
-				printf("l_b_unbound: ");
-				for (iel=0;iel<pvos->stage_phrase_len;iel++) {
-					printf("%s, ", ((pvos->l_b_unbound[iel] == true) ? "True" : "False"));
-				}
-				printf("\n");
-				printf("l_i_unbound: ");
-				for (iel=0;iel<pvos->stage_phrase_len;iel++) {
-					printf("%d, ", pvos->l_i_unbound[iel]);
-				}
-				printf("\n");
-				printf("l_phrase_found: \n");
-				phrase_print(&(pvos->l_phrase_found));
-				printf("m_match: ");
-				for (irec=0;irec<papp->mpdb_num_recs;irec++) {
-					printf("%hhd",pvos->m_match[irec]);
-				}
-				printf("\n");
-				printf("%d l_stage_vars:\n", pvos->stage_vars_len);
-				for (iistage=0; iistage<pvos->stage_vars_len; iistage++) {
-					int_list_print(&(pvos->l_stage_vars[iistage]));
-				}
-			}
+//			{
+//				int irec, iel;
+//				printf("l_b_unbound: ");
+//				for (iel=0;iel<pvos->stage_phrase_len;iel++) {
+//					printf("%s, ", ((pvos->l_b_unbound[iel] == true) ? "True" : "False"));
+//				}
+//				printf("\n");
+//				printf("l_i_unbound: ");
+//				for (iel=0;iel<pvos->stage_phrase_len;iel++) {
+//					printf("%d, ", pvos->l_i_unbound[iel]);
+//				}
+//				printf("\n");
+//				printf("l_phrase_found: \n");
+//				phrase_print(&(pvos->l_phrase_found));
+//				printf("m_match: ");
+//				for (irec=0;irec<papp->mpdb_num_recs;irec++) {
+//					printf("%hhd",pvos->m_match[irec]);
+//				}
+//				printf("\n");
+//			}
 			{
 				// These first phrases, embedded in match_phrase are the null phrase.
 				// The null phrase is used to build other phrases when the null values are replaced by 
 				// found values
 				{
-					int * old_null_phrases = pvos->l_i_null_phrases;
+//					int * old_null_phrases = pvos->l_i_null_phrases;
 					int old_i_null_phrases_len = pvos->i_null_phrases_len;
-					printf("pvos->l_i_null_phrases len %d increasing..\n", old_i_null_phrases_len);
+//					printf("pvos->l_i_null_phrases len %d increasing..\n", old_i_null_phrases_len);
 					pvos->i_null_phrases_len++;
-					pvos->l_i_null_phrases = (int *)vomalloc(sizeof(int)*pvos->i_null_phrases_len);
-					if (old_null_phrases != NULL) {
-						memcpy(pvos->l_i_null_phrases, old_null_phrases, sizeof(int)*old_i_null_phrases_len);
-						vofree(old_null_phrases);
-					}
+					pvos->l_i_null_phrases = (int *)voalloc(pvos->l_i_null_phrases, &(pvos->i_null_phrases_num_alloc), 
+															sizeof(int), pvos->i_null_phrases_len);
+//					pvos->l_i_null_phrases = (int *)vomalloc(sizeof(int)*pvos->i_null_phrases_len);
+//					if (old_null_phrases != NULL) {
+//						memcpy(pvos->l_i_null_phrases, old_null_phrases, sizeof(int)*old_i_null_phrases_len);
+//						vofree(old_null_phrases);
+//					}
 					pvos->l_i_null_phrases[old_i_null_phrases_len] = pvos->match_phrases_len;
+//					pvos->i_null_phrases_len++;
 				}
 				// use the l_phrase_found to create a match phrase and append it to the list.
 				// This is one of the null phrases.
 				// Note, the l_match_phrase memory is not used. It is copied to its own list owned memory.
 				match_phrase_append(pvos, istage, false, &(pvos->l_phrase_found));
 
-//				{
-//					tSMatchPhrase * old_l_match_phrases = pvos->l_match_phrases;
-//					int old_match_phrases_len = pvos->match_phrases_len;
-//					pvos->match_phrases_len++;
-//					pvos->l_match_phrases = (tSMatchPhrase *)vomalloc(sizeof(tSMatchPhrase)*pvos->match_phrases_len);
-//					if (old_l_match_phrases != NULL) {
-//						memcpy(pvos->l_match_phrases, old_l_match_phrases, sizeof(tSMatchPhrase)*old_match_phrases_len);
-//						vofree(old_l_match_phrases);
-//					}
-//					match_phrase_set(	&(pvos->l_match_phrases[old_match_phrases_len]), 
-//										istage, false, &(pvos->l_phrase_found));
-//				}
 				
 				// Add an array num_vars long to the pvos->ll_match_phrase_var_sels array. Each relevant var
 				// will be zero; the first entry in the var_vals. The remainder are -1
 				// Note the first entry will be null for rec def like and the actual value for an obj
 				// This function also records the stage of the match phrase
 				match_phrase_var_sel_append(pvos, istage);
-				// We might be able to remove the match_binings structure. REMOVE THIS COMMENT ONCE IMPLEMENTED
-				match_bindings_append_for_stage(pvos, istage);
-//				{
-//					tSIntList * old_l_match_bindings = pvos->l_match_bindings;
-//					int old_match_bindings_len = pvos->match_bindings_len;
-//					int ibind;
-//					pvos->match_bindings_len++;
-//					pvos->l_match_bindings = (tSIntList*)vomalloc(sizeof(tSIntList)*pvos->match_bindings_len);
-//					if (old_l_match_bindings != NULL) {
-//						memcpy(pvos->l_match_bindings, old_l_match_bindings, sizeof(tSIntList)*old_match_bindings_len);
-//						vofree(old_l_match_bindings);
-//					}
-//					tSIntList * new_match_binding = &(pvos->l_match_bindings[old_match_bindings_len]);
-//					new_match_binding->len = 1+pvos->l_stage_vars[istage].len;
-//					new_match_binding->pl = (int*)vomalloc(sizeof(int)*new_match_binding->len);
-//					new_match_binding->pl[0] = istage;
-//					for (ibind=1;ibind<new_match_binding->len;ibind++) {
-//						new_match_binding->pl[ibind] = 0;
-//					}
-//				}
 			}
 			{
 				// We now go through the m_match markers, finding the phrases in the db for the agent
@@ -2456,21 +2769,22 @@ int do_vo(void * hvos) {
 					if (bmatch==(char)0) {
 						continue;
 					}
-					printf("Testing imatch %d\n", imatch);
+//					printf("Testing imatch %d\n", imatch);
 					// get the phrase ref
 					story_rphrase = &(pvos->pmpdb->l_srphrases.pl[imatch]);
 					// use the phrase ref to get the text itself.
 					// An alternative would be to access the mpdb bins directly 
 					// This would apply in a world where we use only the bitvecs and not the text
 					p_story_wlist = &(papp->ll_phrases[(*story_rphrase)[0]].pl[(*story_rphrase)[1]]);
-					if (pvos->l_story_phrase_found.pl != NULL) {
-						vofree(pvos->l_story_phrase_found.pl);
-						pvos->l_story_phrase_found.pl = NULL;
-					}
+//					if (pvos->l_story_phrase_found.pl != NULL) {
+//						vofree(pvos->l_story_phrase_found.pl);
+//						pvos->l_story_phrase_found.pl = NULL;
+//					}
 					// Add a rec_def_obj to each el. This works because the database contains only objs and no like
 					convert_wlist_to_phrase(&(pvos->l_story_phrase_found), p_story_wlist);
-					printf("l_story_phrase_found for %d: ", imatch);
-					phrase_print(&(pvos->l_story_phrase_found));
+//					printf("l_story_phrase_found for %d: ", imatch);
+//					phrase_print(&(pvos->l_story_phrase_found));
+					/*
 					// test for unexpected double. No two els which are not part of the same var may have the same vale
 					pvos->num_test_phrases = 1;
 					pvos->l_test_phrases = &(pvos->l_story_phrase_found);
@@ -2485,11 +2799,12 @@ int do_vo(void * hvos) {
 						pvos->m_match[imatch] = (char)0;
 						continue;
 					}
+					 */
 					match_phrase_append(pvos, istage, true, &(pvos->l_story_phrase_found));
 					// initially create a null var sel. This will now be modified 
 					match_phrase_var_sel_append(pvos, istage);
 					int * new_var_sels = pvos->ll_match_phrase_var_sels[pvos->match_phrases_len-1];
-					match_bindings_append_for_stage(pvos, istage);
+//					match_bindings_append_for_stage(pvos, istage);
 					for (int iel=0;iel<phrase_len;iel++ ) {
 						if (pvos->l_b_unbound[iel]) {
 							int ivar = pvos->l_i_unbound[iel];
@@ -2506,24 +2821,9 @@ int do_vo(void * hvos) {
 							}
 							if (!b_in_list) {
 								ivar_val = l_bindings->len;
-								str_list_add_val(l_bindings, var_binding);
+								str_list_add_val2(l_bindings, var_binding);
 							}
 							new_var_sels[ivar] = ivar_val;
-							// Again with the stage vars. Perhaps we can remove. REMOVE THIS COMMENT IF stage_vars ARE REMOVED
-							tSIntList * stage_ivars = &(pvos->l_stage_vars[istage]);
-							b_in_list = false;
-							int match_idx = -1;
-							for (int iivar=0; iivar<stage_ivars->len;iivar++) {
-								if (stage_ivars->pl[iivar] == ivar) {
-									b_in_list = true;
-									match_idx = iivar;
-									break;
-								}
-							}
-							if (!b_in_list) {
-								printf("Error! Strange. Python code does not recognise the option of not finding ivar in list.\n");
-							}
-							pvos->l_match_bindings[pvos->match_bindings_len-1].pl[1+match_idx] = ivar_val;
 						}
 					}
 				}
@@ -2531,35 +2831,31 @@ int do_vo(void * hvos) {
 			
 		} // end loop over stages of phrases of parent rule
 	}
-	{
-		printf("%d match phrases:\n", pvos->match_phrases_len );
-		for (int i=0; i<pvos->match_phrases_len;i++) {
-			match_phrase_print(&(pvos->l_match_phrases[i]));
-		}
-		printf("%d match bindings:\n", pvos->match_bindings_len );
-		for (int i=0; i<pvos->match_bindings_len; i++) {
-			int_list_print(&(pvos->l_match_bindings[i]));
-		}
-		printf("l_var_vals: \n");
-		for (int iopt=0; iopt<pvos->num_vars; iopt++) {
-			tSStrList * sl = &(pvos->l_var_vals[iopt]);
-			printf("%d: ", iopt);
-			str_list_print(sl);
-		}
-		printf("%d match phrase stages: ", pvos->match_phrases_len);
-		for (int i=0; i<pvos->match_phrases_len;i++) {
-			printf("%d: %d, ", i, pvos->l_match_phrase_stage[i]);
-		}
-		printf("\n");
-		printf("%d ll_match_phrase_var_sels: \n", pvos->match_phrases_len);
-		for (int i=0; i<pvos->match_phrases_len;i++) {
-			printf("match phrase: %d: ", i);
-			for (int ivar=0; ivar<pvos->num_vars; ivar++) {
-				printf("%d:%d,", ivar, pvos->ll_match_phrase_var_sels[i][ivar]);
-			}
-			printf("\n");
-		}
-	}
+//	{
+//		printf("%d match phrases:\n", pvos->match_phrases_len );
+//		for (int i=0; i<pvos->match_phrases_len;i++) {
+//			match_phrase_print(&(pvos->l_match_phrases[i]));
+//		}
+//		printf("l_var_vals: \n");
+//		for (int iopt=0; iopt<pvos->num_vars; iopt++) {
+//			tSStrList * sl = &(pvos->l_var_vals[iopt]);
+//			printf("%d: ", iopt);
+//			str_list_print(sl);
+//		}
+//		printf("%d match phrase stages: ", pvos->match_phrases_len);
+//		for (int i=0; i<pvos->match_phrases_len;i++) {
+//			printf("%d: %d, ", i, pvos->l_match_phrase_stage[i]);
+//		}
+//		printf("\n");
+//		printf("%d ll_match_phrase_var_sels: \n", pvos->match_phrases_len);
+//		for (int i=0; i<pvos->match_phrases_len;i++) {
+//			printf("match phrase: %d: ", i);
+//			for (int ivar=0; ivar<pvos->num_vars; ivar++) {
+//				printf("%d:%d,", ivar, pvos->ll_match_phrase_var_sels[i][ivar]);
+//			}
+//			printf("\n");
+//		}
+//	}
 	{
 		// Here we search for forbidden combinations. Any values of one var that is equal to the value of
 		// another var is forbidden becuase in that case there would be a new var 
@@ -2571,27 +2867,37 @@ int do_vo(void * hvos) {
 					for (int ival2 = 0; ival2 < pvos->l_var_vals[ivar2].len;ival2++) {
 						if (pvos->l_var_vals[ivar2].pl[ival2] == NULL) continue;
 						if (strcmp(pvos->l_var_vals[ivar1].pl[ival1], pvos->l_var_vals[ivar2].pl[ival2]) == 0) {
-							printf("Hit a forbidden combi for ivar1 %d, ival1 %d, ivar2 %d, ival2 %d, val %s.\n",
-									ivar1, ival1, ivar2, ival2, pvos->l_var_vals[ivar1].pl[ival1]);
+//							printf("Hit a forbidden combi for ivar1 %d, ival1 %d, ivar2 %d, ival2 %d, val %s.\n",
+//									ivar1, ival1, ivar2, ival2, pvos->l_var_vals[ivar1].pl[ival1]);
 							int old_len = pvos->num_forbidden;
-							int** old_p = pvos->ll_forbidden_combs;
+//							int** old_p = pvos->ll_forbidden_combs;
 							pvos->num_forbidden++;
-							pvos->ll_forbidden_combs = (int **)vomalloc(sizeof(int*)*pvos->num_forbidden);
-							if (old_len > 0) {
-								memcpy(pvos->ll_forbidden_combs, old_p, sizeof(int*)*old_len);
-								vofree(old_p);
+							pvos->ll_forbidden_combs = 
+									(int**)voalloc(	pvos->ll_forbidden_combs, &(pvos->forbidden_combs_num_alloc),
+													sizeof(int*), pvos->num_forbidden);
+							pvos->ll_forbidden_combs[0] = 
+									(int*)voalloc(	pvos->ll_forbidden_combs[0], &(pvos->forbidden_combs_els_num_alloc),
+													sizeof(int), pvos->num_forbidden*pvos->num_vars);
+							int * pb = pvos->ll_forbidden_combs[0];
+							for (int iforbid=0;iforbid<pvos->num_forbidden;iforbid++, pb += pvos->num_vars) {
+								pvos->ll_forbidden_combs[iforbid] = pb;
 							}
-							int ** pvec = &(pvos->ll_forbidden_combs[old_len]);
-							*pvec = (int*)vomalloc(sizeof(int)*pvos->num_vars);
+//							pvos->ll_forbidden_combs = (int **)vomalloc(sizeof(int*)*pvos->num_forbidden);
+//							if (old_len > 0) {
+//								memcpy(pvos->ll_forbidden_combs, old_p, sizeof(int*)*old_len);
+//								vofree(old_p);
+//							}
+							int * pvec = pvos->ll_forbidden_combs[old_len];
+//							*pvec = (int*)vomalloc(sizeof(int)*pvos->num_vars);
 							for (int ivar=0; ivar<pvos->num_vars; ivar++) {
 								if (ivar==ivar1) {
-									(*pvec)[ivar] = ival1;
+									pvec[ivar] = ival1;
 								}
 								else if (ivar == ivar2) {
-									(*pvec)[ivar] = ival2;
+									pvec[ivar] = ival2;
 								}
 								else {
-									(*pvec)[ivar] = -1;
+									pvec[ivar] = -1;
 								}
 							}
 						}
@@ -2601,15 +2907,41 @@ int do_vo(void * hvos) {
 			}
 		}
 		{
-			printf("%d forbidden combinations found.\n", pvos->num_forbidden);
-			for (int ifbd=0; ifbd<pvos->num_forbidden; ifbd++) {
-				printf("%d: ", ifbd);
-				for (int ivar=0; ivar<pvos->num_vars; ivar++) {
-					printf("%d:%d, ", ivar, pvos->ll_forbidden_combs[ifbd][ivar]);
-				}
-				printf("\n");
+			for (int imatch=pvos->match_phrases_len-1; imatch>=0;imatch--) { // note reversed
+				bool bmatch = true;
+				for (int iforbid=0; iforbid<pvos->num_forbidden;iforbid++) {
+					for (int ivar=0; ivar<pvos->num_vars;ivar++) {
+						if (pvos->ll_forbidden_combs[iforbid][ivar] == -1) continue;
+						if (pvos->ll_match_phrase_var_sels[imatch][ivar] != pvos->ll_forbidden_combs[iforbid][ivar]) {
+							bmatch = false;
+							break;
+						}
+					}
+					if (bmatch) {
+						printf("imatch %d forbidden by comb %d\n", imatch, iforbid);
+						int rem = pvos->match_phrases_len - 1 - imatch; 
+						if (rem > 0) {
+							memcpy(	&(pvos->l_match_phrases[imatch]), &(pvos->l_match_phrases[imatch+1]), 
+									rem * sizeof(tSMatchPhrase));
+							memcpy(	&(pvos->ll_match_phrase_var_sels[imatch]), 
+									&(pvos->ll_match_phrase_var_sels[imatch+1]), rem * sizeof(int*));
+						}
+						pvos->match_phrases_len--;
+					}
+
+				}				
 			}
 		}
+//		{
+//			printf("%d forbidden combinations found.\n", pvos->num_forbidden);
+//			for (int ifbd=0; ifbd<pvos->num_forbidden; ifbd++) {
+//				printf("%d: ", ifbd);
+//				for (int ivar=0; ivar<pvos->num_vars; ivar++) {
+//					printf("%d:%d, ", ivar, pvos->ll_forbidden_combs[ifbd][ivar]);
+//				}
+//				printf("\n");
+//			}
+//		}
 	}
 	{
 		// Now we add the fictional match phrases. We build these by taking the var vals for each var
@@ -2624,30 +2956,36 @@ int do_vo(void * hvos) {
 		for (int iphrase=0;iphrase<pvos->i_null_phrases_len;iphrase++) {
 			int i_null_phrase = pvos->l_i_null_phrases[iphrase];
 			tSMatchPhrase * null_match_phrase = &(pvos->l_match_phrases[i_null_phrase]);
-			printf("Null match phrase for phrase %d: \n", iphrase);
-			match_phrase_print(null_match_phrase);
+//			printf("Null match phrase for phrase %d: \n", iphrase);
+//			match_phrase_print(null_match_phrase);
 			int istage = null_match_phrase->istage;
-			if (pvos->l_iopts != NULL) {
-				vofree(pvos->l_iopts);
-				vofree(pvos->l_var_vals_lens);
-				vofree(pvos->l_replace_iels);
-				pvos->l_iopts = pvos->l_var_vals_lens = pvos->l_replace_iels = NULL;
-				pvos->replace_iopts_len = 0;
-			}
-			if (pvos->l_product_perms != NULL) {
-				perm_free(pvos->l_product_perms);
-				pvos->l_product_perms = NULL;
-			}
+//			if (pvos->l_iopts != NULL) {
+//				vofree(pvos->l_iopts);
+//				vofree(pvos->l_var_vals_lens);
+//				vofree(pvos->l_replace_iels);
+//				pvos->l_iopts = pvos->l_var_vals_lens = pvos->l_replace_iels = NULL;
+//				pvos->replace_iopts_len = 0;
+//			}
+			pvos->replace_iopts_len = 0;
+//			if (pvos->l_product_perms != NULL) {
+//				perm_free(pvos->l_product_perms);
+//				pvos->l_product_perms = NULL;
+//			}
 			for (int iel=0;iel<pvos->pgg->l_phrases_len[istage];iel++) {
-				int iopt = pair_dict_get(pvos->d_var_opts, istage, iel);
+				int iopt = pair_dict_get(&(pvos->d_var_opts), istage, iel);
 				if (iopt == -1 || pvos->pnv[iopt].b_bound) {
 					continue;
 				}
-				printf("Adding elements %d, %d, %d to replace lists.\n", iopt, iel, pvos->l_var_vals[iopt].len);
-				pvos->l_iopts = int_arr_add_val(pvos->l_iopts, pvos->replace_iopts_len, iopt);
-				pvos->l_replace_iels = int_arr_add_val(pvos->l_replace_iels, pvos->replace_iopts_len, iel);
-				pvos->l_var_vals_lens = int_arr_add_val(pvos->l_var_vals_lens, pvos->replace_iopts_len, 
-														pvos->l_var_vals[iopt].len);
+//				printf("Adding elements %d, %d, %d to replace lists.\n", iopt, iel, pvos->l_var_vals[iopt].len);
+//				pvos->l_iopts = int_arr_add_val(pvos->l_iopts, pvos->replace_iopts_len, iopt);
+//				pvos->l_replace_iels = int_arr_add_val(pvos->l_replace_iels, pvos->replace_iopts_len, iel);
+//				pvos->l_var_vals_lens = int_arr_add_val(pvos->l_var_vals_lens, pvos->replace_iopts_len, 
+//														pvos->l_var_vals[iopt].len);
+				pvos->l_iopts = int_arr_add_val2(pvos->l_iopts, &(pvos->iopts_num_alloc), pvos->replace_iopts_len, iopt);
+				pvos->l_replace_iels = int_arr_add_val2(pvos->l_replace_iels, &(pvos->replace_iels_num_alloc), 
+														pvos->replace_iopts_len, iel);
+				pvos->l_var_vals_lens = int_arr_add_val2(	pvos->l_var_vals_lens, &(pvos->var_vals_lens_num_alloc), 
+															pvos->replace_iopts_len, pvos->l_var_vals[iopt].len);
 				pvos->replace_iopts_len++;
 //				{
 //					int old_len = pvos->iopts_len;
@@ -2665,9 +3003,10 @@ int do_vo(void * hvos) {
 			// here is the function calls that makes the perms
 			int num_products = 0;
 			cartesian_product(pvos->replace_iopts_len, pvos->l_var_vals_lens, &(pvos->l_product_perms), &num_products);
-			if (pvos->l_comb_vars == NULL) {
-				pvos->l_comb_vars = (int*)vomalloc(sizeof(int)*pvos->num_vars);
-			}
+			pvos->l_comb_vars = (int*)voalloc(pvos->l_comb_vars, &(pvos->comb_vars_num_alloc), sizeof(int), pvos->num_vars);
+//			if (pvos->l_comb_vars == NULL) {
+//				pvos->l_comb_vars = (int*)vomalloc(sizeof(int)*pvos->num_vars);
+//			}
 			// loop through the perms
 			for (int iperm=0; iperm<num_products;iperm++) {
 				bool b_match_exists = false;
@@ -2697,7 +3036,7 @@ int do_vo(void * hvos) {
 						}
 					}
 					if (bmatch) {
-						printf("perm %d forbidden by comb %d\n", iperm, iforbidden);
+//						printf("perm %d forbidden by comb %d\n", iperm, iforbidden);
 						bforbid = true;
 						break;
 					}
@@ -2711,51 +3050,52 @@ int do_vo(void * hvos) {
 					bool bmatched = true;
 					for (int ii=0;ii<pvos->replace_iopts_len;ii++) {
 						int iel = pvos->l_replace_iels[ii];
-						int ivar = pair_dict_get(pvos->d_var_opts, istage, iel);
+						int ivar = pair_dict_get(&(pvos->d_var_opts), istage, iel);
 						if (pvos->ll_match_phrase_var_sels[imatch][ivar] != perm[ii]) {
 							bmatched = false;
-							printf("No match between perm %d and match phrase %d\n", iperm, imatch);
+//							printf("No match between perm %d and match phrase %d\n", iperm, imatch);
 							break;
 						}
 					}
 					if (bmatched) {
-						printf("Match between perm %d and match phrase %d\n", iperm, imatch);
+//						printf("Match between perm %d and match phrase %d\n", iperm, imatch);
 						b_match_exists = true;
 						break;
 					}
 				}
 				if (b_match_exists) continue;
 				// If the comb does not already exist, create a new one
-				printf("Creating new match phrase for perm %d\n", iperm);
+//				printf("Creating new match phrase for perm %d\n", iperm);
 //				null_match_phrase = &(pvos->l_match_phrases[i_null_phrase]);
 				tSPhrase * null_phrase = &(pvos->l_match_phrases[i_null_phrase].phrase);
-				if (pvos->perm_phrase.pl != NULL) {
-					vofree(pvos->perm_phrase.pl);
-					pvos->perm_phrase.len=0;
-					pvos->perm_phrase.pl = NULL;
-				}
+//				if (pvos->perm_phrase.pl != NULL) {
+//					vofree(pvos->perm_phrase.pl);
+//					pvos->perm_phrase.len=0;
+//					pvos->perm_phrase.pl = NULL;
+//				}
 				pvos->perm_phrase.len = null_phrase->len;
-				pvos->perm_phrase.pl = (tSPhraseEl*)vomalloc(sizeof(tSPhraseEl)*null_phrase->len);
-				printf("%d perm els. null phrase len %d.\n", pvos->replace_iopts_len, null_phrase->len);
+				pvos->perm_phrase.pl = (tSPhraseEl*)voalloc(pvos->perm_phrase.pl, &(pvos->perm_phrase.num_alloc),
+										sizeof(tSPhraseEl), pvos->perm_phrase.len);
+//				pvos->perm_phrase.pl = (tSPhraseEl*)vomalloc(sizeof(tSPhraseEl)*null_phrase->len);
 				memcpy(pvos->perm_phrase.pl, null_phrase->pl, sizeof(tSPhraseEl)*null_phrase->len);
-				printf("%d perm els. null phrase len %d.\n", pvos->replace_iopts_len, null_phrase->len);
+//				printf("%d perm els. null phrase len %d.\n", pvos->replace_iopts_len, null_phrase->len);
 				for (int ii=0;ii<pvos->replace_iopts_len;ii++) {
 					int iel = pvos->l_replace_iels[ii];
-					int ivar = pair_dict_get(pvos->d_var_opts, istage, iel);
+					int ivar = pair_dict_get(&(pvos->d_var_opts), istage, iel);
 					char * val = pvos->l_var_vals[ivar].pl[perm[ii]];
-					printf("iel: %d, ivar %d, val %s.\n", iel, ivar, val);
+//					printf("iel: %d, ivar %d, val %s.\n", iel, ivar, val);
 					if (val == NULL) continue;
 					pvos->perm_phrase.pl[iel].cd = 1.0;
 					pvos->perm_phrase.pl[iel].val = val;
 					pvos->perm_phrase.pl[iel].el_type = etRecDefObj;
 				}
 				match_phrase_append(pvos, istage, false, &(pvos->perm_phrase));
-				match_phrase_print(&(pvos->l_match_phrases[pvos->match_phrases_len-1]));
+//				match_phrase_print(&(pvos->l_match_phrases[pvos->match_phrases_len-1]));
 				match_phrase_var_sel_append(pvos, istage);
 				int * new_var_sels = pvos->ll_match_phrase_var_sels[pvos->match_phrases_len-1];
 				for (int ii=0;ii<pvos->replace_iopts_len;ii++) {
 					int iel = pvos->l_replace_iels[ii];
-					int ivar = pair_dict_get(pvos->d_var_opts, istage, iel);
+					int ivar = pair_dict_get(&(pvos->d_var_opts), istage, iel);
 					new_var_sels[ivar] = perm[ii];
 				}
 			}
@@ -2764,27 +3104,31 @@ int do_vo(void * hvos) {
 	}
 	{
 		// Last stage. We build the combos.
-		if (pvos->l_var_vals_lens != NULL) {
-			vofree(pvos->l_var_vals_lens);
-			pvos->l_var_vals_lens = NULL;
-		}
-		if (pvos->l_product_perms != NULL) {
-			perm_free(pvos->l_product_perms);
-			pvos->l_product_perms = NULL;
-		}
+//		if (pvos->l_var_vals_lens != NULL) {
+//			vofree(pvos->l_var_vals_lens);
+//			pvos->l_var_vals_lens = NULL;
+//		}
+//		if (pvos->l_product_perms != NULL) {
+//			perm_free(pvos->l_product_perms);
+//			pvos->l_product_perms = NULL;
+//		}
 		// Again we will use the cartesian_product function. But this time we will use as input all the
 		// lengths of all the vars. So that we will create all combinations of all var vals
-		pvos->l_var_vals_lens = (int*)vomalloc(sizeof(int)*pvos->num_vars);
+//		pvos->l_var_vals_lens = (int*)vomalloc(sizeof(int)*pvos->num_vars);
 		for (int ivar=0;ivar<pvos->num_vars;ivar++) {
-			pvos->l_var_vals_lens[ivar] = pvos->l_var_vals[ivar].len;
+			pvos->l_var_vals_lens = int_arr_add_val2(	pvos->l_var_vals_lens, &(pvos->var_vals_lens_num_alloc), 
+														ivar, pvos->l_var_vals[ivar].len);
+//			pvos->l_var_vals_lens[ivar] = pvos->l_var_vals[ivar].len;
 		}
 		int num_products = 0;
 		cartesian_product(pvos->num_vars, pvos->l_var_vals_lens, &(pvos->l_product_perms), &num_products);
-		if (pvos->l_comb_cand != NULL) {
-			vofree(pvos->l_comb_cand);
-			pvos->l_comb_cand = NULL;
-		}
-		pvos->l_comb_cand = (int*)vomalloc(sizeof(int)*pvos->pgg->l_phrases_len_len);
+//		if (pvos->l_comb_cand != NULL) {
+//			vofree(pvos->l_comb_cand);
+//			pvos->l_comb_cand = NULL;
+//		}
+//		pvos->l_comb_cand = (int*)vomalloc(sizeof(int)*pvos->pgg->l_phrases_len_len);
+		pvos->l_comb_cand = (int*)voalloc(	pvos->l_comb_cand, &(pvos->comb_cand_num_alloc), sizeof(int), 
+											pvos->pgg->l_phrases_len_len);
 		for (int iperm=0; iperm<num_products;iperm++) {
 			int * perm = pvos->l_product_perms[iperm];
 			// First check that this perm is not forbidden
@@ -2800,7 +3144,7 @@ int do_vo(void * hvos) {
 					}
 				}
 				if (bmatch) {
-					printf("combo perm %d forbidden by comb %d\n", iperm, iforbidden);
+//					printf("combo perm %d forbidden by comb %d\n", iperm, iforbidden);
 					bforbid = true;
 					break;
 				}
@@ -2836,36 +3180,47 @@ int do_vo(void * hvos) {
 			}
 			if (b_all_stages_found) {
 				int old_len = pvos->num_combos;
-				int ** oldp = pvos->ll_match_iphrase_combos;
+//				int ** oldp = pvos->ll_match_iphrase_combos;
 				pvos->num_combos++;
-				pvos->ll_match_iphrase_combos = (int **)vomalloc(sizeof(int*)*pvos->num_combos);
-				if (old_len > 0) {
-					memcpy(pvos->ll_match_iphrase_combos, oldp, sizeof(int*)*old_len);
-					vofree(oldp);
+				pvos->ll_match_iphrase_combos = (int **)voalloc(pvos->ll_match_iphrase_combos, 
+																&(pvos->match_iphrase_combos_num_alloc),
+																sizeof(int*), pvos->num_combos);
+				pvos->ll_match_iphrase_combos[0] = (int *)voalloc(	pvos->ll_match_iphrase_combos[0], 
+																	&(pvos->match_iphrase_combos_els_num_alloc),
+																	sizeof(int), 
+																	pvos->num_combos* pvos->pgg->l_phrases_len_len);
+				int * pb = pvos->ll_match_iphrase_combos[0];
+				for (int icombo=0;icombo<pvos->num_combos;icombo++, pb += pvos->pgg->l_phrases_len_len) {
+					pvos->ll_match_iphrase_combos[icombo] = pb;
 				}
-				pvos->ll_match_iphrase_combos[old_len] = (int*)vomalloc(sizeof(int)*pvos->pgg->l_phrases_len_len);
+//				pvos->ll_match_iphrase_combos = (int **)vomalloc(sizeof(int*)*pvos->num_combos);
+//				if (old_len > 0) {
+//					memcpy(pvos->ll_match_iphrase_combos, oldp, sizeof(int*)*old_len);
+//					vofree(oldp);
+//				}
+//				pvos->ll_match_iphrase_combos[old_len] = (int*)vomalloc(sizeof(int)*pvos->pgg->l_phrases_len_len);
 				memcpy(pvos->ll_match_iphrase_combos[old_len], pvos->l_comb_cand, sizeof(int)*pvos->pgg->l_phrases_len_len);
 			}
 		}
 		
 	}
-	{
-		printf("vo summary:\n");
-		printf("%d match phrases:\n", pvos->match_phrases_len );
-		for (int i=0; i<pvos->match_phrases_len;i++) {
-			printf("%d: ", i);
-			match_phrase_print(&(pvos->l_match_phrases[i]));
-		}
-		printf("%d match phrase combos.\n", pvos->num_combos);
-		for (int i=0; i<pvos->num_combos; i++) {
-			printf("%d: ", i);
-			for (int j=0; j<pvos->pgg->l_phrases_len_len;j++) {
-				printf("%d, ", pvos->ll_match_iphrase_combos[i][j]);
-			}
-			printf("\n");
-		}
-
-	}
+//	{
+//		printf("vo summary:\n");
+//		printf("%d match phrases:\n", pvos->match_phrases_len );
+//		for (int i=0; i<pvos->match_phrases_len;i++) {
+//			printf("%d: ", i);
+//			match_phrase_print(&(pvos->l_match_phrases[i]));
+//		}
+//		printf("%d match phrase combos.\n", pvos->num_combos);
+//		for (int i=0; i<pvos->num_combos; i++) {
+//			printf("%d: ", i);
+//			for (int j=0; j<pvos->pgg->l_phrases_len_len;j++) {
+//				printf("%d, ", pvos->ll_match_iphrase_combos[i][j]);
+//			}
+//			printf("\n");
+//		}
+//
+//	}
 	return 1;
 	
 }

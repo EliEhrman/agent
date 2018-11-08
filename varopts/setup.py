@@ -9,7 +9,7 @@ from distutils.core import setup, Extension
 
 varopts_module = Extension('_varopts',
 							sources=['varopts_wrap.c', 'varopts.c'],
-						   extra_compile_args=['-O0', '-rdynamic']
+						   # extra_compile_args=['-O0', '-rdynamic']
                            )
 
 setup (name = 'varopts',

@@ -244,8 +244,12 @@ def set_l_phrases_len(hvos, l_phrases_len, l_phrases_ilen, len):
     return _varopts.set_l_phrases_len(hvos, l_phrases_len, l_phrases_ilen, len)
 set_l_phrases_len = _varopts.set_l_phrases_len
 
-def init_vo(hgg, hmpdb, dbname, call_num):
-    return _varopts.init_vo(hgg, hmpdb, dbname, call_num)
+def create_vo():
+    return _varopts.create_vo()
+create_vo = _varopts.create_vo
+
+def init_vo(hvos, hgg, hmpdb, dbname, call_num):
+    return _varopts.init_vo(hvos, hgg, hmpdb, dbname, call_num)
 init_vo = _varopts.init_vo
 
 def cnt_vars(hvos, loc, b_bound, b_must_bind, val, cd, iext_var):

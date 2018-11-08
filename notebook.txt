@@ -2389,3 +2389,77 @@ varopts works with too many mallocs but no memory leak.
 CIW:
 
 data returns from c to python. Fixed plenty bugs.
+
+immediate to do
+
+1. Remove variables no longer needed for final result
+2. Remove printfs
+3. upgrade mallocs
+
+{
+'play': nt_prof(name='play', total_time=0.0, num_calls=0, b_in_time=True, start_time=-1.0),
+'play story loop': nt_prof(name='play story loop', total_time=106.48369812965393, num_calls=274, b_in_time=True, start_time=1541520708.263511),
+'make_decision_by_goal': nt_prof(name='make_decision_by_goal', total_time=103.26255655288696, num_calls=94, b_in_time=True, start_time=-1.0),
+'set_player_goal': nt_prof(name='set_player_goal', total_time=102.77005362510681, num_calls=7060, b_in_time=True, start_time=-1.0),
+'find_var_opts': nt_prof(name='find_var_opts', total_time=95.25134134292603, num_calls=83757, b_in_time=False, start_time=-1.0),
+'find_var_opts vo': nt_prof(name='find_var_opts vo', total_time=10.869680643081665, num_calls=13697, b_in_time=False, start_time=1541520709.543681),
+'find_var_opts apre': nt_prof(name='find_var_opts apre', total_time=2.732813596725464, num_calls=83757, b_in_time=False, start_time=1541520709.588841),
+'find_var_opts a0': nt_prof(name='find_var_opts a0', total_time=15.390833616256714, num_calls=13697, b_in_time=False, start_time=1541520709.548933),
+'find_var_opts a01': nt_prof(name='find_var_opts a01', total_time=1.2520232200622559, num_calls=13697, b_in_time=False, start_time=1541520709.548946),
+'find_var_opts a02': nt_prof(name='find_var_opts a02', total_time=3.8348708152770996, num_calls=13697, b_in_time=False, start_time=1541520709.549074),
+'find_var_opts a03': nt_prof(name='find_var_opts a03', total_time=3.6777732372283936, num_calls=13697, b_in_time=False, start_time=1541520709.549546),
+'find_var_opts a04': nt_prof(name='find_var_opts a04', total_time=5.29405403137207, num_calls=13697, b_in_time=False, start_time=1541520709.550351),
+'find_var_opts a': nt_prof(name='find_var_opts a', total_time=1.4941892623901367, num_calls=4987, b_in_time=False, start_time=1541520709.551662),
+'find_var_opts b': nt_prof(name='find_var_opts b', total_time=38.79614996910095, num_calls=4987, b_in_time=False, start_time=1541520709.552353),
+'find_var_opts c': nt_prof(name='find_var_opts c', total_time=19.107182264328003, num_calls=4987, b_in_time=False, start_time=1541520709.573205),
+'select_action': nt_prof(name='select_action', total_time=56.65289378166199, num_calls=254, b_in_time=True, start_time=-1.0),
+'_run_rule': nt_prof(name='_run_rule', total_time=1.6574537754058838, num_calls=5242, b_in_time=True, start_time=-1.0)}
+
+replaced all mallocs in do_vo by a function holding on to the memory. Took a day. You know what? Made no difference.
+Learn from that. Here is a printout:
+
+{
+'play': nt_prof(name='play', total_time=0.0, num_calls=0, b_in_time=True, start_time=-1.0),
+'make_decision_by_goal': nt_prof(name='make_decision_by_goal', total_time=251.15961527824402, num_calls=221, b_in_time=True, start_time=-1.0),
+'set_player_goal': nt_prof(name='set_player_goal', total_time=246.73949098587036, num_calls=17404, b_in_time=True, start_time=-1.0),
+'play story loop': nt_prof(name='play story loop', total_time=258.3025794029236, num_calls=642, b_in_time=True, start_time=1541660199.663618),
+'find_var_opts': nt_prof(name='find_var_opts', total_time=228.6967809200287, num_calls=213552, b_in_time=True, start_time=-1.0),
+'find_var_opts vo': nt_prof(name='find_var_opts vo', total_time=22.03755497932434, num_calls=23793, b_in_time=False, start_time=1541660200.012269),
+'find_var_opts apre': nt_prof(name='find_var_opts apre', total_time=6.631741523742676, num_calls=213553, b_in_time=False, start_time=1541660200.012112),
+'find_var_opts a0': nt_prof(name='find_var_opts a0', total_time=27.283772706985474, num_calls=23793, b_in_time=False, start_time=1541660200.014926),
+'find_var_opts a01': nt_prof(name='find_var_opts a01', total_time=2.087775945663452, num_calls=23793, b_in_time=False, start_time=1541660200.014953),
+'find_var_opts a02': nt_prof(name='find_var_opts a02', total_time=6.465626955032349, num_calls=23793, b_in_time=False, start_time=1541660200.015098),
+'find_var_opts a03': nt_prof(name='find_var_opts a03', total_time=6.190640926361084, num_calls=23793, b_in_time=False, start_time=1541660200.0155),
+'find_var_opts a04': nt_prof(name='find_var_opts a04', total_time=10.356009483337402, num_calls=23793, b_in_time=False, start_time=1541660200.015919),
+'find_var_opts a': nt_prof(name='find_var_opts a', total_time=3.6151862144470215, num_calls=12295, b_in_time=False, start_time=1541660200.016988),
+'find_var_opts b': nt_prof(name='find_var_opts b', total_time=102.23072004318237, num_calls=12295, b_in_time=False, start_time=1541660200.017734),
+'find_var_opts c': nt_prof(name='find_var_opts c', total_time=51.25083947181702, num_calls=12295, b_in_time=False, start_time=1541660200.032391),
+'select_action': nt_prof(name='select_action', total_time=138.57784128189087, num_calls=559, b_in_time=False, start_time=-1.0),
+'_run_rule': nt_prof(name='_run_rule', total_time=4.673718214035034, num_calls=12708, b_in_time=False, start_time=-1.0)}
+
+Removed the python code and we have
+
+{
+'play': nt_prof(name='play', total_time=0.0, num_calls=0, b_in_time=True, start_time=-1.0),
+'make_decision_by_goal': nt_prof(name='make_decision_by_goal', total_time=85.8858470916748, num_calls=276, b_in_time=False, start_time=-1.0),
+'set_player_goal': nt_prof(name='set_player_goal', total_time=80.15523481369019, num_calls=21531, b_in_time=False, start_time=-1.0),
+'play story loop': nt_prof(name='play story loop', total_time=93.04100751876831, num_calls=806, b_in_time=True, start_time=1541662154.706461),
+'find_var_opts': nt_prof(name='find_var_opts', total_time=56.09993600845337, num_calls=270196, b_in_time=False, start_time=-1.0),
+'find_var_opts vo': nt_prof(name='find_var_opts vo', total_time=29.01036763191223, num_calls=28303, b_in_time=False, start_time=1541662154.6912),
+'find_var_opts apre': nt_prof(name='find_var_opts apre', total_time=8.582231521606445, num_calls=270196, b_in_time=False, start_time=1541662154.703414),
+'select_action': nt_prof(name='select_action', total_time=53.338422536849976, num_calls=668, b_in_time=False, start_time=-1.0),
+'_run_rule': nt_prof(name='_run_rule', total_time=6.427241802215576, num_calls=17253, b_in_time=True, start_time=-1.0)}
+
+ms per call to find_var_opts is now 0.207 instead of 1.07
+The c code is now half of the call and the rest seems cache calls. However, they are an order of mag more. So the cache pays its keep
+The loop is 93s whereas the fn itself is 56s, so the rest is some other calling overhead
+
+Note when we go back down to 5 players, the game seems stuck on action 27. Perhaps the game is over or perhaps there is a bug.
+
+Overall the cache and optimizations brought a speed-up of 50-100.
+The c code took 3 weeks for a single, large function.
+I also learnt what it takes to prepare a host program properly for the APU
+
+CIW:
+
+Optimization program succeeded. Done for now.

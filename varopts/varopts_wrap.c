@@ -4412,26 +4412,42 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_create_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  void *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)":create_vo")) SWIG_fail;
+  result = (void *)create_vo();
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_init_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   void *arg1 = (void *) 0 ;
   void *arg2 = (void *) 0 ;
-  char *arg3 = (char *) 0 ;
-  int arg4 ;
+  void *arg3 = (void *) 0 ;
+  char *arg4 = (char *) 0 ;
+  int arg5 ;
   int res1 ;
   int res2 ;
   int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  int alloc4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
   void *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:init_vo",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:init_vo",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "init_vo" "', argument " "1"" of type '" "void *""'"); 
@@ -4440,22 +4456,26 @@ SWIGINTERN PyObject *_wrap_init_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "init_vo" "', argument " "2"" of type '" "void *""'"); 
   }
-  res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
+  res3 = SWIG_ConvertPtr(obj2,SWIG_as_voidptrptr(&arg3), 0, 0);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "init_vo" "', argument " "3"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "init_vo" "', argument " "3"" of type '" "void *""'"); 
   }
-  arg3 = (char *)(buf3);
-  ecode4 = SWIG_AsVal_int(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "init_vo" "', argument " "4"" of type '" "int""'");
+  res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, NULL, &alloc4);
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "init_vo" "', argument " "4"" of type '" "char *""'");
+  }
+  arg4 = (char *)(buf4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "init_vo" "', argument " "5"" of type '" "int""'");
   } 
-  arg4 = (int)(val4);
-  result = (void *)init_vo(arg1,arg2,arg3,arg4);
+  arg5 = (int)(val5);
+  result = (void *)init_vo(arg1,arg2,arg3,arg4,arg5);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
   return resultobj;
 fail:
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
   return NULL;
 }
 
@@ -5835,6 +5855,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"str_list_delete", _wrap_str_list_delete, METH_VARARGS, NULL},
 	 { (char *)"set_num_vars", _wrap_set_num_vars, METH_VARARGS, NULL},
 	 { (char *)"set_l_phrases_len", _wrap_set_l_phrases_len, METH_VARARGS, NULL},
+	 { (char *)"create_vo", _wrap_create_vo, METH_VARARGS, NULL},
 	 { (char *)"init_vo", _wrap_init_vo, METH_VARARGS, NULL},
 	 { (char *)"cnt_vars", _wrap_cnt_vars, METH_VARARGS, NULL},
 	 { (char *)"do_vo", _wrap_do_vo, METH_VARARGS, NULL},

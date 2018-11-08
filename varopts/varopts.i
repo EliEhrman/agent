@@ -26,7 +26,8 @@ void str_list_delete(void * hl);
 
 void set_num_vars(void * hvos, int n);
 void set_l_phrases_len(void * hvos, int * l_phrases_len, int * l_phrases_ilen, int len) ;
-void * init_vo(void * hgg, void * hmpdb, char * dbname, int call_num);
+void * create_vo(void);
+void * init_vo(void * hvos, void * hgg, void * hmpdb, char * dbname, int call_num);
 void cnt_vars(void * hvos, int loc, int b_bound, int b_must_bind, char * val, double cd, int iext_var);
 int do_vo(void * hvos);
 void free_vo(void * hvos);

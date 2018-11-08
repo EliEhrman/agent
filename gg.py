@@ -64,7 +64,7 @@ class cl_bitvec_gg(object):
 	find_matches_time_count = 0.
 	bitvec_size = -1
 	# test_start_time = timeit.default_timer()
-
+	__hvos = varopts.create_vo()
 
 	def __init__(self, mgr, ilen, phrase_len, result, num_stages=1, l_wlist_vars = [],
 				 phrase2_ilen = -1, phrase2_len = -1, parent_irule = -1,
@@ -118,6 +118,7 @@ class cl_bitvec_gg(object):
 		for stg in range(1, num_stages):
 			self.__l_els_rep += [[] for _ in range(self.__l_phrases_len[stg])]
 			self.__l_hd_max += [self.bitvec_size for _ in range(self.__l_phrases_len[stg])]
+
 
 	def clr_db_arg_cache(self):
 		self.__d_db_arg_cache = dict()
@@ -534,7 +535,7 @@ class cl_bitvec_gg(object):
 		nd_story_bins = self.__mgr.get_mpdb_bins()
 		l_story_rphrases = mpdb_mgr.get_rphrases()
 
-		print('find_var_opts call #', cl_bitvec_gg.find_var_opts_num_calls)
+		# print('find_var_opts call #', cl_bitvec_gg.find_var_opts_num_calls)
 		varopts.My_variable = 12.0
 		# varopts.app_mpdb_bin_print(self.__mgr.get_hcvo())
 		# varopts.ll_phrases_print(self.__mgr.get_hcvo())
@@ -550,7 +551,7 @@ class cl_bitvec_gg(object):
 
 		# Start with table entry for the external vars. Not all of these are bound
 
-		hvos = varopts.init_vo(self.__hcgg, mpdb_mgr.get_chmpdb(), db_name,  cl_bitvec_gg.find_var_opts_num_calls)
+		hvos = varopts.init_vo(cl_bitvec_gg.__hvos, self.__hcgg, mpdb_mgr.get_chmpdb(), db_name,  cl_bitvec_gg.find_var_opts_num_calls)
 		varopts.set_num_vars(hvos, len(l_var_opts))
 		# l_cvars = [	varopts.cnt_vars(hvos, vo[0], vo[1], vo[1],
 		# 					vo[2], -1.0 if vo[1] else vo[3], ivo)
@@ -558,7 +559,7 @@ class cl_bitvec_gg(object):
 		for ivo, vo in enumerate(l_var_opts):
 			varopts.cnt_vars(hvos, vo[0], vo[1], vo[1], vo[2], -1.0 if vo[1] else vo[3], ivo)
 		vo_ret = varopts.do_vo(hvos)
-		print("vo returned", vo_ret)
+		# print("vo returned", vo_ret)
 
 		if vo_ret == 1:
 			c_l_match_phrases = []
@@ -584,10 +585,17 @@ class cl_bitvec_gg(object):
 				for ival in range(c_combo_len):
 					one_combo.append(varopts.get_combo_val(hvos, icombo, ival))
 				c_l_match_iphrase_combos.append(one_combo)
-
+			self.__d_db_arg_cache[(tuple(l_var_opts), db_name)] = (c_l_match_phrases, c_l_match_iphrase_combos)
 
 		varopts.free_vo(hvos)
 		utils.profile_end('find_var_opts vo')
+		if vo_ret == 1:
+			return rules2.cl_var_match_opts(self, c_l_match_phrases, c_l_match_iphrase_combos,
+											var_obj_parent, calc_level + 1)
+		else:
+			self.__d_arg_cache[tuple(l_var_opts)] = False
+			return None
+
 		utils.profile_start('find_var_opts a0')
 		utils.profile_start('find_var_opts a01')
 		l_vars = [	nt_vars(loc=vo[0], b_bound=vo[1], b_must_bind=vo[1],

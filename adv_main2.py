@@ -86,7 +86,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 
 		localtime = time.asctime(time.localtime(time.time()))
 
-		mpdb_mgr.show_dbs()
+		# mpdb_mgr.show_dbs()
 
 		print("Local current time :", localtime)
 
@@ -276,8 +276,8 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					# 	ilen, iphrase = bitvec_mgr.add_phrase(added_wlist,
 					# 										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]))
 					# 	l_story_db_event_refs.append((ilen, iphrase))
-				print('All dbs for step', event_step_id[0], 'in story num', i_one_story, ':')
-				mpdb_mgr.show_dbs()
+				# print('All dbs for step', event_step_id[0], 'in story num', i_one_story, ':')
+				# mpdb_mgr.show_dbs()
 				story_loop_stage = e_story_loop_stage.decision_init
 				i_story_step += 1
 				if i_story_step >= num_story_steps:
