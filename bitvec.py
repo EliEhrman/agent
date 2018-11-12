@@ -43,7 +43,7 @@ class Enum(set):
 		raise AttributeError
 
 
-c_bitvec_size = 16
+c_bitvec_size = 50
 # c_min_bits = 3
 # c_max_bits = 20
 # c_num_replicate_missing = 5
@@ -385,8 +385,20 @@ class cl_bitvec_mgr(object):
 	def get_el_bin(self, word):
 		return self.__nd_el_bin_db[self.__d_words[word]]
 
+	def get_el_id(self, word):
+		return self.__d_words.get(word, -1)
+
+	def get_bin_by_id(self, id):
+		return self.__nd_el_bin_db[id]
+
 	def get_word_by_id(self, iel):
 		return self.__l_els[iel]
+
+	def get_s_word_bit_db(self):
+		return self.__s_word_bit_db
+
+	def add_unique_bits_ext(self, new_bits):
+		self.__s_word_bit_db.add(tuple(new_bits))
 
 	def match_el_to_like(self, el, like_rep, cosine_dist):
 		hd_max = c_bitvec_size * (1.0 - cosine_dist)

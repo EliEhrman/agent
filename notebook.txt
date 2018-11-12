@@ -2463,3 +2463,15 @@ I also learnt what it takes to prepare a host program properly for the APU
 CIW:
 
 Optimization program succeeded. Done for now.
+
+Monday 12th November
+
+I wrote a variation of bitvec mgr called nlbitvec that learns bitvecs for words and phrases in unstructured text.
+At present very stand-alone. Needs to be integrated with the system as a whole.
+
+I think at first there will be two active bitvec mgr instances. I'll keep the old one for runnning rules as a world-creator
+and use the new one for the new concept of learnign rules and deciding on activities.
+
+CIW:
+
+Initial version of nlbtivec working.

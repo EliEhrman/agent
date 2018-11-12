@@ -7,19 +7,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60b20013-eebf-4dd4-a709-0b01b1d10aab" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/embed.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/nlbitvec.py" afterDir="false" />
+      <change beforePath="/devlink2/dev/myfaiss/glove_kmeans.py" beforeDir="false" afterPath="/devlink2/dev/myfaiss/glove_kmeans.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/agent.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/agent.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/adv2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/adv_main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv_main2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gg.py" beforeDir="false" afterPath="$PROJECT_DIR$/gg.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitvec.py" beforeDir="false" afterPath="$PROJECT_DIR$/bitvec.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebook.txt" beforeDir="false" afterPath="$PROJECT_DIR$/notebook.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/_varopts.so" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/_varopts.so" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/build/temp.linux-x86_64-2.7/varopts.o" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/build/temp.linux-x86_64-2.7/varopts.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/build/temp.linux-x86_64-2.7/varopts_wrap.o" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/build/temp.linux-x86_64-2.7/varopts_wrap.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/varopts.c" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/varopts.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/varopts.h" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/varopts.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/varopts.i" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/varopts.i" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/varopts.py" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/varopts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/varopts/varopts_wrap.c" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/varopts_wrap.c" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -74,7 +72,8 @@
     <session id="-1833554563">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="49" />
+          <entry key="project.closed" value="55" />
+          <entry key="project.open.time.0" value="3" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.10" value="4" />
           <entry key="project.open.time.11" value="1" />
@@ -82,28 +81,28 @@
           <entry key="project.open.time.13" value="2" />
           <entry key="project.open.time.18" value="1" />
           <entry key="project.open.time.5" value="3" />
-          <entry key="project.open.time.6" value="7" />
-          <entry key="project.open.time.7" value="22" />
+          <entry key="project.open.time.6" value="9" />
+          <entry key="project.open.time.7" value="23" />
           <entry key="project.open.time.8" value="4" />
           <entry key="project.open.time.9" value="2" />
-          <entry key="project.opened" value="49" />
+          <entry key="project.opened" value="55" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="Python Console" value="1464" />
+          <entry key="Python Console" value="1931" />
           <entry key="c" value="12426" />
           <entry key="h" value="253" />
           <entry key="i" value="151" />
-          <entry key="py" value="16209" />
-          <entry key="txt" value="12789" />
+          <entry key="py" value="22247" />
+          <entry key="txt" value="13303" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="C++" value="12679" />
-          <entry key="PLAIN_TEXT" value="12928" />
-          <entry key="Python" value="17673" />
+          <entry key="PLAIN_TEXT" value="13442" />
+          <entry key="Python" value="24178" />
           <entry key="Scratch" value="12" />
         </counts>
       </usages-collector>
@@ -112,15 +111,15 @@
           <entry key="c" value="4" />
           <entry key="h" value="2" />
           <entry key="i" value="1" />
-          <entry key="py" value="48" />
-          <entry key="txt" value="11" />
+          <entry key="py" value="56" />
+          <entry key="txt" value="14" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="C++" value="6" />
-          <entry key="PLAIN_TEXT" value="10" />
-          <entry key="Python" value="48" />
+          <entry key="PLAIN_TEXT" value="13" />
+          <entry key="Python" value="56" />
           <entry key="Scratch" value="2" />
         </counts>
       </usages-collector>
@@ -131,8 +130,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/adv_main2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="185">
-              <caret line="67" selection-start-line="67" selection-end-line="67" />
+            <state relative-caret-position="401">
+              <caret line="338" column="24" selection-start-line="338" selection-start-column="24" selection-end-line="338" selection-end-column="24" />
               <folding>
                 <element signature="e#320#357#0" expanded="true" />
               </folding>
@@ -141,58 +140,14 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/gpsai.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="502">
-              <caret line="197" selection-start-line="197" selection-end-line="197" />
-              <folding>
-                <element signature="e#430#467#0" expanded="true" />
-                <marker date="1539517174938" expanded="true" signature="2093:2168" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/adv2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="14" column="26" selection-start-line="14" selection-start-column="26" selection-end-line="14" selection-end-column="26" />
+            <state relative-caret-position="-482">
+              <caret line="8" column="10" selection-start-line="8" selection-end-line="8" selection-end-column="10" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1541662049717" expanded="true" signature="7778:7855" ph="..." />
+                <marker date="1541681597725" expanded="true" signature="7832:7909" ph="..." />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/gg.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="833">
-              <caret line="598" column="22" selection-start-line="598" selection-start-column="14" selection-end-line="598" selection-end-column="27" />
-              <folding>
-                <element signature="e#0#37#0" expanded="true" />
-                <marker date="1541661126917" expanded="true" signature="3898:3934" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/varopts/setup.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="12" column="28" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/utils.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="78">
-              <caret line="28" selection-start-line="28" selection-end-line="28" />
             </state>
           </provider>
         </entry>
@@ -201,7 +156,31 @@
         <entry file="file://$PROJECT_DIR$/notebook.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="579">
-              <caret line="2464" column="24" selection-start-line="2464" selection-end-line="2464" selection-end-column="45" />
+              <caret line="2476" selection-start-line="2476" selection-end-line="2476" selection-end-column="36" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/embed.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="357">
+              <caret line="21" selection-start-line="21" selection-end-line="21" />
+              <folding>
+                <element signature="e#74#111#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file:///devlink2/dev/myfaiss/glove.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="554">
+              <caret line="146" column="112" selection-start-line="146" selection-start-column="11" selection-end-line="146" selection-end-column="112" />
+              <folding>
+                <element signature="e#0#37#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -209,14 +188,31 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/bitvec.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="13447">
-              <caret line="814" column="26" selection-start-line="814" selection-start-column="26" selection-end-line="814" selection-end-column="26" />
+            <state relative-caret-position="187">
+              <caret line="84" column="12" selection-start-line="84" selection-start-column="12" selection-end-line="84" selection-end-column="12" />
               <folding>
                 <element signature="e#193#230#0" expanded="true" />
-                <marker date="1541499946222" expanded="true" signature="4156:4332" ph="..." />
-                <marker date="1541499946222" expanded="true" signature="4224:4332" ph="..." />
-                <marker date="1541499946222" expanded="true" signature="5291:5536" ph="..." />
-                <marker date="1541499946222" expanded="true" signature="8043:8105" ph="..." />
+                <marker date="1541952305223" expanded="true" signature="4156:4332" ph="..." />
+                <marker date="1541952305223" expanded="true" signature="4224:4332" ph="..." />
+                <marker date="1541952305223" expanded="true" signature="5291:5536" ph="..." />
+                <marker date="1541952305223" expanded="true" signature="8043:8105" ph="..." />
+                <marker date="1541952305223" expanded="true" signature="13227:13332" ph="..." />
+                <marker date="1541952305223" expanded="true" signature="13296:13298" ph="..." />
+                <marker date="1541952305223" expanded="true" signature="13493:13540" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/nlbitvec.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1149">
+              <caret line="248" selection-start-line="248" selection-end-line="248" />
+              <folding>
+                <element signature="e#0#13#0" expanded="true" />
+                <marker date="1542028201331" expanded="true" signature="978:980" ph="..." />
+                <marker date="1542028201331" expanded="true" signature="1564:1567" ph="..." />
               </folding>
             </state>
           </provider>
@@ -251,36 +247,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>b_exact</find>
-      <find>b_change_missed</find>
-      <find>unfreed</find>
-      <find>imalloc</find>
-      <find>106</find>
-      <find>rec_def_type</find>
-      <find>tell_where</find>
-      <find>update_mpdb_bins</find>
-      <find>apply_bin_db_changes</find>
-      <find>mpdb_del_srphrase</find>
-      <find>nt_match_phrases</find>
-      <find>s.set_num_els_reps</find>
-      <find>create_vo_hgg</find>
-      <find>__l_els_rep</find>
-      <find>update_bin_for_word</find>
-      <find>__ll_idb_mrks</find>
-      <find>vo_</find>
-      <find>ll_phrases_add_val</find>
-      <find>l_phrases</find>
-      <find>Exiting</find>
-      <find>__hvos</find>
-      <find>str_list_create</find>
-      <find>0x16fdf90</find>
-      <find>0x150bd50</find>
-      <find>profile_start('find_var_opts</find>
-      <find>profile_start</find>
-      <find>db for</find>
-      <find>show_dbs</find>
-      <find>calc_level</find>
-      <find>time</find>
+      <find>LabelBinarizer</find>
+      <find>median</find>
+      <find>'wb'</find>
+      <find>load_word_db</find>
+      <find>save</find>
+      <find>save_word_db</find>
+      <find>fnt_dict</find>
+      <find>__s_word_bit_db</find>
+      <find>change_bit</find>
+      <find>s_word_bit_db</find>
+      <find>check_or_add_word</find>
+      <find>c_bitvec_size</find>
+      <find>c_phrase_bitvec_dict_fnt</find>
+      <find>l_bits_now</find>
+      <find>row in</find>
+      <find>csv</find>
+      <find>__d_words</find>
+      <find>if iph</find>
+      <find>conc</find>
+      <find>__iphrase_by_len</find>
+      <find>concatenate</find>
+      <find>by_len_iphrase</find>
+      <find>__nd_word_bin</find>
+      <find>nd_phrase</find>
+      <find>__ndbits_by_len</find>
+      <find>named</find>
+      <find>divider</find>
+      <find>collections</find>
+      <find>c_phrase_freq_fnt</find>
+      <find>c_set_list</find>
     </findStrings>
     <replaceStrings>
       <replace>self.bitvec_size</replace>
@@ -306,10 +302,8 @@
         <option value="$PROJECT_DIR$/../testswig/testswig.py" />
         <option value="$PROJECT_DIR$/../testswig/main.py" />
         <option value="$PROJECT_DIR$/varopts/varopts.c" />
-        <option value="$PROJECT_DIR$/adv_main2.py" />
         <option value="$PROJECT_DIR$/rules2.py" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.txt" />
-        <option value="$PROJECT_DIR$/bitvec.py" />
         <option value="$PROJECT_DIR$/mpdb.py" />
         <option value="$PROJECT_DIR$/varopts/varopts.h" />
         <option value="$PROJECT_DIR$/varopts/varopts.i" />
@@ -317,6 +311,11 @@
         <option value="$PROJECT_DIR$/varopts/setup.py" />
         <option value="$PROJECT_DIR$/gg.py" />
         <option value="$PROJECT_DIR$/adv2.py" />
+        <option value="$PROJECT_DIR$/adv_main2.py" />
+        <option value="$PROJECT_DIR$/bitvec.py" />
+        <option value="$PROJECT_DIR$/embed.py" />
+        <option value="$PROJECT_DIR$/nlbitvec.py" />
+        <option value="$PROJECT_DIR$/adv/countries.txt" />
         <option value="$PROJECT_DIR$/notebook.txt" />
       </list>
     </option>
@@ -344,12 +343,12 @@
       </profile-state>
     </entry>
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -360,17 +359,18 @@
             <path>
               <item name="agent" type="b2602c69:ProjectViewProjectNode" />
               <item name="agent" type="462c0819:PsiDirectoryNode" />
-              <item name="varopts" type="462c0819:PsiDirectoryNode" />
+              <item name="adv" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="TEXT" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="/devlink2/dev/myfaiss" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.appearance" />
   </component>
   <component name="RecentsManager">
@@ -436,6 +436,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="embed" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="agent" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/embed.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="testswig" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -461,10 +482,12 @@
       <item itemvalue="Python.bitvec" />
       <item itemvalue="Python.adv_main2" />
       <item itemvalue="Python.main" />
+      <item itemvalue="Python.embed" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.adv_main2" />
+        <item itemvalue="Python.embed" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.bitvec" />
       </list>
@@ -582,24 +605,30 @@
       <option name="project" value="LOCAL" />
       <updated>1541517400155</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Optimization program succeeded. Done for now.">
+      <created>1541662962945</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1541662962945</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="64" y="-11" width="1857" height="1092" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.1959607" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.1959607" />
       <window_info id="Structure" order="1" sideWeight="0.50053704" weight="0.20742358" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32938644" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.30570507" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32938644" />
+      <window_info anchor="bottom" id="Debug" order="3" visible="true" weight="0.30570507" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="7" weight="0.32185146" />
+      <window_info anchor="bottom" id="Version Control" order="7" weight="0.32116005" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.32938644" />
@@ -652,7 +681,8 @@
     <MESSAGE value="Initial testing passes for part b of varopts." />
     <MESSAGE value="varopts works with too many mallocs but no memory leak." />
     <MESSAGE value="data returns from c to python. Fixed plenty bugs." />
-    <option name="LAST_COMMIT_MESSAGE" value="data returns from c to python. Fixed plenty bugs." />
+    <MESSAGE value="Optimization program succeeded. Done for now." />
+    <option name="LAST_COMMIT_MESSAGE" value="Optimization program succeeded. Done for now." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -669,18 +699,13 @@
           <option name="timeStamp" value="107" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/bitvec.py</url>
-          <line>84</line>
-          <option name="timeStamp" value="108" />
-        </line-breakpoint>
-        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules2.py</url>
           <line>581</line>
           <option name="timeStamp" value="137" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>202</line>
+          <line>203</line>
           <option name="timeStamp" value="138" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -690,52 +715,52 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>197</line>
+          <line>198</line>
           <option name="timeStamp" value="188" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>188</line>
+          <line>189</line>
           <option name="timeStamp" value="230" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>189</line>
+          <line>190</line>
           <option name="timeStamp" value="231" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>181</line>
+          <line>182</line>
           <option name="timeStamp" value="233" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>193</line>
+          <line>194</line>
           <option name="timeStamp" value="234" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>165</line>
+          <line>166</line>
           <option name="timeStamp" value="235" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>201</line>
+          <line>202</line>
           <option name="timeStamp" value="236" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>153</line>
+          <line>154</line>
           <option name="timeStamp" value="269" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>161</line>
+          <line>162</line>
           <option name="timeStamp" value="278" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv2.py</url>
-          <line>220</line>
+          <line>221</line>
           <option name="timeStamp" value="279" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -745,7 +770,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/bitvec.py</url>
-          <line>467</line>
+          <line>479</line>
           <option name="timeStamp" value="315" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -776,7 +801,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv_main2.py</url>
-          <line>67</line>
+          <line>68</line>
           <option name="timeStamp" value="465" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -786,7 +811,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/bitvec.py</url>
-          <line>777</line>
+          <line>789</line>
           <option name="timeStamp" value="566" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -829,6 +854,82 @@
           <line>28</line>
           <option name="timeStamp" value="631" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/embed.py</url>
+          <line>67</line>
+          <option name="timeStamp" value="634" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>886</line>
+          <option name="timeStamp" value="635" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/embed.py</url>
+          <line>103</line>
+          <option name="timeStamp" value="640" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>1266</line>
+          <option name="timeStamp" value="653" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>811</line>
+          <option name="timeStamp" value="654" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>838</line>
+          <option name="timeStamp" value="655" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>849</line>
+          <option name="timeStamp" value="656" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/bitvec.py</url>
+          <line>1018</line>
+          <option name="timeStamp" value="657" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/embed.py</url>
+          <line>72</line>
+          <option name="timeStamp" value="658" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/embed.py</url>
+          <line>94</line>
+          <option name="timeStamp" value="661" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
+          <line>41</line>
+          <option name="timeStamp" value="673" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
+          <line>95</line>
+          <option name="timeStamp" value="688" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
+          <line>148</line>
+          <option name="timeStamp" value="695" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <condition expression="num_flip&gt;1" language="Python" />
+          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
+          <line>110</line>
+          <option name="timeStamp" value="696" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
+          <line>248</line>
+          <option name="timeStamp" value="713" />
+        </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
@@ -867,6 +968,11 @@
       </expression>
     </expressions>
     <expressions id="breakpointCondition">
+      <expression>
+        <expression-string>num_flip&gt;1</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>fn.func_name=='find_var_opts'</expression-string>
         <language-id>Python</language-id>
@@ -912,11 +1018,6 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>cl_bitvec_gg.find_var_opts_num_calls &gt; 6</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
     <expressions id="watch">
       <expression>
@@ -927,47 +1028,47 @@
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
-        <expression-string>mpdb_mgr</expression-string>
+        <expression-string>l_new_els[750:]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>l_match_phrases</expression-string>
+        <expression-string>l_new_els</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>c_l_match_phrases</expression-string>
+        <expression-string>l_new_els[500:]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>self</expression-string>
+        <expression-string>np.average(np.not_equal(new_bits, obits), axis=0)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>self.__nd_el_bin_db</expression-string>
+        <expression-string>np.average(np.not_equal(new_bits, obits), axis=1)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>ll_match_iphrase_combos</expression-string>
+        <expression-string>np.not_equal(new_bits, obits)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>self._cl_bitvec_mgr__d_words[word]</expression-string>
+        <expression-string>np.count_nonzero(rr, axis=0)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>cl_bitvec_gg.find_var_opts_num_calls</expression-string>
+        <expression-string>np.count_nonzero(rr, axis=1)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>ll_hd_max[src_istage][src_iel]</expression-string>
+        <expression-string>rr</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1015,13 +1116,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_bundle/pydev_monkey_qt.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="101" selection-start-line="101" selection-end-line="101" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/varopts/__init__.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -1035,13 +1129,6 @@
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="196">
-          <caret line="962" selection-start-line="962" selection-end-line="962" />
         </state>
       </provider>
     </entry>
@@ -1124,17 +1211,53 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bitvec.py">
+    <entry file="file://$PROJECT_DIR$/gpsai.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="13447">
-          <caret line="814" column="26" selection-start-line="814" selection-start-column="26" selection-end-line="814" selection-end-column="26" />
+        <state relative-caret-position="3349">
+          <caret line="197" selection-start-line="197" selection-end-line="197" />
           <folding>
-            <element signature="e#193#230#0" expanded="true" />
-            <marker date="1541499946222" expanded="true" signature="4156:4332" ph="..." />
-            <marker date="1541499946222" expanded="true" signature="4224:4332" ph="..." />
-            <marker date="1541499946222" expanded="true" signature="5291:5536" ph="..." />
-            <marker date="1541499946222" expanded="true" signature="8043:8105" ph="..." />
+            <element signature="e#430#467#0" expanded="true" />
+            <marker date="1539517174938" expanded="true" signature="2093:2168" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gg.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4250">
+          <caret line="250" selection-start-line="249" selection-end-line="250" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+            <marker date="1541661126917" expanded="true" signature="3898:3934" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/varopts/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="12" column="28" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="459">
+          <caret line="28" selection-start-line="28" selection-end-line="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="196">
+          <caret line="1796" selection-start-line="1796" selection-end-line="1796" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_bundle/pydev_monkey_qt.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1700">
+          <caret line="101" selection-start-line="101" selection-end-line="101" />
         </state>
       </provider>
     </entry>
@@ -1152,67 +1275,90 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/varopts/setup.py">
+    <entry file="file:///devlink2/dev/myfaiss/glove.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="28" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gpsai.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="502">
-          <caret line="197" selection-start-line="197" selection-end-line="197" />
-          <folding>
-            <element signature="e#430#467#0" expanded="true" />
-            <marker date="1539517174938" expanded="true" signature="2093:2168" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="14" column="26" selection-start-line="14" selection-start-column="26" selection-end-line="14" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-            <marker date="1541662049717" expanded="true" signature="7778:7855" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gg.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="833">
-          <caret line="598" column="22" selection-start-line="598" selection-start-column="14" selection-end-line="598" selection-end-column="27" />
+        <state relative-caret-position="554">
+          <caret line="146" column="112" selection-start-line="146" selection-start-column="11" selection-end-line="146" selection-end-column="112" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
-            <marker date="1541661126917" expanded="true" signature="3898:3934" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nlbitvec.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1149">
+          <caret line="248" selection-start-line="248" selection-end-line="248" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+            <marker date="1542028201331" expanded="true" signature="978:980" ph="..." />
+            <marker date="1542028201331" expanded="true" signature="1564:1567" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bitvec.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="84" column="12" selection-start-line="84" selection-start-column="12" selection-end-line="84" selection-end-column="12" />
+          <folding>
+            <element signature="e#193#230#0" expanded="true" />
+            <marker date="1541952305223" expanded="true" signature="4156:4332" ph="..." />
+            <marker date="1541952305223" expanded="true" signature="4224:4332" ph="..." />
+            <marker date="1541952305223" expanded="true" signature="5291:5536" ph="..." />
+            <marker date="1541952305223" expanded="true" signature="8043:8105" ph="..." />
+            <marker date="1541952305223" expanded="true" signature="13227:13332" ph="..." />
+            <marker date="1541952305223" expanded="true" signature="13296:13298" ph="..." />
+            <marker date="1541952305223" expanded="true" signature="13493:13540" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/adv_main2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="185">
-          <caret line="67" selection-start-line="67" selection-end-line="67" />
+        <state relative-caret-position="401">
+          <caret line="338" column="24" selection-start-line="338" selection-start-column="24" selection-end-line="338" selection-end-column="24" />
           <folding>
             <element signature="e#320#357#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils.py">
+    <entry file="file://$PROJECT_DIR$/embed.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="78">
-          <caret line="28" selection-start-line="28" selection-end-line="28" />
+        <state relative-caret-position="357">
+          <caret line="21" selection-start-line="21" selection-end-line="21" />
+          <folding>
+            <element signature="e#74#111#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv/objects.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv/countries.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="144" selection-start-line="144" selection-end-line="144" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-482">
+          <caret line="8" column="10" selection-start-line="8" selection-end-line="8" selection-end-column="10" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+            <marker date="1541681597725" expanded="true" signature="7832:7909" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/notebook.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="579">
-          <caret line="2464" column="24" selection-start-line="2464" selection-end-line="2464" selection-end-column="45" />
+          <caret line="2476" selection-start-line="2476" selection-end-line="2476" selection-end-column="36" />
         </state>
       </provider>
     </entry>
