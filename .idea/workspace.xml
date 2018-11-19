@@ -6,7 +6,7 @@
     <bookmark url="file://$PROJECT_DIR$/gpsai.py" line="91" mnemonic="4" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="60b20013-eebf-4dd4-a709-0b01b1d10aab" name="Default Changelist" comment="">
+    <list default="true" id="60b20013-eebf-4dd4-a709-0b01b1d10aab" name="Default Changelist" comment="Check in for sync not because working.">
       <change beforePath="/devlink2/dev/myfaiss/glove_kmeans.py" beforeDir="false" afterPath="/devlink2/dev/myfaiss/glove_kmeans.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nlbitvec.py" beforeDir="false" afterPath="$PROJECT_DIR$/nlbitvec.py" afterDir="false" />
@@ -64,7 +64,7 @@
     <session id="-1833554563">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="58" />
+          <entry key="project.closed" value="60" />
           <entry key="project.open.time.0" value="3" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.10" value="4" />
@@ -75,26 +75,26 @@
           <entry key="project.open.time.5" value="3" />
           <entry key="project.open.time.6" value="11" />
           <entry key="project.open.time.7" value="23" />
-          <entry key="project.open.time.8" value="4" />
+          <entry key="project.open.time.8" value="5" />
           <entry key="project.open.time.9" value="2" />
-          <entry key="project.opened" value="58" />
+          <entry key="project.opened" value="59" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="Python Console" value="2189" />
+          <entry key="Python Console" value="2344" />
           <entry key="c" value="12426" />
           <entry key="h" value="253" />
           <entry key="i" value="151" />
-          <entry key="py" value="26306" />
-          <entry key="txt" value="13303" />
+          <entry key="py" value="26339" />
+          <entry key="txt" value="13345" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="C++" value="12679" />
-          <entry key="PLAIN_TEXT" value="13442" />
-          <entry key="Python" value="28495" />
+          <entry key="PLAIN_TEXT" value="13484" />
+          <entry key="Python" value="28683" />
           <entry key="Scratch" value="12" />
         </counts>
       </usages-collector>
@@ -187,32 +187,14 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nlbitvec.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="332">
-              <caret line="271" lean-forward="true" selection-start-line="271" selection-end-line="271" />
+            <state relative-caret-position="491">
+              <caret line="162" column="39" selection-start-line="162" selection-start-column="29" selection-end-line="162" selection-end-column="39" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
-                <marker date="1542357154511" expanded="true" signature="1405:1407" ph="..." />
-                <marker date="1542357154511" expanded="true" signature="6765:6768" ph="..." />
-                <marker date="1542357154511" expanded="true" signature="7485:7579" ph="..." />
+                <marker date="1542570380037" expanded="true" signature="1405:1407" ph="..." />
+                <marker date="1542570380037" expanded="true" signature="6815:6818" ph="..." />
+                <marker date="1542570380037" expanded="true" signature="7535:7629" ph="..." />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file:///usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="935">
-              <caret line="66" selection-start-line="66" selection-end-line="66" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_bundle/pydev_monkey_qt.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1700">
-              <caret line="101" selection-start-line="101" selection-end-line="101" />
             </state>
           </provider>
         </entry>
@@ -246,7 +228,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>c_bitvec_size</find>
       <find>c_phrase_bitvec_dict_fnt</find>
       <find>l_bits_now</find>
       <find>row in</find>
@@ -266,16 +247,17 @@
       <find>wid</find>
       <find>collections.namedtuple</find>
       <find>i_word_here</find>
-      <find>create_closest_unique_bits</find>
       <find>avg_hd</find>
       <find>hd_of_winners_sorted</find>
       <find>new_vals</find>
       <find>__iphrase_by_len</find>
       <find>__ndbits_by_len</find>
-      <find>l_iphrases</find>
       <find>l_idelayed</find>
       <find>nd_phrase =</find>
       <find>nt_el_stats</find>
+      <find>_replace</find>
+      <find>create_closest_unique_bits</find>
+      <find>l_iphrases</find>
     </findStrings>
     <replaceStrings>
       <replace>self.bitvec_size</replace>
@@ -347,7 +329,20 @@
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes />
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="agent" type="b2602c69:ProjectViewProjectNode" />
+              <item name="agent" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="TEXT" />
@@ -600,19 +595,26 @@
       <option name="project" value="LOCAL" />
       <updated>1542037506667</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Check in for sync not because working.">
+      <created>1542357183312</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1542357183312</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="64" y="-11" width="1857" height="1092" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.1959607" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.1959607" />
       <window_info id="Structure" order="1" sideWeight="0.50053704" weight="0.20742358" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32938644" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.32938644" />
-      <window_info anchor="bottom" id="Debug" order="3" visible="true" weight="0.30570507" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.30570507" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -671,7 +673,8 @@
     <MESSAGE value="data returns from c to python. Fixed plenty bugs." />
     <MESSAGE value="Optimization program succeeded. Done for now." />
     <MESSAGE value="Initial version of nlbtivec working." />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial version of nlbtivec working." />
+    <MESSAGE value="Check in for sync not because working." />
+    <option name="LAST_COMMIT_MESSAGE" value="Check in for sync not because working." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -900,84 +903,54 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>183</line>
+          <line>184</line>
           <option name="timeStamp" value="688" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>333</line>
+          <line>334</line>
           <option name="timeStamp" value="695" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <condition expression="num_flip&gt;1" language="Python" />
+          <condition expression="num_flip&gt;2" language="Python" />
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>285</line>
+          <line>286</line>
           <option name="timeStamp" value="696" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>438</line>
+          <line>439</line>
           <option name="timeStamp" value="713" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>170</line>
+          <line>171</line>
           <option name="timeStamp" value="714" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>234</line>
-          <option name="timeStamp" value="737" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>209</line>
-          <option name="timeStamp" value="741" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>272</line>
-          <option name="timeStamp" value="745" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>273</line>
-          <option name="timeStamp" value="746" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>265</line>
-          <option name="timeStamp" value="748" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>268</line>
+          <line>269</line>
           <option name="timeStamp" value="749" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>260</line>
-          <option name="timeStamp" value="750" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>160</line>
+          <line>161</line>
           <option name="timeStamp" value="751" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>161</line>
+          <line>162</line>
           <option name="timeStamp" value="752" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>163</line>
+          <line>164</line>
           <option name="timeStamp" value="753" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
-          <line>199</line>
-          <option name="timeStamp" value="759" />
+          <line>309</line>
+          <option name="timeStamp" value="761" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -993,6 +966,18 @@
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="evaluateCodeFragment">
+      <expression>
+        <expression-string>for i in self._cl_nlb_mgr__iphrase_by_len[plen]:
+	print(self._cl_nlb_mgr__l_phrases[i])</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>for i in self._cl_nlb_mgr__iphrase_by_len[plen]:
+... 	print(self._cl_nlb_mgr__l_phrases[i])</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>(story_time - time_passed) / float(25)</expression-string>
         <language-id>Python</language-id>
@@ -1017,6 +1002,11 @@
       </expression>
     </expressions>
     <expressions id="breakpointCondition">
+      <expression>
+        <expression-string>num_flip&gt;2</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>i_all_phrases==7</expression-string>
         <language-id>Python</language-id>
@@ -1062,11 +1052,6 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>cl_bitvec_gg.find_var_opts_num_calls &gt; 9</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
     <expressions id="watch">
       <expression>
@@ -1076,6 +1061,11 @@
       </expression>
     </expressions>
     <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>hd_of_winners_sorted</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>__py_debug_temp_var_2085110041[5]</expression-string>
         <language-id>Python</language-id>
@@ -1113,11 +1103,6 @@
       </expression>
       <expression>
         <expression-string>np.not_equal(new_bits, obits)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>np.count_nonzero(rr, axis=0)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1401,13 +1386,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nlbitvec.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="332">
-          <caret line="271" lean-forward="true" selection-start-line="271" selection-end-line="271" />
+        <state relative-caret-position="491">
+          <caret line="162" column="39" selection-start-line="162" selection-start-column="29" selection-end-line="162" selection-end-column="39" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
-            <marker date="1542357154511" expanded="true" signature="1405:1407" ph="..." />
-            <marker date="1542357154511" expanded="true" signature="6765:6768" ph="..." />
-            <marker date="1542357154511" expanded="true" signature="7485:7579" ph="..." />
+            <marker date="1542570380037" expanded="true" signature="1405:1407" ph="..." />
+            <marker date="1542570380037" expanded="true" signature="6815:6818" ph="..." />
+            <marker date="1542570380037" expanded="true" signature="7535:7629" ph="..." />
           </folding>
         </state>
       </provider>

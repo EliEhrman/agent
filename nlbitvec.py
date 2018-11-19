@@ -92,7 +92,8 @@ class cl_nlb_mgr(object):
 				del nd_wbits, glv_wid
 			else:  # if word already seen
 				el_stats = self.__l_els_stats[iel]  # ._replace()
-				el_stats.l_iphrases.append(i_all_phrases)
+				if i_all_phrases not in el_stats.l_iphrases:
+					el_stats.l_iphrases.append(i_all_phrases)
 				if el_stats.bassigned:
 					nd_phrase[iword, :] = el_stats.bitvec
 				else:
@@ -271,7 +272,7 @@ class cl_nlb_mgr(object):
 				nd_phrase2[iword, :] = els_stats.bitvals
 
 			if bfix:
-				self.__ndbits_by_len[plen][by_len_idx, :, :] = nd_phrase
+				self.__ndbits_by_len[plen][by_len_idx, :, :] = nd_phrase2
 		return True
 
 
