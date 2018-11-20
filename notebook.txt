@@ -2475,3 +2475,37 @@ and use the new one for the new concept of learnign rules and deciding on activi
 CIW:
 
 Initial version of nlbtivec working.
+
+Tuesday 20th November
+
+The first version was designed to be off-line. It had no urgency in assigning bitvecs. It processed in multiple
+rounds. First finding all the phrases with only glove words. Then assigned the non-glove single words, delaying
+phrases with more than one uassigned word so that eventually there were fewer and fewer. Finally it assigned
+bitvecs to all pairs and triples of words. A viual inspectionfound that the best hd were the noun phrases (like
+hand soap).
+
+The version I am working on now is aggressive. It tries to assign a bitvec as early as it can. in real time
+we might want to take a best guess even if uncertainty is high. This will result in bad assignment learning
+from bad previous assigns. One solution considered is to undo the assignments after a time and use the history in
+a more off-line way to get a better version.
+
+I'm now working on the pairs and triples.
+Need to add a condition that to add pairs, all single words must be assigned. Belay that.
+Make a hard cutoff for high hd. In the future, this should be decided on the fly and maybe dependent on the context
+For now something like 8.0 / 50
+
+Next, make the original code create the phrases and assign each phrase to the generating rule. This will serve
+as a label to test clustering.
+
+We need automated tests to quantify the quality of the results
+
+Create clusters of phrases. Rather than require a fixed number of seeds, create a moving threshold going up. The
+results can be scored by the number of clusters (lower better) and the % of phrases in a cluster
+
+Cluster with some seeds taken randomly. Combine seeds that are too close to each other. Create clusters around the
+seeds. Add seeds from the remaining, repeat a fixed number of times, stopping if nothing is added.
+
+CIW:
+
+Pairs working in a more online way.
+

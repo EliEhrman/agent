@@ -19,7 +19,7 @@ import timeit
 import collections
 
 import numpy as np
-from py.builtin import enumerate
+# from py.builtin import enumerate
 
 from utils import profile_decor
 import rules2
@@ -399,6 +399,9 @@ class cl_bitvec_mgr(object):
 
 	def add_unique_bits_ext(self, new_bits):
 		self.__s_word_bit_db.add(tuple(new_bits))
+
+	def remove_unique_bits_ext(self, bits):
+		self.__s_word_bit_db.remove(tuple(bits))
 
 	def match_el_to_like(self, el, like_rep, cosine_dist):
 		hd_max = c_bitvec_size * (1.0 - cosine_dist)
