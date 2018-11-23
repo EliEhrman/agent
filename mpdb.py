@@ -195,7 +195,7 @@ class cl_mpdb_mgr(object):
 			varopts.mpdb_set_idb_mrk(self.__chmpdb, idb, isrphrase, chr(0))
 
 	def infer(self, l_db_names_from, phase_data, l_rule_cats):
-		results = []
+		results, l_result_rule_names = [], []
 		for db_name in l_db_names_from:
 			idb = self.__d_dn_names.get(db_name, -1)
 			if idb == -1:
@@ -206,12 +206,13 @@ class cl_mpdb_mgr(object):
 				# story_refs.remove((ilen, iphrase))
 				self.remove_phrase([db_name], (ilen, iphrase))
 				phrase = self.__bitvec_mgr.get_phrase(ilen, iphrase)
-				pot_results = self.__bitvec_mgr.apply_rule(	phrase, ilen, iphrase, idb, l_rule_cats)
+				pot_results = self.__bitvec_mgr.apply_rule(	phrase, ilen, iphrase, idb, l_rule_cats, l_result_rule_names)
 				if pot_results != []:
 					results += pot_results
 				self.insert([db_name], (ilen, iphrase))
 
-		return results
+		assert len(results) == len(l_result_rule_names), 'results and the names creating them should have the same length.'
+		return results, l_result_rule_names
 
 	def get_idb_from_db_name(self, db_name):
 		return self.__d_dn_names.get(db_name, -1)
@@ -227,11 +228,13 @@ class cl_mpdb_mgr(object):
 		return 'Name not found'
 
 	def run_rule(self, stmt, phase_data, db_name, l_rule_cats, l_rule_names=[], l_result_rule_names=[]):
+		num_rule_names_at_start = 0 if l_result_rule_names == None else len(l_result_rule_names)
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1:
 			print('Error. mpdb requested to run rule on db', db_name, 'which doesnt exist.')
 			return None
 		results = self.__bitvec_mgr.run_rule(	stmt, phase_data, idb, l_rule_cats, l_rule_names, l_result_rule_names)
+		assert len(results) == len(l_result_rule_names) - num_rule_names_at_start, 'Run_rule. Results and the names creating them should have the same length.'
 		return [db_name for _ in results], results
 
 	def get_idb_rphrases(self, idb):

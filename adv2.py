@@ -11,11 +11,14 @@ c_rules_fn = 'adv/rules.txt'
 c_dummy_init_fn = 'adv/dummy_init.txt'
 c_dummy_events_fn = 'adv/dummy_events.txt'
 c_phrase_freq_fnt = '~/tmp/adv_phrase_freq.txt'
-c_phrase_bitvec_dict_fnt = '~/tmp/glv_bin_dict.txt'
-# c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
-c_num_agents_per_story = 50
-c_num_countries_per_story = 80
-c_num_objects_per_story = 50
+c_b_nl = True # nat lang processing. Learn phrases. Initial load from glove. For now, switch bitvec.c_bitvec_size to 16 as well
+if c_b_nl:
+	c_phrase_bitvec_dict_fnt = '~/tmp/glv_bin_dict.txt'
+else:
+	c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
+c_num_agents_per_story = 5 # 50
+c_num_countries_per_story = 5 # 80
+c_num_objects_per_story = 5 # 50
 c_num_tries_per_player = 10
 c_goal_init_level_limit = 3
 c_goal_max_level_limit = 7
@@ -34,8 +37,8 @@ l_countries = []
 l_objects = []
 c_b_learn_full_rules = False
 c_b_save_freq_stats= False
-c_story_len = 200
-c_num_stories = 500
+c_story_len = 30 # 200
+c_num_stories = 5000
 c_num_plays = 100
 c_b_dummy = False
 l_dummy_types = []
@@ -43,6 +46,7 @@ l_dummy_events = []
 l_dummy_ruleid = []
 g_dummy_idx = -1
 c_b_gpsai = True
+c_b_save_phrases = False # Create a file of phrases with the rule that generated them
 
 e_player_decide = Enum('e_player_decide', 'goto pickup ask_where tell_where ask_give give')
 
@@ -92,13 +96,17 @@ def init_functions():
 	return d_fns
 
 def create_initial_db():
-	l_db, l_db_names, l_db_poss = [], [], []
+	l_db, l_db_names, l_db_poss, l_db_rule_names = [], [], [], []
 
 	l_db += [[name, 'is located in', random.choice(l_countries)] for name in l_names]
+	l_db_rule_names += ['init_located' for _ in l_names]
 	l_db += [[o, 'is free in', random.choice(l_countries)] for o in l_objects]
+	l_db_rule_names += ['init_free_in' for _ in l_objects]
 	l_db += [[name, 'wants', random.choice(l_objects)] for name in l_names]
+	l_db_rule_names += ['init_wants' for _ in l_names]
 	l_db_names += ['main' for _ in l_db]
 	l_db += [['I', 'am', name] for name in l_names]
+	l_db_rule_names += ['init_am' for _ in l_names]
 	l_db_names += l_names
 
 	l_db_poss += [	[	[__rec_def_type.obj, name],
@@ -126,7 +134,8 @@ def create_initial_db():
 	# l_db_names += ['poss' for _ in l_db_poss]
 	# l_db += l_db_poss
 
-	return l_db_names, l_db, l_db_poss
+	assert len(l_db) == len(l_db_rule_names), 'init. db and rule names must have the same length'
+	return l_db_names, l_db, l_db_poss, l_db_rule_names
 
 def create_initial_db_dummy():
 	global l_dummy_types, l_dummy_events, l_dummy_ruleid, g_dummy_idx
@@ -152,7 +161,7 @@ def create_initial_db_dummy():
 		l_dummy_ruleid += [e_player_decide[row[-1]]]
 		g_dummy_idx = -1
 
-	return l_db_names, l_db, []
+	return l_db_names, l_db, [], ['dummy_init' for _ in l_db]
 
 def make_decision_by_goal(player_name, phase_data, rule_stats):
 	assert False, 'Old code?'

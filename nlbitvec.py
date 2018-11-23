@@ -41,6 +41,7 @@ class cl_nlb_mgr(object):
 		self.__nd_word_bin = None
 		self.__l_els_here = []
 		self.__l_els_stats = []
+		self.__l_rule_name  = [] # for each entry of l_phrases, the name of the rule that created it
 		self.load_sample_texts(c_phrase_fnt)
 		# for num_try_assign in range(c_num_assign_tries):
 		# 	num_unassigned = self.assign_unknown_words()
@@ -176,14 +177,22 @@ class cl_nlb_mgr(object):
 	# end process unassigned row
 
 	def load_sample_texts(self, phrase_fnt):
-		fn = expanduser(phrase_fnt)
-		# try:
-		if True:
-			with open(fn, 'rb') as o_fhr:
-				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
-				for row in csvr:
-					self.add_new_row(row)
-				# end loop over rows
+		# fn = expanduser(phrase_fnt)
+		# # try:
+		# if True:
+		# 	with open(fn, 'rb') as o_fhr:
+		# 		csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+		# 		for row in csvr:
+		# 			self.add_new_row(row)
+		# 		# end loop over rows
+
+		bitvec_saved_phrases = self.__bitvec_mgr.get_saved_phrases()
+		for phrase_data in bitvec_saved_phrases:
+			self.__l_rule_name.append(phrase_data[0])
+			self.add_new_row(phrase_data[1].split())
+
+		import cluster
+		cluster.cluster(self.__ndbits_by_len)
 
 
 	def dbg_closest_words(self, bins):

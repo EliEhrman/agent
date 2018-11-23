@@ -34,7 +34,7 @@ from varopts import varopts
 # fnt = 'orders_success.txt'
 # fnt = '~/tmp/adv_phrase_freq.txt'
 # fnt_dict = '~/tmp/adv_bin_dict.txt'
-
+fnt_bitvec_saved_phrases = '~/tmp/saved_phrases_small.txt'
 
 class Enum(set):
 	def __getattr__(self, name):
@@ -43,7 +43,7 @@ class Enum(set):
 		raise AttributeError
 
 
-c_bitvec_size = 50
+c_bitvec_size = 50 # 16
 # c_min_bits = 3
 # c_max_bits = 20
 # c_num_replicate_missing = 5
@@ -113,6 +113,7 @@ class cl_bitvec_mgr(object):
 		self.__rule_stages = 1
 		self.__d_gg2 = dict() # for two stage rules
 		self.__l_els = l_els
+		self.__l_saved_phrases = []
 
 		self.__l_fixed_rules = []
 		self.__l_rule_names = []
@@ -129,8 +130,47 @@ class cl_bitvec_mgr(object):
 			varopts.set_el_bin(self.__hcvo, iel, el_word, bin_arr)
 			# test_bin_arr = varopts.check_el_bin(self.__hcvo, el_word);
 
+		self.load_save_phrases()
+
+	def get_saved_phrases(self):
+		return self.__l_saved_phrases
+
 	def get_hcvo(self):
 		return self.__hcvo
+
+	def flush_saved_phrases(self):
+		fn = expanduser(fnt_bitvec_saved_phrases)
+
+		if os.path.isfile(fn):
+			copyfile(fn, fn + '.bak')
+		fh = open(fn, 'wb')
+		csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+		csvw.writerow(['Bitvec Saved Phrases', 'Version', '1'])
+		csvw.writerow(['Num Phrases:', len(self.__l_saved_phrases)])
+		for row in self.__l_saved_phrases:
+			csvw.writerow(row)
+
+		fh.close()
+
+	def load_save_phrases(self):
+		fn = expanduser(fnt_bitvec_saved_phrases)
+		try:
+			with open(fn, 'rb') as o_fhr:
+				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+				_, _, version_str = next(csvr)
+				_, snum_els = next(csvr)
+				version, num_els = int(version_str), int(snum_els)
+				if version != 1:
+					raise IOError
+				for irow, row in enumerate(csvr):
+					self.__l_saved_phrases.append(row)
+
+		except IOError:
+			print('Cannot open or read ', fn)
+
+
+	def save_phrase(self, rule_name, phrase):
+		self.__l_saved_phrases.append([rule_name, ' '.join(phrase)])
 
 	def convert_charvec_to_arr(self, bin, size):
 		bin_arr = varopts.charArray(size)
@@ -618,8 +658,8 @@ class cl_bitvec_mgr(object):
 
 
 	# @bv_time_decor
-	def apply_rule(self, phrase, ilen, iphrase, idb, l_rule_cats):
-		return self._run_rule(phrase, ilen, iphrase, idb, l_rule_cats)
+	def apply_rule(self, phrase, ilen, iphrase, idb, l_rule_cats, l_result_rule_names=None):
+		return self._run_rule(phrase, ilen, iphrase, idb, l_rule_cats, [], l_result_rule_names)
 
 	# @bv_time_decor
 	def run_rule(self, stmt, phase_data, idb, l_rule_cats, l_rule_names=[], l_result_rule_names=[]):
@@ -637,8 +677,10 @@ class cl_bitvec_mgr(object):
 		return l_use_rules, l_rule_names
 
 	@profile_decor
-	def _run_rule(	self, phrase, ilen, iphrase, idb, l_rule_cats, l_rule_names=[], l_result_rule_names=[]):
+	def _run_rule(	self, phrase, ilen, iphrase, idb, l_rule_cats, l_rule_names=[], l_result_rule_names=None):
 		# d_story_len_refs = self.__mpdb_mgr.get_d_story_len_refs(idb)
+		if l_result_rule_names == None:
+			l_result_rule_names = []
 		len_phrase_bin_db = self.get_phrase_bin_db(ilen)
 		phrase_bin = len_phrase_bin_db[iphrase]
 
