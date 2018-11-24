@@ -36,9 +36,9 @@ def cluster(ndbits_by_len):
 				del l_keep[ii3]
 			del ii3
 			nd_centroids = nd_centroids[l_keep]
-			nd_cluster_mrks = np.zeros((len(l_iseeds), num_recs), dtype=np.uint8)
-			for ii1, iseed1 in enumerate(l_iseeds):
-				hd = np.sum(np.not_equal(ndbits, ndbits[iseed1]), axis=(1,2)) / plen
+			nd_cluster_mrks = np.zeros((nd_centroids.shape[0], num_recs), dtype=np.uint8)
+			for ii1, nd_cent in enumerate(nd_centroids):
+				hd = np.sum(np.not_equal(ndbits, nd_cent), axis=(1,2)) / plen
 				frst_cluster_mrks = np.less(hd, c_cluster_thresh).astype(np.uint8)
 				cluster_sum = np.sum(np.multiply(np.transpose(ndbits, axes=(1, 2, 0)), frst_cluster_mrks), axis=2)
 				fcentroid = cluster_sum / float(np.count_nonzero(frst_cluster_mrks))
