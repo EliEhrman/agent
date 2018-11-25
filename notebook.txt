@@ -2518,3 +2518,12 @@ CIW:
 
 First cluster version doing something
 
+After creating clusters with an initial thresh that includes all phrases in the len group, the thresh of each cluster
+is decreased until some phrase gets left out.
+
+Create clusters for all lenght phrases. Many different thresh levels are tested. A score is assigned which is
+the average hd between each el of the cluster and its median * the number of clusters for that length.
+
+CIW:
+
+Basic clustering working.
