@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 c_num_seeds_initial = 5
-c_cluster_thresh = 18
+c_cluster_thresh = 10 # 18
 
 def cluster(ndbits_by_len):
 	for plen, ndbits in enumerate(ndbits_by_len):
@@ -11,15 +11,15 @@ def cluster(ndbits_by_len):
 		if num_recs < c_num_seeds_initial: continue
 		left_out_mrk = np.ones(num_recs, dtype=np.uint8)
 		num_left = num_recs
-		# l_iseeds = []
 		nd_centroids = []
 		while num_left > 0:
 			num_seeds_to_add = min(num_left, c_num_seeds_initial)
 			rand_top_sel = np.multiply(np.random.random(num_recs), left_out_mrk)
-			arg_sel = np.argsort(rand_top_sel)
-			l_iseeds = [np.where(arg_sel==ir)[0][0] for ir in range(num_seeds_to_add)]
+			# arg_sel = np.argsort(rand_top_sel)
+			# l_iseeds = [np.where(arg_sel==ir)[0][0] for ir in range(num_seeds_to_add)]
+			l_iseeds = np.argsort(-rand_top_sel)[:num_seeds_to_add]
 			nd_new_centroids = ndbits[l_iseeds]
-			nd_centroids = nd_new_centroids if nd_centroids == [] else np.concatenate(nd_centroids, nd_new_centroids)
+			nd_centroids = nd_new_centroids if nd_centroids == [] else np.concatenate((nd_centroids, nd_new_centroids), axis=0)
 			# l_iseeds = random.sample(range(num_recs), c_num_seeds_initial)
 			l_remove = []
 			for ii1, iseed1 in enumerate(nd_centroids):
@@ -45,9 +45,10 @@ def cluster(ndbits_by_len):
 				centroid = np.round_(fcentroid).astype(np.uint8)
 				hd2 = np.sum(np.not_equal(ndbits, centroid), axis=(1,2)) / plen
 				nd_cluster_mrks[ii1, :] = np.less(hd2, c_cluster_thresh).astype(np.uint8)
-			all_mrks = np.logical_or(nd_cluster_mrks, axis=0)
+			all_mrks = np.any(nd_cluster_mrks, axis=0)
 			left_out_mrk = np.logical_xor(all_mrks, 1)
 			num_left = np.count_nonzero(left_out_mrk)
+
 
 
 

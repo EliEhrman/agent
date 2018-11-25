@@ -2509,3 +2509,12 @@ CIW:
 
 Pairs working in a more online way.
 
+Sunday 25th November
+
+Cluster starts with a fixed number of seeds and a fixed hd thresh. Remove seeds that are within thresh of another seed.
+If all recs fit in a cluster, shoen. Otherwise, add seeds until all are in. Some overlap will occur.
+
+CIW:
+
+First cluster version doing something
+
