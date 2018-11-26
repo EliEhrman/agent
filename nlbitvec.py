@@ -192,7 +192,8 @@ class cl_nlb_mgr(object):
 			self.add_new_row(phrase_data[1].split())
 
 		import cluster
-		cluster.cluster(self.__ndbits_by_len)
+		cluster.cluster(self.__ndbits_by_len, self.__l_rule_name, self.__iphrase_by_len,
+						self.__bitvec_mgr.get_d_rule_gprs())
 
 
 	def dbg_closest_words(self, bins):

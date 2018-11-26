@@ -1,0 +1,10 @@
+init_am
+init_wants	knows_I_want
+goto_decide
+pickup_decide
+init_located	knows_I_located	knows_located
+knows_free	init_free_in
+ask_where_decide
+tell_where_decide
+tell_where_decide2
+

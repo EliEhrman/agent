@@ -16,6 +16,8 @@ if c_b_nl:
 	c_phrase_bitvec_dict_fnt = '~/tmp/glv_bin_dict.txt'
 else:
 	c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
+c_bitvec_saved_phrases_fnt = '~/tmp/saved_phrases_small.txt'
+c_rule_grp_fnt = 'adv/rule_groups.txt'
 c_num_agents_per_story = 5 # 50
 c_num_countries_per_story = 5 # 80
 c_num_objects_per_story = 5 # 50
@@ -61,7 +63,8 @@ def mod_init():
 
 	l_agents = els_sets[set_names.index('names')]
 
-	return els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt
+	return 	els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt, \
+			c_bitvec_saved_phrases_fnt, c_rule_grp_fnt
 
 def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
 	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod, __rec_def_type

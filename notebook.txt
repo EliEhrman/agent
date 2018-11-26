@@ -2527,3 +2527,46 @@ the average hd between each el of the cluster and its median * the number of clu
 CIW:
 
 Basic clustering working.
+
+Monday 26th November
+
+Added basic scoring mechanism using rule groups from a file created based on rules.txt
+
+for global thresh of bitvec_size / 5 = 10
+
+tot_clusters = 129
+entr_tot = 16.79
+tot_hits = 1347 (lots of overlap I guess)
+score = 1.68
+
+* 2 / 5 = 20
+
+tot_clusters = 34
+entr_tot = 58
+tot_hits = 967
+score = 2.04
+
+/ 3 = 16
+
+ttot_clusters = 34
+entr_tot = 58
+tot_hits = 967
+score = 2.04
+
+/ 7 = 7
+
+tot_clusters = 223
+entr_tot = 0
+tot_hits = 1288
+score = 0.
+
+CIW:
+
+Cluster scoring working.
+
+
+
+
+
+
+

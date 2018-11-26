@@ -349,11 +349,12 @@ def main():
 
 	# following need not be string dynamic but keeping working code to show how it's done
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()
-	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = d_mod_fns['mod_init']()
+	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt, \
+			bitvec_saved_phrases_fnt, rule_grp_fnt = d_mod_fns['mod_init']()
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
-	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt)
+	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt)
 	if mod.c_b_nl:
 		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(bitvec_mgr)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents))

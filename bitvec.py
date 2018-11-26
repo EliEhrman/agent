@@ -34,7 +34,7 @@ from varopts import varopts
 # fnt = 'orders_success.txt'
 # fnt = '~/tmp/adv_phrase_freq.txt'
 # fnt_dict = '~/tmp/adv_bin_dict.txt'
-fnt_bitvec_saved_phrases = '~/tmp/saved_phrases_small.txt'
+# fnt_bitvec_saved_phrases = '~/tmp/saved_phrases_small.txt'
 
 class Enum(set):
 	def __getattr__(self, name):
@@ -83,7 +83,7 @@ total_time = 0
 
 
 class cl_bitvec_mgr(object):
-	def __init__(self, phrase_freq_fnt, bitvec_dict_fnt):
+	def __init__(self, phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt):
 		d_words, nd_bit_db, s_word_bit_db, l_els = load_word_db(bitvec_dict_fnt)
 		# freq_tbl, s_phrase_lens = load_order_freq_tbl(fnt)
 		# init_len = c_init_len  # len(freq_tbl) / 2
@@ -115,6 +115,10 @@ class cl_bitvec_mgr(object):
 		self.__l_els = l_els
 		self.__l_saved_phrases = []
 
+		self.__bitvec_saved_phrases_fnt = bitvec_saved_phrases_fnt
+		self.__rule_grp_fnt = rule_grp_fnt
+
+		self.__d_rule_grps = dict() # map from rule name to an int unique to group
 		self.__l_fixed_rules = []
 		self.__l_rule_names = []
 		self.__d_word_in_fixed_rule = dict()
@@ -130,6 +134,7 @@ class cl_bitvec_mgr(object):
 			varopts.set_el_bin(self.__hcvo, iel, el_word, bin_arr)
 			# test_bin_arr = varopts.check_el_bin(self.__hcvo, el_word);
 
+		self.load_rule_grps()
 		self.load_save_phrases()
 
 	def get_saved_phrases(self):
@@ -138,8 +143,23 @@ class cl_bitvec_mgr(object):
 	def get_hcvo(self):
 		return self.__hcvo
 
+	def get_d_rule_gprs(self):
+		return self.__d_rule_grps
+
+	def load_rule_grps(self):
+		fn = self.__rule_grp_fnt
+		try:
+			with open(fn, 'rb') as o_fhr:
+				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+				for irow, row in enumerate(csvr):
+					for rname in row:
+						self.__d_rule_grps[rname] = irow
+
+		except IOError:
+			print('Cannot open or read ', fn)
+
 	def flush_saved_phrases(self):
-		fn = expanduser(fnt_bitvec_saved_phrases)
+		fn = expanduser(self.__bitvec_saved_phrases_fnt)
 
 		if os.path.isfile(fn):
 			copyfile(fn, fn + '.bak')
@@ -153,7 +173,7 @@ class cl_bitvec_mgr(object):
 		fh.close()
 
 	def load_save_phrases(self):
-		fn = expanduser(fnt_bitvec_saved_phrases)
+		fn = expanduser(self.__bitvec_saved_phrases_fnt)
 		try:
 			with open(fn, 'rb') as o_fhr:
 				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
