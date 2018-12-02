@@ -72,7 +72,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 												  (i_one_story, -1, e_story_loop_stage.story_init,
 												   event_step_id[0]))
 			bitvec_mgr.save_phrase(init_rule_name, story_phrase)
-			mpdb_mgr.insert([db_name], (ilen, iphrase))
+			mpdb_mgr.ext_insert([db_name], (ilen, iphrase))
 
 		db_transfrs, trnsfr_rule_names =  mpdb_mgr.infer(['main'], (i_one_story, -1, story_loop_stage, event_step_id[0]),
 												['state_from_start'])
@@ -83,7 +83,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				ilen, iphrase = bitvec_mgr.add_phrase(added_wlist,
 													  (i_one_story, -1, story_loop_stage, event_step_id[0]))
 				bitvec_mgr.save_phrase(trnsfr_rule_name, added_wlist)
-				mpdb_mgr.insert([db_name], (ilen, iphrase))
+				mpdb_mgr.ext_insert([db_name], (ilen, iphrase))
 
 		mpdb_mgr.set_poss_db(l_poss_stmts)
 
@@ -350,13 +350,13 @@ def main():
 	# following need not be string dynamic but keeping working code to show how it's done
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()
 	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt, \
-			bitvec_saved_phrases_fnt, rule_grp_fnt = d_mod_fns['mod_init']()
+			bitvec_saved_phrases_fnt, rule_grp_fnt, nlbitvec_dict_fnt = d_mod_fns['mod_init']()
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt)
 	if mod.c_b_nl:
-		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(bitvec_mgr)
+		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(nlbitvec_dict_fnt, rule_grp_fnt, bitvec_saved_phrases_fnt)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents))
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
 	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)

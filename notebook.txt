@@ -2532,6 +2532,8 @@ Monday 26th November
 
 Added basic scoring mechanism using rule groups from a file created based on rules.txt
 
+score = tot_clusters * entr_tot / tot_hits
+
 for global thresh of bitvec_size / 5 = 10
 
 tot_clusters = 129
@@ -2548,10 +2550,10 @@ score = 2.04
 
 / 3 = 16
 
-ttot_clusters = 34
-entr_tot = 58
-tot_hits = 967
-score = 2.04
+ttot_clusters = 42
+entr_tot = 272
+tot_hits = 991
+score = 11.6
 
 / 7 = 7
 
@@ -2563,6 +2565,81 @@ score = 0.
 CIW:
 
 Cluster scoring working.
+
+Changed the score formula to
+
+score = tot_clusters * (0.1 + entr_tot / tot_hits)
+
+Now 2/5 is best @ 5.44
+
+I choose this because there really are about 20-30 clusters. There are 9 rule groups and 8 len groups. So 223 is way
+too many clusters - even if the entropy is 0
+
+Moving on now.
+
+What I should do is look at scoring the 2-word, 3-word and longer phrases. I will get round to it IYH but I want to
+do some rule learning first
+
+Thursday 29th November
+
+What makes a rule unique? I've been studying the code we had so far based on no clusters and a poorer assignment of bits
+to els.
+
+Today there are two stages to rule learning. The first ignores the database and looks only at the initial phrase and
+the results from that phrase. It is applied only to the decision->event rules. So the initial phrase is "X decided to Y ..."
+and the result, if there is one, is "X Yed ...". The rule is built initially only where there is a result, i.e. the
+decision was successfull. Later once enough examples exist to make the rule b_formed, stats are collected about the
+rule. The stats look at every incoming phrase and decide whether it matches the pre-conds of the the rule and then
+records how many times a result occurs *and* the result matches the defined result for that rule.
+
+We look at the phrase and result coming in. Build a var table and format the result as the vars of the incoming. So
+all words repeated between phrase and result become vars and all words first introduced in the result are left as
+a rec_def_type::obj. This of course ignores any catgorization of the var words themselves. We have only to hope that
+the exact match words narrow the choice of the rule. Moreover, only the result has this influence. Also, any word
+not a var creates an automatic expectation of an exact match.
+
+Once enough examples are gathered for that rule, we find a median for each el in the preconds, not the result. We then
+find the max hd for any sample in the phrases collected and that outer limit defines the filter for a random phrase
+matching that rule.
+
+Note, an incoming phrase will still be included as before based on the result only. It's just that for the purposes of stats
+we count a match using the median (which becomes the representative word) and that max hd. The stats will then incrment a
+match based on el hds and then will look at the result. If the result, once vars are placed, mathces the result defining
+the rule,we count a hit. We look for a signficant hit per match
+
+The bitvec manager maintains a list of all rules/ggs created this way (and also 2nd stage) and a dictionary based on incoming
+phrase length and result obj and vars. The dictionary is the gatekeeper to whether a new phrase belongs to this rule
+or we need to create a new rule.
+
+Once a rule has accumulated enough examples, it may aquire 2nd phase children. This is where we first look at the mpdb database
+of current phrases.
+
+For a rule activated at first stage (looks like testing the var-inserted result is enough) we look for any phrase in the
+db that has an exactly matching word, in any position in the db phrase, as any word in the input phrase. We
+add the the two phrrases, the input and found in the db and create a var table between them and the result.
+
+We now have to determine that the new combo is unique or not. If unique a new child rule is created, otherwise it matches
+something already created and is treated as a member of that. We don't use a dict this time because the list of children
+of a rule is expected to be short. Membership is determined as having (1) the same var match sequence (2) the same var-relpaced
+result and (3) the same length phrase for the 2nd phrase - the one found in the db. Again, the nature of the vars is not
+a consideration. In this case an exact match on the result cannot be a determining factor because there won't be *more* exact
+words in the rseult - only less is possible (if a result word matches a db phrase word).
+
+Once enough examples come in the stats collection is similar. Today, something is done beyond what was done for 1st stage
+rules. This is done with the gg::find_matches function. This is quite a long function. However, the result is used for some
+improvement on the rule that I don't think I will use and so I have not spent the time to understand this long function.
+
+Sunday 2nd December 2018
+
+I am changing nlbitvec to be parallel and independent of bitvec. So far, I have phrase adding from file and cluster test
+passing. Now it's time to add functionality to nlbitvec and mpdb such that mpdb can use both bitvec modules together.
+The original bitvec will drive the sim/oracle and the new will be used to learn rules - this time incoporating learning pairs,
+triples of words and even clusters.
+
+CIW:
+
+nlbitvec works independently of bitvec.
+
 
 
 

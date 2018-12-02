@@ -43,7 +43,7 @@ class Enum(set):
 		raise AttributeError
 
 
-c_bitvec_size = 50 # 16
+c_bitvec_size = 16 # 50 # 16
 # c_min_bits = 3
 # c_max_bits = 20
 # c_num_replicate_missing = 5
@@ -795,10 +795,11 @@ class cl_bitvec_mgr(object):
 				if l_match_paths == []:
 					continue
 				m_matches, m_hits = gg2.update_stats_stage_2(l_match_paths, l_imatches, len(l_srphrases), l_results)
-				if np.sum(m_hits) < np.sum(m_matches) and gg2._cl_bitvec_gg__rule_rec[8][0] == rec_def_type.var:
-					pass
+				# if np.sum(m_hits) < np.sum(m_matches) and gg2._cl_bitvec_gg__rule_rec[8][0] == rec_def_type.var:
+				# 	pass
 				# story_bin = self.get_phrase_bin_db(gg2.get_last_phrase_ilen())[story_refs]
-				gg2.set_match_hits(self.__mpdb_bins[m_matches], match_hits = m_hits[m_matches])
+				# The following is removed for now as we are not doing gg improvement
+				#gg2.set_match_hits(self.__mpdb_bins[m_matches], match_hits = m_hits[m_matches])
 
 			pass
 
@@ -979,7 +980,7 @@ def load_word_db(bitvec_dict_fnt):
 				l_els[int(iel)] = word
 				bits = map(int, sbits)
 				nd_bit_db[int(iel)] = np.array(bits, dtype=np.uint8)
-				s_word_bit_db.add(tuple(bits))
+				s_word_bit_db.add(tuple(bits)) # if asserts here check bitvec.bitvec_size
 
 	# except IOError:
 	# 	raise ValueError('Cannot open or read ', fn)

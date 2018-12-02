@@ -222,6 +222,8 @@ class cl_bitvec_gg(object):
 		return self.__child_rules
 
 	def add_phrase_stage2(self, iphrase, iphrase2):
+		if (iphrase, iphrase2) in self.__l_phrases:
+			return
 		self.__l_phrases.append((iphrase, iphrase2))
 		self.__num_since_learn += 1
 		l_phrases1, l_phrases2 = [phrases[0] for phrases in self.__l_phrases], [phrases[1] for phrases in self.__l_phrases]
@@ -276,7 +278,8 @@ class cl_bitvec_gg(object):
 						self.__status = rule_status.blocks
 					else:
 						self.__status = rule_status.irrelevant
-			self.fine_tune(self.__match_bins, self.__match_hits)
+			# Removing the following for now. Revisit fine_tune in the future
+			# self.fine_tune(self.__match_bins, self.__match_hits)
 			print('parent score:', self.__mgr.get_rule(self.__parent_irule).get_score(),
 				  'status', self.__status, 'score', self.__score, 'for rule:', rules2.gen_rec_str(self.__rule_rec) )
 			pass

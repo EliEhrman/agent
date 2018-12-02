@@ -1,6 +1,6 @@
 """
 mp stands for multi-player
-Ths module provides support for multiple databases - often partial copies of each other
+This module provides support for multiple databases - often partial copies of each other
 TYpically each player will have his own database representing his/her knowledge
 Also, monte-carlo or tree-based search might use the db
 
@@ -77,7 +77,7 @@ class cl_mpdb_mgr(object):
 			return []
 		return self.__l_d_story_len_refs[idb].get(stg_ilen, [])
 
-	def insert(self, l_db_names, phrase_ref, bdelay=False):
+	def ext_insert(self, l_db_names, phrase_ref, bdelay=False):
 		for db_name in l_db_names:
 			idb = self.__d_dn_names.get(db_name, -1)
 			if idb == -1:
@@ -209,7 +209,7 @@ class cl_mpdb_mgr(object):
 				pot_results = self.__bitvec_mgr.apply_rule(	phrase, ilen, iphrase, idb, l_rule_cats, l_result_rule_names)
 				if pot_results != []:
 					results += pot_results
-				self.insert([db_name], (ilen, iphrase))
+				self.ext_insert([db_name], (ilen, iphrase))
 
 		assert len(results) == len(l_result_rule_names), 'results and the names creating them should have the same length.'
 		return results, l_result_rule_names
@@ -255,7 +255,7 @@ class cl_mpdb_mgr(object):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1: raise ValueError('add_phrase should only be called when the db_name has already been added')
 		ilen, iphrase = self.__bitvec_mgr.add_phrase(phrase, phase_data)
-		self.insert([db_name], (ilen, iphrase), bdelay=False)
+		self.ext_insert([db_name], (ilen, iphrase), bdelay=False)
 
 	def remove_phrase_text(self, db_name, phrase, phase_data):
 		idb = self.__d_dn_names.get(db_name, -1)
@@ -285,7 +285,7 @@ class cl_mpdb_mgr(object):
 					break
 		if insert_phrase != []:
 			ilen, iphrase = self.__bitvec_mgr.add_phrase(insert_phrase, phase_data)
-			self.insert([db_name], (ilen, iphrase), bdelay=True)
+			self.ext_insert([db_name], (ilen, iphrase), bdelay=True)
 			# self.__l_dbs[idb].append((ilen, iphrase))
 
 	def show_dbs(self):

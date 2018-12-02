@@ -1,5 +1,5 @@
 import bitvec
-from bitvec import c_bitvec_size as bitvec_size
+# from bitvec import c_bitvec_size as bitvec_size
 import csv
 from os.path import expanduser
 import numpy as np
@@ -9,6 +9,12 @@ import copy
 
 c_phrase_fnt = '~/tmp/adv_phrases.txt'
 
+c_bitvec_size = 50 # 16
+c_bitvec_neibr_divider_offset = 5
+c_num_ham_winners = 30
+c_num_assign_tries = 5
+c_pair_avg_hd_cutoff = 8.0
+
 # bitvals are the values that are rounded to make the bits. Kept in this form because uniqueness only calculated at insertion into main dict
 # avg_hd is the average hd between the phrase minues the el and the corresponding closest phrases of n shorter length
 # devi is the deviation of the corresponding bits  to the el in the closest phrases. deviation calculated as average of diff between rounded average and the src bits
@@ -16,12 +22,8 @@ nt_new_el = collections.namedtuple('nt_new_el', 'el, avg_hd, devi, num_hits, bit
 # bglove, if True, means the el comes from the glove dict and is not not be changed
 # l_iphrases is a list of indices into __l_phrases that the el appears in
 nt_el_stats = collections.namedtuple('nt_el_stats', 'el, bglove, bassigned, avg_hd, num_hits, l_iphrases, l_idelayed, bitvals, bitvec')
-nt_el_stats.__new__.__defaults__ = ('???', False, False, -1.0, 0, None, None, [], np.zeros(bitvec_size, dtype=np.uint8))
+nt_el_stats.__new__.__defaults__ = ('???', False, False, -1.0, 0, None, None, [], np.zeros(c_bitvec_size, dtype=np.uint8))
 
-c_bitvec_neibr_divider_offset = 5
-c_num_ham_winners = 30
-c_num_assign_tries = 5
-c_pair_avg_hd_cutoff = 8.0
 
 divider = np.array(
 	range(c_bitvec_neibr_divider_offset,c_num_ham_winners + c_bitvec_neibr_divider_offset),
@@ -30,18 +32,27 @@ divider_sum = np.sum(1. / divider)
 
 
 class cl_nlb_mgr(object):
-	def __init__(self, bitvec_mgr):
-		self.__bitvec_mgr = bitvec_mgr
+	def __init__(self, bitvec_dict_fnt, rule_grp_fnt, saved_phrases_fnt):
+		self.__d_words = dict()
+		d_words, nd_bit_db, s_word_bit_db, l_els, l_els_stats = self.load_word_db(bitvec_dict_fnt)
+		self.__d_words = d_words
+		self.__s_word_bit_db = s_word_bit_db
+		self.__nd_word_bin = nd_bit_db
+		self.__l_els_here = l_els
+		self.__l_els_stats = l_els_stats # type: List(nt_el_stats)
+		# self.__bitvec_mgr = bitvec_mgr
 		self.__ndbits_by_len = [] # bit representation of phrase, ordered by phrase len
 		self.__iphrase_by_len = [] # for each len, entry corresponding to __ndbits_by_len, index into l_phrases
 		self.__phrase_by_len_idx = [] # for each entry of l_phrases, -1 if unassigned, index into iphrase by len and ndbits_by len otherwise
 		self.__l_phrases = [] # type: List(str)
 		self.__l_delayed_iphrases = []
-		self.__d_words = dict()
-		self.__nd_word_bin = None
-		self.__l_els_here = []
-		self.__l_els_stats = []
 		self.__l_rule_name  = [] # for each entry of l_phrases, the name of the rule that created it
+		self.__rule_grp_fnt = rule_grp_fnt
+		self.__d_rule_grps = dict()
+		self.load_rule_grps()
+		self.__bitvec_saved_phrases_fnt = saved_phrases_fnt
+		self.__l_saved_phrases = []
+		self.load_save_phrases()
 		self.load_sample_texts(c_phrase_fnt)
 		# for num_try_assign in range(c_num_assign_tries):
 		# 	num_unassigned = self.assign_unknown_words()
@@ -49,6 +60,48 @@ class cl_nlb_mgr(object):
 		# 		break
 		# self.learn_pair_bins()
 		pass
+
+	def load_word_db(self, bitvec_dict_fnt):
+		fn = expanduser(bitvec_dict_fnt)
+		# if True:
+		try:
+			with open(fn, 'rb') as o_fhr:
+				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+				_, _, version_str = next(csvr)
+				_, snum_els = next(csvr)
+				version, num_els = int(version_str), int(snum_els)
+				if version != 1:
+					raise IOError
+				d_words, s_word_bit_db, nd_bit_db = dict(), set(), np.zeros((num_els, c_bitvec_size), dtype=np.uint8)
+				l_els = ['' for _ in xrange(num_els)]
+				l_els_stats = [nt_el_stats(bglove=True, bassigned=True) for _ in xrange(num_els)]
+				for irow, row in enumerate(csvr):
+					word, iel, sbits = row[0], row[1], row[2:]
+					bits = map(int, sbits)
+					ndbits = np.array(bits, dtype=np.uint8)
+					d_words[word] = int(iel)
+					l_els[int(iel)] = word
+					l_els_stats[int(iel)] = l_els_stats[int(iel)]._replace(el=word, bitvec=ndbits)
+					nd_bit_db[int(iel)] = ndbits
+					s_word_bit_db.add(tuple(bits))  # if asserts here check bitvec.bitvec_size
+
+		except IOError:
+			raise ValueError('Cannot open or read ', fn)
+
+		return d_words, nd_bit_db, s_word_bit_db, l_els, l_els_stats
+
+	def get_el_id(self, word):
+		return self.__d_words.get(word, -1)
+
+	def get_bin_by_id(self, id):
+		return self.__nd_word_bin[id]
+
+	def add_unique_bits(self, new_bits):
+		self.__s_word_bit_db.add(tuple(new_bits))
+
+	def remove_unique_bits(self, bits):
+		self.__s_word_bit_db.remove(tuple(bits))
+
 
 	def add_new_row(self, phrase):
 		i_all_phrases = len(self.__l_phrases)
@@ -65,7 +118,7 @@ class cl_nlb_mgr(object):
 	def process_new_row(self, i_all_phrases):
 		phrase = self.__l_phrases[i_all_phrases]
 		b_add_now = True
-		nd_phrase = np.zeros((len(phrase), bitvec_size), dtype=np.uint8)
+		nd_phrase = np.zeros((len(phrase), c_bitvec_size), dtype=np.uint8)
 		num_unassigned, i_last_unassigned = 0, -1
 		for iword, word in enumerate(phrase):
 			iel = self.__d_words.get(word.lower(), -1)
@@ -75,16 +128,16 @@ class cl_nlb_mgr(object):
 				el_stats = nt_el_stats(el=word, l_iphrases=[i_all_phrases], l_idelayed=[])
 				self.__l_els_stats.append(el_stats)
 				self.__l_els_here.append(word)
-				glv_wid = self.__bitvec_mgr.get_el_id(word.lower())
-				if glv_wid == -1:
-					b_add_now = False
-					num_unassigned += 1
-					i_last_unassigned = iword
-					nd_wbits = np.zeros(bitvec_size, dtype=np.uint8)
-				else:
-					nd_wbits = self.__bitvec_mgr.get_bin_by_id(glv_wid)
-					el_stats = el_stats._replace(bglove=True, bassigned=True, bitvec=nd_wbits)
-					nd_phrase[iword, :] = nd_wbits
+				b_add_now = False
+				num_unassigned += 1
+				i_last_unassigned = iword
+				nd_wbits = np.zeros(c_bitvec_size, dtype=np.uint8)
+				# glv_wid = self.get_el_id(word.lower())
+				# if glv_wid == -1:
+				# else:
+				# 	nd_wbits = self.get_bin_by_id(glv_wid)
+				# 	el_stats = el_stats._replace(bglove=True, bassigned=True, bitvec=nd_wbits)
+				# 	nd_phrase[iword, :] = nd_wbits
 				if self.__nd_word_bin == None:
 					self.__nd_word_bin = np.expand_dims(nd_wbits, axis=0)
 				else:
@@ -93,9 +146,10 @@ class cl_nlb_mgr(object):
 														 np.expand_dims(nd_wbits, axis=0)), axis=0)
 				assert self.__nd_word_bin.shape[0] == len(self.__d_words), 'Error. Forgot to add word bin'
 
-				del nd_wbits, glv_wid
+				del nd_wbits # , glv_wid
 			else:  # if word already seen
 				el_stats = self.__l_els_stats[iel]  # ._replace()
+				if el_stats.l_iphrases == None: el_stats = el_stats._replace(l_iphrases = [])
 				if i_all_phrases not in el_stats.l_iphrases:
 					el_stats.l_iphrases.append(i_all_phrases)
 				if el_stats.bassigned:
@@ -176,6 +230,36 @@ class cl_nlb_mgr(object):
 
 	# end process unassigned row
 
+	def load_rule_grps(self):
+		fn = self.__rule_grp_fnt
+		try:
+			with open(fn, 'rb') as o_fhr:
+				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+				for irow, row in enumerate(csvr):
+					for rname in row:
+						self.__d_rule_grps[rname] = irow
+
+		except IOError:
+			print('Cannot open or read ', fn)
+
+	def load_save_phrases(self):
+		fn = expanduser(self.__bitvec_saved_phrases_fnt)
+		try:
+			with open(fn, 'rb') as o_fhr:
+				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+				_, _, version_str = next(csvr)
+				_, snum_els = next(csvr)
+				version, num_els = int(version_str), int(snum_els)
+				if version != 1:
+					raise IOError
+				for irow, row in enumerate(csvr):
+					self.__l_saved_phrases.append(row)
+
+		except IOError:
+			print('Cannot open or read ', fn)
+
+
+
 	def load_sample_texts(self, phrase_fnt):
 		# fn = expanduser(phrase_fnt)
 		# # try:
@@ -186,14 +270,14 @@ class cl_nlb_mgr(object):
 		# 			self.add_new_row(row)
 		# 		# end loop over rows
 
-		bitvec_saved_phrases = self.__bitvec_mgr.get_saved_phrases()
+		bitvec_saved_phrases = self.__l_saved_phrases
 		for phrase_data in bitvec_saved_phrases:
 			self.__l_rule_name.append(phrase_data[0])
 			self.add_new_row(phrase_data[1].split())
 
 		import cluster
 		cluster.cluster(self.__ndbits_by_len, self.__l_rule_name, self.__iphrase_by_len,
-						self.__bitvec_mgr.get_d_rule_gprs())
+						self.__d_rule_grps)
 
 
 	def dbg_closest_words(self, bins):
@@ -250,10 +334,10 @@ class cl_nlb_mgr(object):
 		# dev = np.average(np.not_equal(new_bits, obits))
 		if els_stats.bassigned:
 			# prev_new_el = l_new_els[inewel]
-			self.__bitvec_mgr.remove_unique_bits_ext(els_stats.bitvec)
+			self.remove_unique_bits(els_stats.bitvec)
 			new_num_hits = els_stats.num_hits + 1
-			old_cd = (bitvec_size - els_stats.avg_hd) / bitvec_size
-			new_cd = (bitvec_size - avg_hd) / bitvec_size
+			old_cd = (c_bitvec_size - els_stats.avg_hd) / c_bitvec_size
+			new_cd = (c_bitvec_size - avg_hd) / c_bitvec_size
 			wold = old_cd * els_stats.num_hits
 			avg_hd = ((avg_hd*new_cd) + (els_stats.avg_hd*wold))/(new_cd+wold)
 			# avg_hd = (avg_hd + (els_stats.avg_hd * els_stats.num_hits)) / new_num_hits
@@ -280,7 +364,7 @@ class cl_nlb_mgr(object):
 			if by_len_idx == -1: continue
 			phrase = self.__l_phrases[iphrase]
 			bfix, plen = True, len(phrase)
-			nd_phrase2 = np.zeros((plen, bitvec_size), dtype=np.uint8)
+			nd_phrase2 = np.zeros((plen, c_bitvec_size), dtype=np.uint8)
 
 			for iword, word in enumerate(phrase):
 				iel = self.__d_words.get(word.lower(), -1)
@@ -297,12 +381,12 @@ class cl_nlb_mgr(object):
 
 
 	def create_closest_unique_bits(self, new_vals, new_bits):
-		s_word_bit_db = self.__bitvec_mgr.get_s_word_bit_db()
+		s_word_bit_db = self.__s_word_bit_db
 		if tuple(new_bits) in s_word_bit_db:
 			bfound = False
 			while True:
 				can_flip = np.argsort(np.square(new_vals - 0.5))
-				for num_flip in range(1, bitvec_size):
+				for num_flip in range(1, c_bitvec_size):
 					try_flip = can_flip[:num_flip]
 					l = [list(itertools.combinations(try_flip, r)) for r in range(num_flip + 1)]
 					lp = [item for sublist in l for item in sublist]
@@ -319,7 +403,7 @@ class cl_nlb_mgr(object):
 						break
 				if bfound:
 					break
-		self.__bitvec_mgr.add_unique_bits_ext(new_bits)
+		self.add_unique_bits(new_bits)
 		return new_bits
 
 	def assign_unknown_words(self):
@@ -327,7 +411,7 @@ class cl_nlb_mgr(object):
 		for idelayed in self.__l_delayed_iphrases:
 			phrase = self.__l_phrases[idelayed]
 			plen = len(phrase)
-			nd_phrase = np.zeros((plen, bitvec_size), dtype=np.uint8)
+			nd_phrase = np.zeros((plen, c_bitvec_size), dtype=np.uint8)
 			for iword, word in enumerate(phrase):
 				miss_count, i_last_miss, prov_count, l_wid_provs, i_last_prov = 0, -1, 0, [], -1
 				wid = self.__d_words.get(word.lower(), -1)
@@ -376,7 +460,7 @@ class cl_nlb_mgr(object):
 			new_vals = np.sum(obits.transpose() / divider, axis=1) / divider_sum
 			# ref_std_dev = np.average(np.std(np.random.rand(30,50), axis=0))
 			# std_dev = np.average(np.std(obits, axis=0))
-			# std_dev = np.average(np.minimum(np.count_nonzero(obits, axis=0), bitvec_size - np.count_nonzero(obits, axis=0)))
+			# std_dev = np.average(np.minimum(np.count_nonzero(obits, axis=0), c_bitvec_size - np.count_nonzero(obits, axis=0)))
 			# round them all and if the pattern is already there switch the closest to 0.5
 			new_bits = np.round_(new_vals).astype(np.uint8)
 			dev = np.average(np.not_equal(new_bits, obits))
@@ -448,7 +532,7 @@ class cl_nlb_mgr(object):
 				# devi = np.average(np.not_equal(new_bits, obits))
 				# std_dev = np.average(np.std(obits, axis=0))
 				# std_dev = np.average(
-				# 	np.minimum(np.count_nonzero(obits, axis=0), bitvec_size - np.count_nonzero(obits, axis=0)))
+				# 	np.minimum(np.count_nonzero(obits, axis=0), c_bitvec_size - np.count_nonzero(obits, axis=0)))
 				new_el = ' '.join(phrase[pos:pos + delta + 1])
 				inewel = self.__d_words.get(new_el.lower(), -1)
 				if inewel == -1:
@@ -464,10 +548,10 @@ class cl_nlb_mgr(object):
 				else:
 					# prev_new_el = self.__l_els_here[inewel]
 					els_stats = self.__l_els_stats[inewel]
-					self.__bitvec_mgr.remove_unique_bits_ext(els_stats.bitvec)
+					self.remove_unique_bits(els_stats.bitvec)
 					new_num_hits = els_stats.num_hits + 1
-					old_cd = (bitvec_size - els_stats.avg_hd) / bitvec_size
-					new_cd = (bitvec_size - avg_hd) / bitvec_size
+					old_cd = (c_bitvec_size - els_stats.avg_hd) / c_bitvec_size
+					new_cd = (c_bitvec_size - avg_hd) / c_bitvec_size
 					wold = old_cd * els_stats.num_hits
 					avg_hd = ((avg_hd * new_cd) + (els_stats.avg_hd * wold)) / (new_cd + wold)
 					new_vals = ((new_vals * new_cd) + (els_stats.bitvals * wold)) / (new_cd + wold)
@@ -518,7 +602,7 @@ class cl_nlb_mgr(object):
 						devi = np.average(np.not_equal(new_bits, obits))
 						# std_dev = np.average(np.std(obits, axis=0))
 						std_dev = np.average(
-							np.minimum(np.count_nonzero(obits, axis=0), bitvec_size - np.count_nonzero(obits, axis=0)))
+							np.minimum(np.count_nonzero(obits, axis=0), c_bitvec_size - np.count_nonzero(obits, axis=0)))
 						new_el = ' '.join(phrase[pos:pos+delta+1])
 						inewel = d_new_els.get(new_el, -1)
 						if inewel == -1:

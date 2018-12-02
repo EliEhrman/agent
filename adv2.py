@@ -12,16 +12,18 @@ c_dummy_init_fn = 'adv/dummy_init.txt'
 c_dummy_events_fn = 'adv/dummy_events.txt'
 c_phrase_freq_fnt = '~/tmp/adv_phrase_freq.txt'
 c_b_nl = True # nat lang processing. Learn phrases. Initial load from glove. For now, switch bitvec.c_bitvec_size to 16 as well
-if c_b_nl:
-	c_phrase_bitvec_dict_fnt = '~/tmp/glv_bin_dict.txt'
-else:
-	c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
-c_bitvec_saved_phrases_fnt = '~/tmp/saved_phrases_small.txt'
+# if c_b_nl:
+# 	c_phrase_bitvec_dict_fnt = '~/tmp/glv_bin_dict.txt'
+# else:
+# 	c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
+c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
+c_nlbitvec_dict_fnt = '~/tmp/glv_bin_dict.txt'
+c_bitvec_saved_phrases_fnt = '~/tmp/saved_phrases_small.txt' # '~/tmp/saved_phrases_small.txt' # '~/tmp/saved_phrases.txt'
 c_rule_grp_fnt = 'adv/rule_groups.txt'
 c_num_agents_per_story = 5 # 50
 c_num_countries_per_story = 5 # 80
 c_num_objects_per_story = 5 # 50
-c_num_tries_per_player = 10
+c_num_tries_per_player = 30
 c_goal_init_level_limit = 3
 c_goal_max_level_limit = 7
 c_max_story_time_to_repeat = 250000 # ignore the fact that an action has already be done after this much time and random when less
@@ -37,7 +39,7 @@ __rec_def_type = None
 l_names = []
 l_countries = []
 l_objects = []
-c_b_learn_full_rules = False
+c_b_learn_full_rules = True
 c_b_save_freq_stats= False
 c_story_len = 30 # 200
 c_num_stories = 5000
@@ -47,7 +49,7 @@ l_dummy_types = []
 l_dummy_events = []
 l_dummy_ruleid = []
 g_dummy_idx = -1
-c_b_gpsai = True
+c_b_gpsai = False
 c_b_save_phrases = False # Create a file of phrases with the rule that generated them
 
 e_player_decide = Enum('e_player_decide', 'goto pickup ask_where tell_where ask_give give')
@@ -64,7 +66,7 @@ def mod_init():
 	l_agents = els_sets[set_names.index('names')]
 
 	return 	els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt, \
-			c_bitvec_saved_phrases_fnt, c_rule_grp_fnt
+			c_bitvec_saved_phrases_fnt, c_rule_grp_fnt, c_nlbitvec_dict_fnt
 
 def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
 	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod, __rec_def_type
@@ -247,14 +249,15 @@ def time_decor(fn):
 		return r
 	return wr
 
-@profile_decor
-def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice = None):
+# @profile_decor
+def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice_src = None):
 	for one_try in range(c_num_tries_per_player):
+		decision_choice =  decision_choice_src
 		if decision_choice == None:
 			decision_choice = np.random.choice([e_player_decide.goto, e_player_decide.pickup,
 												e_player_decide.ask_where, e_player_decide.tell_where,
 												e_player_decide.ask_give, e_player_decide.give],
-											   p=[0.02, 0.18, 0.2, 0.2, 0.2, 0.2])
+											   p=[0.02, 0.28, 0.2, 0.2, 0.15, 0.15])
 		# decision_choice = e_player_decide.ask_where
 		ruleid = decision_choice.value-1
 		if c_b_learn_full_rules:
