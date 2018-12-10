@@ -2640,6 +2640,21 @@ CIW:
 
 nlbitvec works independently of bitvec.
 
+Monday 10th December 2018
+
+Working on a new structure of modules exteding the nlbitvec revolution
+phrases holds the phrases themselves and provides the system with a reference to the phrase (rphrase) which is simply
+the index into its own unique list of phrases
+mpdbs is a small, stripped down version of mpdb which does not deal with binaries but simply tracks the validity of
+each phrase in the various agent databases.
+phraseperms keeps a list of phrases handed to it, a map from rphrase to its own index of the phrases and a list of perms.
+	A perm is list of iel's. An iel is the reference to word or phrase maintained by nlbitvec. A single phrase can have
+	multiple perms because a number of single-word iels can be replaced by a multi-word
+
+CIW:
+
+Initial work on reorg passes initial story stages.
+
 
 
 

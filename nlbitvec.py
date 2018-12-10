@@ -1,11 +1,15 @@
 import bitvec
 # from bitvec import c_bitvec_size as bitvec_size
 import csv
+import os
 from os.path import expanduser
+from shutil import copyfile
 import numpy as np
 import itertools
 import collections
 import copy
+
+import cluster
 
 c_phrase_fnt = '~/tmp/adv_phrases.txt'
 
@@ -23,7 +27,7 @@ nt_new_el = collections.namedtuple('nt_new_el', 'el, avg_hd, devi, num_hits, bit
 # l_iphrases is a list of indices into __l_phrases that the el appears in
 nt_el_stats = collections.namedtuple('nt_el_stats', 'el, bglove, bassigned, avg_hd, num_hits, l_iphrases, l_idelayed, bitvals, bitvec')
 nt_el_stats.__new__.__defaults__ = ('???', False, False, -1.0, 0, None, None, [], np.zeros(c_bitvec_size, dtype=np.uint8))
-
+nt_mult_el = collections.namedtuple('nt_mult_el', 'el, iel, pos, len')
 
 divider = np.array(
 	range(c_bitvec_neibr_divider_offset,c_num_ham_winners + c_bitvec_neibr_divider_offset),
@@ -32,19 +36,26 @@ divider_sum = np.sum(1. / divider)
 
 
 class cl_nlb_mgr(object):
-	def __init__(self, bitvec_dict_fnt, rule_grp_fnt, saved_phrases_fnt):
+	def __init__(	self, b_restart_from_glv, phrase_mgr, phraseperms_mgr, bitvec_dict_glv_fnt, rule_grp_fnt, saved_phrases_fnt,
+					bitvec_dict_output_fnt, cluster_fnt):
+		self.__phrase_mgr = phrase_mgr
+		self.__phraseperms = phraseperms_mgr
+		bitvec_dict_fnt = bitvec_dict_glv_fnt if b_restart_from_glv else bitvec_dict_output_fnt
+		self.__cluster_fnt = cluster_fnt
 		self.__d_words = dict()
 		d_words, nd_bit_db, s_word_bit_db, l_els, l_els_stats = self.load_word_db(bitvec_dict_fnt)
+		self.__bitvec_dict_output_fnt = bitvec_dict_output_fnt
 		self.__d_words = d_words
 		self.__s_word_bit_db = s_word_bit_db
 		self.__nd_word_bin = nd_bit_db
 		self.__l_els_here = l_els
 		self.__l_els_stats = l_els_stats # type: List(nt_el_stats)
 		# self.__bitvec_mgr = bitvec_mgr
+		# self.__map_phrase_to_rphrase = dict() # type : Dict[str, int] # map the text of the phrase
 		self.__ndbits_by_len = [] # bit representation of phrase, ordered by phrase len
 		self.__iphrase_by_len = [] # for each len, entry corresponding to __ndbits_by_len, index into l_phrases
 		self.__phrase_by_len_idx = [] # for each entry of l_phrases, -1 if unassigned, index into iphrase by len and ndbits_by len otherwise
-		self.__l_phrases = [] # type: List(str)
+		# self.__l_phrases = [] # type: List(str)
 		self.__l_delayed_iphrases = []
 		self.__l_rule_name  = [] # for each entry of l_phrases, the name of the rule that created it
 		self.__rule_grp_fnt = rule_grp_fnt
@@ -52,8 +63,15 @@ class cl_nlb_mgr(object):
 		self.load_rule_grps()
 		self.__bitvec_saved_phrases_fnt = saved_phrases_fnt
 		self.__l_saved_phrases = []
-		self.load_save_phrases()
-		self.load_sample_texts(c_phrase_fnt)
+		if b_restart_from_glv:
+			self.load_save_phrases()
+			l_nd_centroids, ll_cent_hd_thresh = self.load_sample_texts(c_phrase_fnt)
+		else:
+			l_nd_centroids, ll_cent_hd_thresh = cluster.load_clusters(cluster_fnt, c_bitvec_size)
+		self.__mpdb_mgr = None
+		self.__mpdb_bins = []
+		self.__l_nd_centroids = l_nd_centroids
+		self.__ll_cent_hd_thresh = ll_cent_hd_thresh
 		# for num_try_assign in range(c_num_assign_tries):
 		# 	num_unassigned = self.assign_unknown_words()
 		# 	if num_unassigned == 0:
@@ -69,19 +87,30 @@ class cl_nlb_mgr(object):
 				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
 				_, _, version_str = next(csvr)
 				_, snum_els = next(csvr)
+				next(csvr); next(csvr)
 				version, num_els = int(version_str), int(snum_els)
-				if version != 1:
+				if version != 2:
 					raise IOError
 				d_words, s_word_bit_db, nd_bit_db = dict(), set(), np.zeros((num_els, c_bitvec_size), dtype=np.uint8)
 				l_els = ['' for _ in xrange(num_els)]
 				l_els_stats = [nt_el_stats(bglove=True, bassigned=True) for _ in xrange(num_els)]
-				for irow, row in enumerate(csvr):
+				for irow in range(num_els):
+					row = next(csvr)
 					word, iel, sbits = row[0], row[1], row[2:]
+					rowdata = next(csvr)
+					bglove, bassigned, avg_hd = rowdata[0]=='True', rowdata[1]=='True', float(rowdata[2])
+					num_hits, bitvals = int(rowdata[3]), rowdata[4:]
+					if bitvals == ['[]']:
+						bitvals = []
+					else:
+						bitvals = np.array(map(float, bitvals), dtype=float)
 					bits = map(int, sbits)
 					ndbits = np.array(bits, dtype=np.uint8)
 					d_words[word] = int(iel)
 					l_els[int(iel)] = word
-					l_els_stats[int(iel)] = l_els_stats[int(iel)]._replace(el=word, bitvec=ndbits)
+					l_els_stats[int(iel)] = nt_el_stats(el=word, bglove=bglove, bassigned=bassigned,
+														avg_hd=avg_hd, num_hits=num_hits, bitvals=bitvals, bitvec=ndbits,
+														l_idelayed=[], l_iphrases=[])
 					nd_bit_db[int(iel)] = ndbits
 					s_word_bit_db.add(tuple(bits))  # if asserts here check bitvec.bitvec_size
 
@@ -89,6 +118,29 @@ class cl_nlb_mgr(object):
 			raise ValueError('Cannot open or read ', fn)
 
 		return d_words, nd_bit_db, s_word_bit_db, l_els, l_els_stats
+
+	def save_word_db(self):
+		# d_words, nd_bit_db, fnt_dict):
+		fn = expanduser(self.__bitvec_dict_output_fnt)
+
+		if os.path.isfile(fn):
+			copyfile(fn, fn + '.bak')
+		fh = open(fn, 'wb')
+		csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+		csvw.writerow(['Glv Dict', 'Version', '2'])
+		csvw.writerow(['Num Els:', len(self.__d_words)])
+		csvw.writerow(['el', 'eid', 'bitvec'])
+		csvw.writerow(['bglove', 'bassigned', 'avg_hd', 'num_hits', 'bitvals'])
+		for kword, virow in self.__d_words.iteritems():
+			els_stats = self.__l_els_stats[virow]
+			assert kword==els_stats.el.lower(), 'save_word_db: dict mismatch'
+			csvw.writerow([kword, virow] + els_stats.bitvec.tolist())
+			lbitvals = ['[]']
+			if els_stats.bitvals != []:
+				lbitvals = els_stats.bitvals.tolist()
+			csvw.writerow([els_stats.bglove, els_stats.bassigned, els_stats.avg_hd, els_stats.num_hits] + lbitvals)
+
+		fh.close()
 
 	def get_el_id(self, word):
 		return self.__d_words.get(word, -1)
@@ -102,23 +154,57 @@ class cl_nlb_mgr(object):
 	def remove_unique_bits(self, bits):
 		self.__s_word_bit_db.remove(tuple(bits))
 
+	def set_mpdb_mgr(self, mpdb_mgr):
+		self.__mpdb_mgr = mpdb_mgr
+
+	def get_mpdb_mgr(self):
+		return self.__mpdb_mgr
+
+	def clear_mpdb_bins(self):
+		self.__mpdb_bins = []
+
+	def add_phrase(self, phrase_src, creating_rule_name=''):
+		phrase = [w for lw in [el.split() for el in phrase_src] for w in lw]
+		i_all_phrases = self.__add_phrase(phrase)
+		if creating_rule_name != '':
+			grow = 1 + i_all_phrases - len(self.__l_rule_name)
+			if grow > 0:
+				self.__l_rule_name += [[] for _ in range(grow)]
+			if creating_rule_name not in self.__l_rule_name[i_all_phrases]:
+				self.__l_rule_name[i_all_phrases].append(creating_rule_name)
+
+		return i_all_phrases
+
+	def __add_phrase(self, phrase):
+		rphrase = self.__phrase_mgr.get_rphrase(phrase)
+		# rphrase = self.__map_phrase_to_rphrase.get(tuple(phrase), -1)
+		if rphrase != -1:
+			return rphrase
+		return self.add_new_row(phrase)
 
 	def add_new_row(self, phrase):
-		i_all_phrases = len(self.__l_phrases)
-		self.__l_phrases.append(phrase)
-		self.__phrase_by_len_idx.append(-1)
+		i_all_phrases = self.__phrase_mgr.add_phrase(phrase)
+		self.__phraseperms.add_new_phrase(i_all_phrases)
+		# i_all_phrases = len(self.__l_phrases)
+		# self.__l_phrases.append(phrase)
+		# self.__map_phrase_to_rphrase[tuple(phrase)] = i_all_phrases
+		grow = 1 + i_all_phrases - len(self.__phrase_by_len_idx)
+		self.__phrase_by_len_idx += [-1 for _ in range(grow)]
+		del grow
 		if (len(phrase) + 1) > len(self.__ndbits_by_len):
 			l_grow_init = [[] for _ in range((1 + len(phrase) - len(self.__ndbits_by_len)))]
 			self.__ndbits_by_len += l_grow_init
 			self.__iphrase_by_len += copy.deepcopy(l_grow_init)
 			# by_len_iphrase = 0
 			del l_grow_init
-		self.process_new_row(i_all_phrases)
+		return self.process_new_row(i_all_phrases)
 
 	def process_new_row(self, i_all_phrases):
-		phrase = self.__l_phrases[i_all_phrases]
+		phrase = self.__phrase_mgr.get_phrase(i_all_phrases)
+		# phrase = self.__l_phrases[i_all_phrases]
 		b_add_now = True
 		nd_phrase = np.zeros((len(phrase), c_bitvec_size), dtype=np.uint8)
+		l_phrase_iels = []
 		num_unassigned, i_last_unassigned = 0, -1
 		for iword, word in enumerate(phrase):
 			iel = self.__d_words.get(word.lower(), -1)
@@ -138,7 +224,7 @@ class cl_nlb_mgr(object):
 				# 	nd_wbits = self.get_bin_by_id(glv_wid)
 				# 	el_stats = el_stats._replace(bglove=True, bassigned=True, bitvec=nd_wbits)
 				# 	nd_phrase[iword, :] = nd_wbits
-				if self.__nd_word_bin == None:
+				if self.__nd_word_bin is None:
 					self.__nd_word_bin = np.expand_dims(nd_wbits, axis=0)
 				else:
 					iel = self.__nd_word_bin.shape[0]
@@ -163,6 +249,7 @@ class cl_nlb_mgr(object):
 			# self.__l_els_stats.append(nt_el_stats(el=word, bglove=True, avg_hd=-1., num_hits=1,
 			# 									  bitvals=[], l_iphrases=[]))
 			self.__l_els_stats[iel] = el_stats
+			l_phrase_iels.append(iel)
 			del el_stats, iel
 		del word, iword
 		# end loop over words
@@ -199,6 +286,7 @@ class cl_nlb_mgr(object):
 				self.__ndbits_by_len[len(phrase)] = np.concatenate((self.__ndbits_by_len[len(phrase)],
 																	np.expand_dims(nd_phrase, axis=0)), axis=0)
 			self.__phrase_by_len_idx[i_all_phrases] = by_len_iphrase
+			self.__phraseperms.add_perm(i_all_phrases, l_phrase_iels)
 		else:
 			self.__l_delayed_iphrases += [i_all_phrases]
 			# if the phrase cannot have a bitvec representation added due to there being more
@@ -226,7 +314,9 @@ class cl_nlb_mgr(object):
 					self.process_new_row(idelayed)
 			del iel, el_stats, word
 
-		self.find_pair_bins_for_phrase(phrase, i_all_phrases)
+		self.find_pair_bins_for_phrase(phrase, l_phrase_iels, i_all_phrases)
+
+		return i_all_phrases
 
 	# end process unassigned row
 
@@ -272,12 +362,16 @@ class cl_nlb_mgr(object):
 
 		bitvec_saved_phrases = self.__l_saved_phrases
 		for phrase_data in bitvec_saved_phrases:
-			self.__l_rule_name.append(phrase_data[0])
-			self.add_new_row(phrase_data[1].split())
+			self.add_phrase(phrase_data[1].split(), phrase_data[0])
 
-		import cluster
-		cluster.cluster(self.__ndbits_by_len, self.__l_rule_name, self.__iphrase_by_len,
-						self.__d_rule_grps)
+		score, l_nd_centroids, ll_cent_hd_thresh = \
+			cluster.cluster(self.__ndbits_by_len, self.__l_rule_name, self.__iphrase_by_len,
+							self.__d_rule_grps)
+		# self.__l_nd_centroids = l_nd_centroids
+		# self.__ll_cent_hd_thresh = ll_cent_hd_thresh
+		self.save_word_db()
+		cluster.save_cluters(l_nd_centroids, ll_cent_hd_thresh, self.__cluster_fnt)
+		return l_nd_centroids, ll_cent_hd_thresh
 
 
 	def dbg_closest_words(self, bins):
@@ -298,7 +392,7 @@ class cl_nlb_mgr(object):
 		els_stats = self.__l_els_stats[iel]
 		plen = len(phrase)
 		nd_bits_db = self.__ndbits_by_len[plen]
-		if nd_bits_db in [None, []]:
+		if nd_bits_db is None or nd_bits_db == []:
 			return False
 		nd_hd = np.zeros(nd_bits_db.shape[0], dtype=int)
 		for iword, word in enumerate(phrase):
@@ -362,7 +456,8 @@ class cl_nlb_mgr(object):
 		for iphrase in els_stats.l_iphrases:
 			by_len_idx = self.__phrase_by_len_idx[iphrase]
 			if by_len_idx == -1: continue
-			phrase = self.__l_phrases[iphrase]
+			phrase = self.__phrase_mgr.get_phrase(iphrase)
+			# phrase = self.__l_phrases[iphrase]
 			bfix, plen = True, len(phrase)
 			nd_phrase2 = np.zeros((plen, c_bitvec_size), dtype=np.uint8)
 
@@ -409,7 +504,8 @@ class cl_nlb_mgr(object):
 	def assign_unknown_words(self):
 		l_failed_assign = []
 		for idelayed in self.__l_delayed_iphrases:
-			phrase = self.__l_phrases[idelayed]
+			phrase = self.__phrase_mgr.get_phrase(idelayed)
+			# phrase = self.__l_phrases[idelayed]
 			plen = len(phrase)
 			nd_phrase = np.zeros((plen, c_bitvec_size), dtype=np.uint8)
 			for iword, word in enumerate(phrase):
@@ -483,7 +579,8 @@ class cl_nlb_mgr(object):
 		self.__l_delayed_iphrases = l_failed_assign
 		return len(l_failed_assign)
 
-	def find_pair_bins_for_phrase(self, phrase, igphrase):
+	def find_pair_bins_for_phrase(self, phrase, l_phrase_iels, igphrase):
+		l_mults = []
 		for delta in range(1,3):
 			len1 = len(phrase)
 			if len1 <= delta or self.__iphrase_by_len[len1-delta] == []:
@@ -536,7 +633,8 @@ class cl_nlb_mgr(object):
 				new_el = ' '.join(phrase[pos:pos + delta + 1])
 				inewel = self.__d_words.get(new_el.lower(), -1)
 				if inewel == -1:
-					self.__d_words[new_el.lower()] = len(self.__l_els_here)
+					inewel = len(self.__l_els_here)
+					self.__d_words[new_el.lower()] = inewel
 					self.__l_els_here.append(new_el)
 					new_bits = np.round_(new_vals).astype(np.uint8)
 					new_bits = np.array(self.create_closest_unique_bits(new_vals, new_bits), dtype=np.uint8)
@@ -548,7 +646,7 @@ class cl_nlb_mgr(object):
 				else:
 					# prev_new_el = self.__l_els_here[inewel]
 					els_stats = self.__l_els_stats[inewel]
-					self.remove_unique_bits(els_stats.bitvec)
+					self.remove_unique_bits(els_stats.bitvec) # put back in the create_closest_unique_bits call a few lines down
 					new_num_hits = els_stats.num_hits + 1
 					old_cd = (c_bitvec_size - els_stats.avg_hd) / c_bitvec_size
 					new_cd = (c_bitvec_size - avg_hd) / c_bitvec_size
@@ -561,9 +659,36 @@ class cl_nlb_mgr(object):
 																num_hits=new_num_hits,
 																bitvals=new_vals, bitvec=new_bits,
 																l_iphrases=els_stats.l_iphrases+[igphrase])
+				# end if/else new_el seen before or not
+				l_mults.append(nt_mult_el(el=new_el, iel=inewel, pos=pos, len=delta+1))
+			# end for pos along phrase
+		#end delta/number of words in new_el
+		for num_mults in range(1, len(l_mults)+1):
+			for ticomb in itertools.combinations(range(len(l_mults)), num_mults):
+				l_used = [False for _ in phrase]
+				l_new_iels = copy.deepcopy(l_phrase_iels)
+				b_comb_valid = True
+				for icomb in ticomb:
+					mult = l_mults[icomb]
+					for pos in range(mult.pos, mult.pos+mult.len):
+						if l_used[pos]:
+							b_comb_valid = False
+							break
+						l_used[pos] = True
+						l_new_iels[pos] = mult.iel if pos == mult.pos else -1
+					if not b_comb_valid:
+						break
+				if b_comb_valid:
+					l_phrase_iels_new = filter(lambda a: a != -1, l_new_iels)
+					self.__phraseperms.add_perm(igphrase, l_phrase_iels_new)
+					pass
+				pass
+	#end fn find_pair_bins for phrase
+
 
 	def learn_pair_bins(self):
 		# nt_new_el = collections.namedtuple('nt_new_el', 'el, avg_hd, num_hits, bitvals')
+		assert False, 'unused code suspected.'
 		d_new_els, l_new_els = dict(), []
 		num_lens = len(self.__iphrase_by_len)
 		for delta in range(1,3):
@@ -573,7 +698,8 @@ class cl_nlb_mgr(object):
 				nd_bits_db = self.__ndbits_by_len[len1]
 				for pos in range(len1):
 					for iphrase_big in self.__iphrase_by_len[len1+delta]:
-						phrase = self.__l_phrases[iphrase_big]
+						phrase = self.__phrase_mgr.get_phrase(iphrase_big)
+						# phrase = self.__l_phrases[iphrase_big]
 						nd_hd = np.zeros(nd_bits_db.shape[0], dtype=int)
 						for iword_big, el in enumerate(phrase):
 							# bskip = False
@@ -594,7 +720,8 @@ class cl_nlb_mgr(object):
 						l_closest = []
 						for iclose in hd_idx_sorted.tolist():
 							iphrase = self.__iphrase_by_len[len1][iclose]
-							l_closest.append(self.__l_phrases[iphrase])
+							# l_closest.append(self.__l_phrases[iphrase])
+							l_closest.append(self.__phrase_mgr.get_phrase(iphrase))
 						slice_iword = nd_bits_db[:, pos, :]
 						obits = slice_iword[hd_idx_sorted]
 						new_vals = np.sum(obits.transpose() / divider, axis=1) / divider_sum

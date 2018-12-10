@@ -14,11 +14,12 @@ from varopts import varopts
 
 
 class cl_mpdb_mgr(object):
-	def __init__(self, bitvec_mgr, rule_mgr, len_set_names):
+	def __init__(self, bitvec_mgr, rule_mgr, len_set_names, nlbitvec_mgr):
 		self.__l_dbs = []
 		self.__l_d_story_len_refs = []
 		self.__d_dn_names = dict()
 		self.__bitvec_mgr = bitvec_mgr
+		self.__nlbitvec_mgr = nlbitvec_mgr
 		self.__rules_mgr = rule_mgr
 		self.__l_delayed_inserts = []
 		self.__map_rphrase_to_isrphrase = dict() # maps global ref to phrase (len and iphrase) of bitvec to idx of phrase in l_sphrase
@@ -26,6 +27,7 @@ class cl_mpdb_mgr(object):
 		self.__ll_idb_mrks = [] # for each idb, list of bools for whether the phrase (indexed on l_srphrases) is in that idb
 		rule_mgr.add_to_bitvec_mgr(bitvec_mgr)
 		bitvec_mgr.set_mpdb_mgr(self)
+		nlbitvec_mgr.set_mpdb_mgr(self)
 		self.__len_set_names = len_set_names
 		self.__chmpdb = varopts.mpdb_init(self.__bitvec_mgr.get_hcvo(), self.__len_set_names)
 		# self.add_db('main')
@@ -35,8 +37,12 @@ class cl_mpdb_mgr(object):
 	def get_bitvec_mgr(self):
 		return self.__bitvec_mgr
 
+	def get_nlbitvec_mgr(self):
+		return self.__nlbitvec_mgr
+
 	def clear_dbs(self):
 		self.__bitvec_mgr.clear_mpdb_bins()
+		self.__nlbitvec_mgr.clear_mpdb_bins()
 		varopts.mpdb_clear(self.__chmpdb)
 		self.__chmpdb = varopts.mpdb_init(self.__bitvec_mgr.get_hcvo(), self.__len_set_names)
 		self.__l_dbs = []
@@ -77,7 +83,7 @@ class cl_mpdb_mgr(object):
 			return []
 		return self.__l_d_story_len_refs[idb].get(stg_ilen, [])
 
-	def ext_insert(self, l_db_names, phrase_ref, bdelay=False):
+	def ext_insert(self, l_db_names, phrase_ref, phrase_nl_ref=None, bdelay=False):
 		for db_name in l_db_names:
 			idb = self.__d_dn_names.get(db_name, -1)
 			if idb == -1:
@@ -255,13 +261,16 @@ class cl_mpdb_mgr(object):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1: raise ValueError('add_phrase should only be called when the db_name has already been added')
 		ilen, iphrase = self.__bitvec_mgr.add_phrase(phrase, phase_data)
-		self.ext_insert([db_name], (ilen, iphrase), bdelay=False)
+		inlphrase = self.__nlbitvec_mgr.add_phrase(phrase)
+
+		self.ext_insert([db_name], (ilen, iphrase), inlphrase, bdelay=False)
 
 	def remove_phrase_text(self, db_name, phrase, phase_data):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1: raise ValueError('add_phrase should only be called when the db_name has already been added')
 		ilen, iphrase = self.__bitvec_mgr.add_phrase(phrase, phase_data)
-		self.remove_phrase([db_name], (ilen, iphrase))
+		inlphrase = self.__nlbitvec_mgr.add_phrase(phrase)
+		self.remove_phrase([db_name], (ilen, iphrase), inlphrase)
 
 	def apply_mods(self, db_name, phrase, phase_data):
 		insert_phrase, remove_phrase, m_unique_bels = self.__rules_mgr.parse_phrase_for_mod(phrase)
@@ -285,7 +294,8 @@ class cl_mpdb_mgr(object):
 					break
 		if insert_phrase != []:
 			ilen, iphrase = self.__bitvec_mgr.add_phrase(insert_phrase, phase_data)
-			self.ext_insert([db_name], (ilen, iphrase), bdelay=True)
+			inlphrase = self.__nlbitvec_mgr.add_phrase(insert_phrase)
+			self.ext_insert([db_name], (ilen, iphrase), inlphrase, bdelay=True)
 			# self.__l_dbs[idb].append((ilen, iphrase))
 
 	def show_dbs(self):

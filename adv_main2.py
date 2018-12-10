@@ -23,6 +23,9 @@ import rules2
 import mpdb
 import gpsai
 import nlbitvec
+import phrases
+import mpdbs
+import phraseperms
 
 # import adv_config
 # import adv_learn
@@ -34,9 +37,17 @@ complete_time = 0.
 @profile_decor
 def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 	global complete_time
-	mpdb_mgr = d_mod_fns['get_mpdb_mgr']()
-	bitvec_mgr = mpdb_mgr.get_bitvec_mgr()
-	gpsai_mgr = d_mod_fns['get_ai_mgr']()
+	mpdb_mgr = d_mod_fns['get_mgr']('mpdb')
+	bitvec_mgr = d_mod_fns['get_mgr']('bitvec')
+	rule_mgr = d_mod_fns['get_mgr']('rules')
+	nlbitvec_mgr = d_mod_fns['get_mgr']('nlbitvec')
+	gpsai_mgr = d_mod_fns['get_mgr']('ai')
+	phrase_mgr = d_mod_fns['get_mgr']('phrases')
+	mpdbs_mgr = d_mod_fns['get_mgr']('mpdbs')
+	perms_mgr = d_mod_fns['get_mgr']('phraseperms')
+	# bitvec_mgr = mpdb_mgr.get_bitvec_mgr()
+	# nlbitvec_mgr = mpdb_mgr.get_nlbitvec_mgr()
+	# gpsai_mgr = d_mod_fns['get_ai_mgr']()
 	# start_rule_names = ['objects_start', 'people_start', 'people_want_start']  # ['people_start'] #
 	# event_rule_names = ['pickup_rule', 'went_rule']
 	# state_from_event_names = ['gen_rule_picked_up', 'gen_rule_picked_up_free', 'gen_rule_went', 'gen_rule_has_and_went',
@@ -63,6 +74,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 		story_loop_stage = e_story_loop_stage.story_init
 
 		mpdb_mgr.clear_dbs()
+		mpdbs_mgr.clear_dbs()
 
 		# l_story_db_event_refs = []
 		# story_db = []
@@ -71,8 +83,10 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 			ilen, iphrase = bitvec_mgr.add_phrase(story_phrase,
 												  (i_one_story, -1, e_story_loop_stage.story_init,
 												   event_step_id[0]))
+			inlphrase = nlbitvec_mgr.add_phrase(story_phrase)
 			bitvec_mgr.save_phrase(init_rule_name, story_phrase)
-			mpdb_mgr.ext_insert([db_name], (ilen, iphrase))
+			mpdb_mgr.ext_insert([db_name], (ilen, iphrase), inlphrase)
+			mpdbs_mgr.ext_insert([db_name], inlphrase)
 
 		db_transfrs, trnsfr_rule_names =  mpdb_mgr.infer(['main'], (i_one_story, -1, story_loop_stage, event_step_id[0]),
 												['state_from_start'])
@@ -82,14 +96,17 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				added_wlist = rules2.convert_phrase_to_word_list([one_transfer[1:]])[0]
 				ilen, iphrase = bitvec_mgr.add_phrase(added_wlist,
 													  (i_one_story, -1, story_loop_stage, event_step_id[0]))
+				inlphrase = nlbitvec_mgr.add_phrase(added_wlist)
 				bitvec_mgr.save_phrase(trnsfr_rule_name, added_wlist)
-				mpdb_mgr.ext_insert([db_name], (ilen, iphrase))
+				mpdb_mgr.ext_insert([db_name], (ilen, iphrase), inlphrase)
+				mpdbs_mgr.ext_insert([db_name], inlphrase)
 
 		mpdb_mgr.set_poss_db(l_poss_stmts)
 
 		localtime = time.asctime(time.localtime(time.time()))
 
 		# mpdb_mgr.show_dbs()
+		mpdbs_mgr.show_dbs()
 
 		print("Local current time :", localtime)
 
@@ -192,6 +209,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					l_player_events.append(player_event_phrase)
 					ilen, iphrase = bitvec_mgr.add_phrase(l_player_events[-1], (i_one_story, i_story_step,
 																				story_loop_stage, event_step_id[0]))
+					inlphrase = nlbitvec_mgr.add_phrase(l_player_events[-1])
 					bitvec_mgr.save_phrase(event_that_decided, l_player_events[-1])
 					#handle deletes and modifies
 					story_loop_stage = e_story_loop_stage.state1
@@ -279,7 +297,9 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				# s = timeit.default_timer()
 				for db_name, event_result in zip(l_dbs_to_mod, events_to_queue):
 					mpdb_mgr.apply_mods(db_name, event_result, (i_one_story, i_story_step, story_loop_stage, event_step_id[0]))
+					mpdbs_mgr.apply_mods(db_name, event_result, rule_mgr)
 				mpdb_mgr.apply_delayed_inserts()
+				mpdbs_mgr.apply_delayed_inserts()
 				bitvec_mgr.clear_all_db_arg_caches()
 				gpsai_mgr.db_changed()
 					# story_db, iremoved, iadded, added_phrase = \
@@ -293,6 +313,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					# 	l_story_db_event_refs.append((ilen, iphrase))
 				# print('All dbs for step', event_step_id[0], 'in story num', i_one_story, ':')
 				# mpdb_mgr.show_dbs()
+				mpdbs_mgr.show_dbs()
 				story_loop_stage = e_story_loop_stage.decision_init
 				i_story_step += 1
 				if i_story_step >= num_story_steps:
@@ -350,14 +371,22 @@ def main():
 	# following need not be string dynamic but keeping working code to show how it's done
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()
 	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt, \
-			bitvec_saved_phrases_fnt, rule_grp_fnt, nlbitvec_dict_fnt = d_mod_fns['mod_init']()
+			bitvec_saved_phrases_fnt, rule_grp_fnt, nlbitvec_dict_fnt, nlbitvec_dict_output_fnt, \
+			cluster_fnt, b_restart_from_glv \
+		= d_mod_fns['mod_init']()
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt)
+	nlbitvec_mgr = None
 	if mod.c_b_nl:
-		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(nlbitvec_dict_fnt, rule_grp_fnt, bitvec_saved_phrases_fnt)
-	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents))
+		phrases_mgr = phrases.cl_phrase_mgr()
+		phraseperms_mgr = phraseperms.cl_phrase_perms()
+		mpdbs_mgr = mpdbs.cl_mpdbs_mgr(phrases_mgr)
+		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(	b_restart_from_glv, phrases_mgr, phraseperms_mgr, nlbitvec_dict_fnt, rule_grp_fnt,
+											bitvec_saved_phrases_fnt, nlbitvec_dict_output_fnt, cluster_fnt)
+		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
+	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents), nlbitvec_mgr)
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
 	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)

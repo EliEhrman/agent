@@ -105,18 +105,21 @@ def save_word_db(d_words, nd_bit_db, fnt_dict):
 		copyfile(fn, fn + '.bak')
 	fh = open(fn, 'wb')
 	csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
-	csvw.writerow(['Glv Dict', 'Version', '1'])
+	csvw.writerow(['Glv Dict', 'Version', '2'])
 	csvw.writerow(['Num Els:', len(d_words)])
+	csvw.writerow(['el', 'eid', 'bitvec'])
+	csvw.writerow(['bglove', 'bassigned', 'avg_hd', 'num_hits', 'bitvals'])
 	for kword, virow in d_words.iteritems():
 		csvw.writerow([kword, virow] + nd_bit_db[virow].tolist())
+		csvw.writerow([True, True, -1.0, 0, []])
 
 	fh.close()
 
 def main():
-	# word_dict, nd_vecs = load_word_dict()
-	# save_word_db(word_dict, nd_vecs, c_fnt_dict)
+	word_dict, nd_vecs = load_word_dict()
+	save_word_db(word_dict, nd_vecs, c_fnt_dict)
 
-	load_sample_texts(c_phrase_freq_fnt, c_phrase_fnt)
+	# load_sample_texts(c_phrase_freq_fnt, c_phrase_fnt)
 
 	print('done')
 

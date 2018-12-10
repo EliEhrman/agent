@@ -17,7 +17,10 @@ c_b_nl = True # nat lang processing. Learn phrases. Initial load from glove. For
 # else:
 # 	c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
 c_phrase_bitvec_dict_fnt = '~/tmp/adv_bin_dict.txt'
-c_nlbitvec_dict_fnt = '~/tmp/glv_bin_dict.txt'
+c_nlbitvec_dict_input_fnt = '~/tmp/glv_bin_dict.txt'
+# c_nlbitvec_dict_input_fnt = '~/tmp/nlbitvec_dict.txt'
+c_nlbitvec_dict_output_fnt = '~/tmp/nlbitvec_dict.txt'
+c_nlbitvec_clusters_fnt = '~/tmp/nlbitvec_clusters.txt'
 c_bitvec_saved_phrases_fnt = '~/tmp/saved_phrases_small.txt' # '~/tmp/saved_phrases_small.txt' # '~/tmp/saved_phrases.txt'
 c_rule_grp_fnt = 'adv/rule_groups.txt'
 c_num_agents_per_story = 5 # 50
@@ -27,6 +30,7 @@ c_num_tries_per_player = 30
 c_goal_init_level_limit = 3
 c_goal_max_level_limit = 7
 c_max_story_time_to_repeat = 250000 # ignore the fact that an action has already be done after this much time and random when less
+c_b_restart_from_glv = False
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
@@ -36,6 +40,11 @@ __rules_mod = None
 __ai_mgr = None
 __bitvec_mgr = None
 __rec_def_type = None
+__mpdbs_mgr = None
+__nlbitvec_mgr = None
+__phrases_mgr = None
+__phraseperms_mgr = None
+__d_mgrs = dict()
 l_names = []
 l_countries = []
 l_objects = []
@@ -66,20 +75,40 @@ def mod_init():
 	l_agents = els_sets[set_names.index('names')]
 
 	return 	els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt, \
-			c_bitvec_saved_phrases_fnt, c_rule_grp_fnt, c_nlbitvec_dict_fnt
+			c_bitvec_saved_phrases_fnt, c_rule_grp_fnt, c_nlbitvec_dict_input_fnt, c_nlbitvec_dict_output_fnt, \
+			c_nlbitvec_clusters_fnt, c_b_restart_from_glv
 
 def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
-	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod, __rec_def_type
+	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod, __rec_def_type, __d_mgrs
 	__rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod = rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod
+	t = {'rules':__rules_mgr, 'mpdb': __mpdb_mgr, 'ai':__ai_mgr, 'bitvec':__bitvec_mgr}
+	for k, v in t.iteritems():
+		__d_mgrs[k] = v
 	__rec_def_type = rules_mod.rec_def_type
 
 	__ai_mgr.set_constants(c_goal_init_level_limit, c_goal_max_level_limit, c_max_story_time_to_repeat)
 
-def get_mpdb_mgr():
-	return __mpdb_mgr
+def set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr):
+	global __mpdbs_mgr, __nlbitvec_mgr, __phrases_mgr, __d_mgrs
+	__mpdbs_mgr = mpdbs_mgr
+	__nlbitvec_mgr = nlbitvec_mgr
+	__phrases_mgr = phrases_mgr
+	__phraseperms_mgr= phraseperms_mgr
+	t = {'mpdbs':__mpdbs_mgr, 'nlbitvec': __nlbitvec_mgr, 'phrases':__phrases_mgr, 'phraseperms':__phraseperms_mgr}
+	for k, v in t.iteritems():
+		__d_mgrs[k] = v
 
-def get_ai_mgr():
-	return __ai_mgr
+
+
+# def get_mpdb_mgr():
+# 	return __mpdb_mgr
+#
+# def get_ai_mgr():
+# 	return __ai_mgr
+
+def get_mgr(name):
+	return __d_mgrs[name]
+
 
 def init_per_story_sets():
 	global l_objects, l_countries, l_names
@@ -90,14 +119,15 @@ def init_per_story_sets():
 
 def init_functions():
 	d_fns = {	'mod_init':mod_init,
-				'get_mpdb_mgr':get_mpdb_mgr,
-				'get_ai_mgr':get_ai_mgr,
+				# 'get_mpdb_mgr':get_mpdb_mgr,
+				# 'get_ai_mgr':get_ai_mgr,
 				'create_initial_db':create_initial_db_dummy if c_b_dummy else create_initial_db,
 				 'get_num_decision_rules':get_num_decision_rules,
 				'init_per_story_sets':init_per_story_sets,
 				# 'set_player_goal':set_player_goal,
 				'get_decision_for_player':get_decision_for_player_dummy if c_b_dummy
-						else (get_decision_by_goal if c_b_gpsai else get_decision_for_player)}
+						else (get_decision_by_goal if c_b_gpsai else get_decision_for_player),
+				'get_mgr':get_mgr}
 	return d_fns
 
 def create_initial_db():

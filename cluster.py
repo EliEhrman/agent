@@ -1,6 +1,10 @@
 import random
 import sys
 import math
+import csv
+import os
+from os.path import expanduser
+from shutil import copyfile
 import numpy as np
 
 c_num_seeds_initial = 5
@@ -73,17 +77,24 @@ def assign_rule_name_score(plen, ndbits, nd_centroids, l_cent_hd_thresh, l_rule_
 		d_cluster_rules, l_num_hits, l_hit_names = dict(), [], []
 		for irec, bcluster in enumerate(cluster_mrks):
 			if not bcluster: continue
-			rule_name = l_rule_names[iphrase_by_len[plen][irec]]
-			rule_grp_id = d_rule_gprs.get(rule_name, -1)
-			assert rule_grp_id != -1, 'Error. Rule name not in a rule group'
+			rule_names = l_rule_names[iphrase_by_len[plen][irec]]
+			s_grp_ids = set()
+			for rule_name in rule_names:
+				rule_grp_id = d_rule_gprs.get(rule_name, -1)
+				if rule_grp_id != -1:
+					s_grp_ids.add(rule_grp_id)
+			if len(s_grp_ids) != 1:
+				continue
+			rule_grp_id = s_grp_ids.pop()
+			# assert rule_grp_id != -1, 'Error. Rule name not in a rule group'
 			irule = d_cluster_rules.get(rule_grp_id, -1)
 			if irule == -1:
 				d_cluster_rules[rule_grp_id] = len(l_num_hits)
 				l_num_hits.append(1)
-				l_hit_names.append([rule_name])
+				l_hit_names.append([rule_names])
 			else:
 				l_num_hits[irule] += 1
-				l_hit_names[irule].append(rule_name)
+				l_hit_names[irule].append(rule_names)
 		entr = 0.
 		for irule, num_hits in enumerate(l_num_hits):
 			p = float(num_hits) / tot_hits
@@ -99,7 +110,7 @@ def cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs):
 	l_nd_centroids, ll_cent_hd_thresh = [[] for _ in ndbits_by_len], [[] for _ in ndbits_by_len]
 	entr_tot, tot_hits, tot_clusters = 0., 0, 0
 	for plen, ndbits in enumerate(ndbits_by_len):
-		if ndbits == None or ndbits == []: continue
+		if ndbits is None or ndbits == []: continue
 		num_recs = ndbits.shape[0]
 		if num_recs < c_num_seeds_initial: continue
 		best_thresh, best_homog_score = -1, sys.float_info.max
@@ -115,8 +126,58 @@ def cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs):
 	# The entropy score is just entr_tot / tot_hits, but I want to penalize for having too many clusters
 	score = tot_clusters * (0.1 + entr_tot / tot_hits)
 	print('Score:', score)
-	exit()
-	return score
+	# exit()
+	return score, l_nd_centroids, ll_cent_hd_thresh
+
+def save_cluters(l_nd_centroids, ll_cent_hd_thresh, cluster_fnt):
+	num_cents = 0
+	for ilen, l_hds in enumerate(ll_cent_hd_thresh):
+		num_cents += len(l_hds)
+
+	fn = expanduser(cluster_fnt)
+
+	if os.path.isfile(fn):
+		copyfile(fn, fn + '.bak')
+	fh = open(fn, 'wb')
+	csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+	csvw.writerow(['blbitvec centroids', 'Version', '1'])
+	csvw.writerow(['Num Cents:', num_cents, 'num lengths', len(ll_cent_hd_thresh)])
+	for ilen, l_hds in enumerate(ll_cent_hd_thresh):
+		for icent, hd in enumerate(l_hds):
+			cent = l_nd_centroids[ilen][icent, :, :]
+			llbits = [cent[i].tolist() for i in range(ilen)]
+			lbits = [onebit for l in llbits for onebit in l]
+			csvw.writerow([ilen, hd] + lbits)
+
+	fh.close()
+
+def load_clusters(cluster_fnt, bitvec_size):
+	fn = expanduser(cluster_fnt)
+	# if True:
+	try:
+		with open(fn, 'rb') as o_fhr:
+			csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+			_, _, version_str = next(csvr)
+			_, snum_cents, _, snum_lens = next(csvr)
+			ll_centroids, ll_cent_hd_thresh = [[] for _ in range(int(snum_lens))], [[] for _ in range(int(snum_lens))]
+			for irow in range(int(snum_cents)):
+				row = next(csvr)
+				ilen, hd, lsbits = int(row[0]), int(row[1]), row[2:]
+				bitvals = np.reshape(np.array(map(int, lsbits), dtype=np.int8), (ilen, bitvec_size))
+				ll_cent_hd_thresh[ilen].append(hd)
+				ll_centroids[ilen].append(bitvals)
+				del row, ilen, hd, lsbits
+			l_nd_centroids = []
+			for ilen, l_cents in enumerate(ll_centroids):
+				if l_cents == []:
+					l_nd_centroids.append([])
+				else:
+					l_nd_centroids.append(np.stack(l_cents, axis=0))
+
+	except IOError:
+		raise ValueError('Cannot open or read ', fn)
+
+	return l_nd_centroids, ll_cent_hd_thresh
 
 
 def calc_homog(plen, ndbits, nd_centroids, l_cent_hd_thresh):
