@@ -1,3 +1,4 @@
+from __future__ import print_function
 import bitvec
 # from bitvec import c_bitvec_size as bitvec_size
 import csv
@@ -34,12 +35,29 @@ divider = np.array(
 	np.float32)
 divider_sum = np.sum(1. / divider)
 
+class cl_nlb_mgr_notific(object):
+	def __init__(self):
+		self.__d_iels = dict()
+
+	def notify_on_iel(self, iel):
+		self.__d_iels[iel] = True
+
+	def iel_bitvec_changed(self, iel, bitvec):
+		balert = self.__d_iels.get(iel, False)
+		if not balert: return
+		self.iel_bitvec_changed_alert(iel, bitvec)
+
+	def iel_bitvec_changed_alert(self, iel, bitvec):
+		print('Error. This should not be called')
+
 
 class cl_nlb_mgr(object):
-	def __init__(	self, b_restart_from_glv, phrase_mgr, phraseperms_mgr, bitvec_dict_glv_fnt, rule_grp_fnt, saved_phrases_fnt,
+	def __init__(	self, b_restart_from_glv, phrase_mgr, phraseperms_mgr, bdb_all,
+					bitvec_dict_glv_fnt, rule_grp_fnt, saved_phrases_fnt,
 					bitvec_dict_output_fnt, cluster_fnt):
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms_mgr
+		self.__bdb_all = bdb_all
 		bitvec_dict_fnt = bitvec_dict_glv_fnt if b_restart_from_glv else bitvec_dict_output_fnt
 		self.__cluster_fnt = cluster_fnt
 		self.__d_words = dict()
@@ -63,21 +81,35 @@ class cl_nlb_mgr(object):
 		self.load_rule_grps()
 		self.__bitvec_saved_phrases_fnt = saved_phrases_fnt
 		self.__l_saved_phrases = []
-		if b_restart_from_glv:
-			self.load_save_phrases()
-			l_nd_centroids, ll_cent_hd_thresh = self.load_sample_texts(c_phrase_fnt)
-		else:
-			l_nd_centroids, ll_cent_hd_thresh = cluster.load_clusters(cluster_fnt, c_bitvec_size)
+		self.__b_restart_from_glv = b_restart_from_glv
+		# if b_restart_from_glv:
+		# 	self.load_save_phrases()
+		# 	l_nd_centroids, ll_cent_hd_thresh = self.load_sample_texts(c_phrase_fnt)
+		# else:
+		# 	l_nd_centroids, ll_cent_hd_thresh = cluster.load_clusters(cluster_fnt, c_bitvec_size)
 		self.__mpdb_mgr = None
 		self.__mpdb_bins = []
-		self.__l_nd_centroids = l_nd_centroids
-		self.__ll_cent_hd_thresh = ll_cent_hd_thresh
+		# self.__l_nd_centroids = l_nd_centroids
+		# self.__ll_cent_hd_thresh = ll_cent_hd_thresh
+		self.__l_nd_centroids = []
+		self.__ll_cent_hd_thresh = []
+		self.__l_notifics = [] # type: List[cl_nlb_mgr_notific]
 		# for num_try_assign in range(c_num_assign_tries):
 		# 	num_unassigned = self.assign_unknown_words()
 		# 	if num_unassigned == 0:
 		# 		break
 		# self.learn_pair_bins()
 		pass
+
+	def init_data(self):
+		if self.__b_restart_from_glv:
+			self.load_save_phrases()
+			l_nd_centroids, ll_cent_hd_thresh = self.load_sample_texts(c_phrase_fnt)
+		else:
+			l_nd_centroids, ll_cent_hd_thresh = cluster.load_clusters(self.__cluster_fnt, c_bitvec_size)
+		self.__l_nd_centroids = l_nd_centroids
+		self.__ll_cent_hd_thresh = ll_cent_hd_thresh
+
 
 	def load_word_db(self, bitvec_dict_fnt):
 		fn = expanduser(bitvec_dict_fnt)
@@ -185,6 +217,10 @@ class cl_nlb_mgr(object):
 	def add_new_row(self, phrase):
 		i_all_phrases = self.__phrase_mgr.add_phrase(phrase)
 		self.__phraseperms.add_new_phrase(i_all_phrases)
+		self.__bdb_all.add_new_phrase(i_all_phrases)
+		# magic_del = -1
+		# if magic_del >= 0:
+		# 	self.__bdb_all.del_phrase(magic_del)
 		# i_all_phrases = len(self.__l_phrases)
 		# self.__l_phrases.append(phrase)
 		# self.__map_phrase_to_rphrase[tuple(phrase)] = i_all_phrases
@@ -226,6 +262,7 @@ class cl_nlb_mgr(object):
 				# 	nd_phrase[iword, :] = nd_wbits
 				if self.__nd_word_bin is None:
 					self.__nd_word_bin = np.expand_dims(nd_wbits, axis=0)
+					self.__s_word_bit_db.add(np.zeros(c_bitvec_size, dtype=np.uint8))
 				else:
 					iel = self.__nd_word_bin.shape[0]
 					self.__nd_word_bin = np.concatenate((self.__nd_word_bin,
@@ -365,8 +402,8 @@ class cl_nlb_mgr(object):
 			self.add_phrase(phrase_data[1].split(), phrase_data[0])
 
 		score, l_nd_centroids, ll_cent_hd_thresh = \
-			cluster.cluster(self.__ndbits_by_len, self.__l_rule_name, self.__iphrase_by_len,
-							self.__d_rule_grps)
+			self.__bdb_all.do_clusters(	self.__ndbits_by_len, self.__l_rule_name, self.__iphrase_by_len,
+										self.__d_rule_grps)
 		# self.__l_nd_centroids = l_nd_centroids
 		# self.__ll_cent_hd_thresh = ll_cent_hd_thresh
 		self.save_word_db()
@@ -391,40 +428,55 @@ class cl_nlb_mgr(object):
 	def assign_word_from_closest(self, phrase, iel, word, i_last_miss, nd_phrase):
 		els_stats = self.__l_els_stats[iel]
 		plen = len(phrase)
-		nd_bits_db = self.__ndbits_by_len[plen]
-		if nd_bits_db is None or nd_bits_db == []:
-			return False
-		nd_hd = np.zeros(nd_bits_db.shape[0], dtype=int)
-		for iword, word in enumerate(phrase):
-			if iword == i_last_miss: continue
-			slice_iword = nd_bits_db[:, iword, :]
-			wid = self.__d_words.get(word.lower(), -1)
-			wbits = self.__nd_word_bin[wid]
-			nd_hd_iword = np.sum(np.not_equal(wbits, slice_iword), axis=1)
-			nd_hd += nd_hd_iword
-		if nd_hd.shape[0] > c_num_ham_winners:
-			idx_of_hd_winners = np.argpartition(nd_hd, c_num_ham_winners)[:c_num_ham_winners]
-			hd_of_winners = nd_hd[idx_of_hd_winners]
-			iwinners = np.argsort(hd_of_winners)
-			hd_idx_sorted = idx_of_hd_winners[iwinners]
-			hd_of_winners_sorted = hd_of_winners[iwinners]
-			del iwinners
+		if True:
+			phrase_eids = []
+			for iword, word in enumerate(phrase):
+				wid = self.__d_words.get(word.lower(), -1)
+				phrase_eids.append(wid)
+			l_idx_sorted, l_hds_sorted, nd_obits = self.__bdb_all.get_closest_recs(c_num_ham_winners, phrase_eids, i_last_miss)
+			num_winners = len(l_idx_sorted)
+			if num_winners == 0:
+				return False
+			divider_local = divider[:num_winners]
+			divider_sum_local = np.sum(1. / divider_local)
+			avg_hd = (np.sum(np.array(l_hds_sorted) / divider_local) / divider_sum_local) / (plen - 1)
+			new_vals = np.sum(nd_obits.transpose() / divider_local, axis=1) / divider_sum_local
 		else:
-			hd_of_winners = nd_hd
-			hd_idx_sorted = np.argsort(hd_of_winners)
-			hd_of_winners_sorted = hd_of_winners[hd_idx_sorted]
-		num_winners = hd_of_winners_sorted.shape[0]
-		divider_local = divider[:num_winners]
-		divider_sum_local = np.sum(1. / divider_local)
-		avg_hd = (np.sum(hd_of_winners_sorted / divider_local) / divider_sum_local) / (plen - 1)
-		del hd_of_winners_sorted
-		# l_closest = []
-		# for iclose in hd_idx_sorted.tolist():
-		# 	iphrase = self.__iphrase_by_len[plen][iclose]
-		# 	l_closest.append(self.__l_phrases[iphrase])
-		slice_iword = nd_bits_db[:, i_last_miss, :]
-		obits = slice_iword[hd_idx_sorted]
-		new_vals = np.sum(obits.transpose() / divider_local, axis=1) / divider_sum_local
+			nd_bits_db = self.__ndbits_by_len[plen]
+			if nd_bits_db is None or nd_bits_db == []:
+				return False
+			nd_hd = np.zeros(nd_bits_db.shape[0], dtype=int)
+			for iword, word in enumerate(phrase):
+				wid = self.__d_words.get(word.lower(), -1)
+				if iword == i_last_miss: continue
+				slice_iword = nd_bits_db[:, iword, :]
+				wbits = self.__nd_word_bin[wid]
+				nd_hd_iword = np.sum(np.not_equal(wbits, slice_iword), axis=1)
+				nd_hd += nd_hd_iword
+			if nd_hd.shape[0] > c_num_ham_winners:
+				idx_of_hd_winners = np.argpartition(nd_hd, c_num_ham_winners)[:c_num_ham_winners]
+				hd_of_winners = nd_hd[idx_of_hd_winners]
+				iwinners = np.argsort(hd_of_winners)
+				hd_idx_sorted = idx_of_hd_winners[iwinners]
+				hd_of_winners_sorted = hd_of_winners[iwinners]
+				del iwinners
+			else:
+				hd_of_winners = nd_hd
+				hd_idx_sorted = np.argsort(hd_of_winners)
+				hd_of_winners_sorted = hd_of_winners[hd_idx_sorted]
+			num_winners = hd_of_winners_sorted.shape[0]
+			l_idx_sorted, l_hds_sorted, nd_obits = self.__bdb_all.get_closest_recs(c_num_ham_winners, phrase_eids, i_last_miss)
+			divider_local = divider[:num_winners]
+			divider_sum_local = np.sum(1. / divider_local)
+			avg_hd = (np.sum(hd_of_winners_sorted / divider_local) / divider_sum_local) / (plen - 1)
+			del hd_of_winners_sorted
+			# l_closest = []
+			# for iclose in hd_idx_sorted.tolist():
+			# 	iphrase = self.__iphrase_by_len[plen][iclose]
+			# 	l_closest.append(self.__l_phrases[iphrase])
+			slice_iword = nd_bits_db[:, i_last_miss, :]
+			obits = slice_iword[hd_idx_sorted]
+			new_vals = np.sum(obits.transpose() / divider_local, axis=1) / divider_sum_local
 		# dev = np.average(np.not_equal(new_bits, obits))
 		if els_stats.bassigned:
 			# prev_new_el = l_new_els[inewel]
@@ -443,6 +495,8 @@ class cl_nlb_mgr(object):
 
 		new_bits = np.round_(new_vals).astype(np.uint8)
 		new_bits = np.array(self.create_closest_unique_bits(new_vals, new_bits), dtype=np.uint8)
+		self.__nd_word_bin[iel, :] = new_bits
+		self.alert_iel_changed(iel, new_bits)
 		nd_phrase[i_last_miss, :] = new_bits
 		# self.__ndbits_by_len[plen] = np.concatenate((self.__ndbits_by_len[plen],
 		# 											 np.expand_dims(nd_phrase, axis=0)), axis=0)
@@ -502,6 +556,7 @@ class cl_nlb_mgr(object):
 		return new_bits
 
 	def assign_unknown_words(self):
+		assert False, 'Code will not be used until recap learning is implemented'
 		l_failed_assign = []
 		for idelayed in self.__l_delayed_iphrases:
 			phrase = self.__phrase_mgr.get_phrase(idelayed)
@@ -581,51 +636,67 @@ class cl_nlb_mgr(object):
 
 	def find_pair_bins_for_phrase(self, phrase, l_phrase_iels, igphrase):
 		l_mults = []
+		phrase_eids = []
+		for iword, word in enumerate(phrase):
+			wid = self.__d_words.get(word.lower(), -1)
+			phrase_eids.append(wid)
 		for delta in range(1,3):
-			len1 = len(phrase)
-			if len1 <= delta or self.__iphrase_by_len[len1-delta] == []:
-				continue
-			nd_bits_db = self.__ndbits_by_len[len1-delta]
-
-			for pos in range(len1-delta):
-				nd_hd = np.zeros(nd_bits_db.shape[0], dtype=int)
-				for iword_big, el in enumerate(phrase):
-					# bskip = False
-					if iword_big - pos in range(delta + 1): continue
-
-					iword_small = iword_big if iword_big < pos else (iword_big - delta)
-					slice_iword = nd_bits_db[:, iword_small, :]
-					wid = self.__d_words.get(el.lower(), -1)
-					wbits = self.__nd_word_bin[wid]
-					nd_hd_iword = np.sum(np.not_equal(wbits, slice_iword), axis=1)
-					nd_hd += nd_hd_iword
-
-				if nd_hd.shape[0] > c_num_ham_winners:
-					idx_of_hd_winners = np.argpartition(nd_hd, c_num_ham_winners)[:c_num_ham_winners]
-					hd_of_winners = nd_hd[idx_of_hd_winners]
-					iwinners = np.argsort(hd_of_winners)
-					hd_idx_sorted = idx_of_hd_winners[iwinners]
-					hd_of_winners_sorted = hd_of_winners[iwinners]
-					# avg_hd = (np.sum(hd_of_winners_sorted / divider) / divider_sum) / (len1 - 1)
+			for pos in range(len(phrase) - delta):
+				if True:
+					l_idx_sorted, l_hds_sorted, nd_obits \
+							= self.__bdb_all.get_closest_recs(c_num_ham_winners, phrase_eids, pos, delta)
+					num_winners = len(l_idx_sorted)
+					if num_winners == 0: continue
+					divider_local = divider[:num_winners]
+					divider_sum_local = np.sum(1. / divider_local)
+					avg_hd = (np.sum(np.array(l_hds_sorted) / divider_local) / divider_sum_local) / (len(phrase) - 1)
+					if avg_hd > c_pair_avg_hd_cutoff: continue
+					new_vals = np.sum(nd_obits.transpose() / divider_local, axis=1) / divider_sum_local
 				else:
-					hd_of_winners = nd_hd
-					hd_idx_sorted = np.argsort(hd_of_winners)
-					hd_of_winners_sorted = hd_of_winners[hd_idx_sorted]
-				num_winners = hd_of_winners_sorted.shape[0]
-				divider_local = divider[:num_winners]
-				divider_sum_local = np.sum(1. / divider_local)
-				avg_hd = (np.sum(hd_of_winners_sorted / divider_local) / divider_sum_local) / (len1 - delta)
+					len1 = len(phrase)
+					if len1 <= delta or self.__iphrase_by_len[len1-delta] == []:
+						continue
+					nd_bits_db = self.__ndbits_by_len[len1-delta]
 
-				if avg_hd > c_pair_avg_hd_cutoff:
-					continue
+					for pos in range(len1-delta):
+						nd_hd = np.zeros(nd_bits_db.shape[0], dtype=int)
+						for iword_big, el in enumerate(phrase):
+							# bskip = False
+							if iword_big - pos in range(delta + 1): continue
 
-				# l_closest = []
-				# for iclose in hd_idx_sorted.tolist():
-				# 	iphrase = self.__iphrase_by_len[len1][iclose]
-				# 	l_closest.append(self.__l_phrases[iphrase])
-				slice_iword = nd_bits_db[:, pos, :]
-				obits = slice_iword[hd_idx_sorted]
-				new_vals = np.sum(obits.transpose() / divider_local, axis=1) / divider_sum_local
+							iword_small = iword_big if iword_big < pos else (iword_big - delta)
+							slice_iword = nd_bits_db[:, iword_small, :]
+							wid = self.__d_words.get(el.lower(), -1)
+							wbits = self.__nd_word_bin[wid]
+							nd_hd_iword = np.sum(np.not_equal(wbits, slice_iword), axis=1)
+							nd_hd += nd_hd_iword
+
+						if nd_hd.shape[0] > c_num_ham_winners:
+							idx_of_hd_winners = np.argpartition(nd_hd, c_num_ham_winners)[:c_num_ham_winners]
+							hd_of_winners = nd_hd[idx_of_hd_winners]
+							iwinners = np.argsort(hd_of_winners)
+							hd_idx_sorted = idx_of_hd_winners[iwinners]
+							hd_of_winners_sorted = hd_of_winners[iwinners]
+							# avg_hd = (np.sum(hd_of_winners_sorted / divider) / divider_sum) / (len1 - 1)
+						else:
+							hd_of_winners = nd_hd
+							hd_idx_sorted = np.argsort(hd_of_winners)
+							hd_of_winners_sorted = hd_of_winners[hd_idx_sorted]
+						num_winners = hd_of_winners_sorted.shape[0]
+						divider_local = divider[:num_winners]
+						divider_sum_local = np.sum(1. / divider_local)
+						avg_hd = (np.sum(hd_of_winners_sorted / divider_local) / divider_sum_local) / (len1 - delta)
+
+						if avg_hd > c_pair_avg_hd_cutoff:
+							continue
+
+						# l_closest = []
+						# for iclose in hd_idx_sorted.tolist():
+						# 	iphrase = self.__iphrase_by_len[len1][iclose]
+						# 	l_closest.append(self.__l_phrases[iphrase])
+						slice_iword = nd_bits_db[:, pos, :]
+						obits = slice_iword[hd_idx_sorted]
+						new_vals = np.sum(obits.transpose() / divider_local, axis=1) / divider_sum_local
 				# devi = np.average(np.not_equal(new_bits, obits))
 				# std_dev = np.average(np.std(obits, axis=0))
 				# std_dev = np.average(
@@ -655,6 +726,8 @@ class cl_nlb_mgr(object):
 					new_vals = ((new_vals * new_cd) + (els_stats.bitvals * wold)) / (new_cd + wold)
 					new_bits = np.round_(new_vals).astype(np.uint8)
 					new_bits = np.array(self.create_closest_unique_bits(new_vals, new_bits), dtype=np.uint8)
+					self.__nd_word_bin[inewel, :] = new_bits
+					self.alert_iel_changed(inewel, new_bits)
 					self.__l_els_stats[inewel] = nt_el_stats(	el=new_el, bglove=False, avg_hd=avg_hd,
 																num_hits=new_num_hits,
 																bitvals=new_vals, bitvec=new_bits,
@@ -749,3 +822,10 @@ class cl_nlb_mgr(object):
 		best_els = sorted(l_new_els, key=lambda x: x.avg_hd)
 		print('sorted')
 	# end class fn
+
+	def register_notific(self, notific):
+		self.__l_notifics.append(notific)
+
+	def alert_iel_changed(self, iel, new_bits):
+		for notific in self.__l_notifics:
+			notific.iel_bitvec_changed(iel, new_bits)

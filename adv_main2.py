@@ -26,6 +26,7 @@ import nlbitvec
 import phrases
 import mpdbs
 import phraseperms
+import bdb
 
 # import adv_config
 # import adv_learn
@@ -383,8 +384,12 @@ def main():
 		phrases_mgr = phrases.cl_phrase_mgr()
 		phraseperms_mgr = phraseperms.cl_phrase_perms()
 		mpdbs_mgr = mpdbs.cl_mpdbs_mgr(phrases_mgr)
-		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(	b_restart_from_glv, phrases_mgr, phraseperms_mgr, nlbitvec_dict_fnt, rule_grp_fnt,
+		bdb_global = bdb.cl_bitvec_db(phraseperms_mgr)
+		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(	b_restart_from_glv, phrases_mgr, phraseperms_mgr, bdb_global,
+											nlbitvec_dict_fnt, rule_grp_fnt,
 											bitvec_saved_phrases_fnt, nlbitvec_dict_output_fnt, cluster_fnt)
+		bdb_global.set_nlb_mgr(nlbitvec_mgr)
+		nlbitvec_mgr.init_data()
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents), nlbitvec_mgr)
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
