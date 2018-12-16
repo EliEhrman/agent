@@ -6,25 +6,45 @@ import os
 from os.path import expanduser
 from shutil import copyfile
 import numpy as np
+import collections
 from bitvecdb import bitvecdb
+
 
 c_num_seeds_initial = 5
 c_cluster_thresh = 10 # 18
 
 __bitvec_size = 0
 
+nt_cluster = collections.namedtuple('nt_cluster', 'l_cent, hd, score, num_hit')
+
 def init_clusters(bitvec_size):
 	global __bitvec_size
 	__bitvec_size = bitvec_size
 
-def cluster_one_thresh(plen, ndbits, num_recs, gen_cluster_thresh, hcbdb):
+def cluster_one_thresh(plen, recc_thresh, hcbdb):
+	num_left = bitvecdb.init_num_left_buf(hcbdb, plen)
+	cent_ret = bitvecdb.charArray(__bitvec_size*plen)
+	hd_avg_ret, hd_thresh = bitvecdb.floatArray(1), bitvecdb.intArray(1)
+	l_clusters = []
+	while num_left > 0:
+		num_left_now = bitvecdb.get_cluster_seed(hcbdb, cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh)
+		num_added = num_left - num_left_now
+		num_left = num_left_now
+		l_cent = [ord(cent_ret[ib]) for ib in range(__bitvec_size*plen)]
+		l_clusters.append(nt_cluster(l_cent=l_cent, hd=hd_thresh[0], score=hd_avg_ret[0], num_hit=num_added))
+	nd_hd_cluster, nd_num = np.zeros(len(l_clusters)), np.zeros(len(l_clusters))
+	for icluster, cluster in enumerate(l_clusters):
+		nd_hd_cluster[icluster] = cluster.score
+		nd_num[ii1] = np.sum(cluster_mrks)
+		# l_homog_score.append(hd_cluster)
+	score = np.sum(np.multiply(nd_hd_cluster, nd_num)) / np.sum(nd_num)
+	return nd_centroids.shape[0] * score # * score
+
+def cluster_one_thresh_old(plen, ndbits, num_recs, gen_cluster_thresh, hcbdb):
 	left_out_mrk = np.ones(num_recs, dtype=np.uint8)
 	num_left = num_recs
 	nd_centroids = []
-	bitvecdb.init_num_left_buf(hcbdb, plen)
-	cent_ret = bitvecdb.charArray(__bitvec_size)
-	hd_avg_ret = bitvecdb.floatArray(1)
-	bitvecdb.get_cluster_seed(hcbdb, cent_ret, hd_avg_ret, plen, 6)
+
 	while num_left > 0:
 		num_seeds_to_add = min(num_left, c_num_seeds_initial)
 		rand_top_sel = np.multiply(np.random.random(num_recs), left_out_mrk)
@@ -117,16 +137,20 @@ def assign_rule_name_score(plen, ndbits, nd_centroids, l_cent_hd_thresh, l_rule_
 		entr_tot += entr * tot_hits; tot_tot_hits += tot_hits
 	return entr_tot / tot_tot_hits, tot_tot_hits
 
-def cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs, hcbdb):
-	l_nd_centroids, ll_cent_hd_thresh = [[] for _ in ndbits_by_len], [[] for _ in ndbits_by_len]
+def cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs, hcbdb, max_plen):
+	for plen in range(max_plen):
+		for recc_thresh in range(6, __bitvec_size * 2 / 5): # * 2 / 5
+			homog_score, nd_centroids_t, l_cent_hd_thresh_t = cluster_one_thresh(plen, recc_thresh, hcbdb)
+
 	entr_tot, tot_hits, tot_clusters = 0., 0, 0
+	l_nd_centroids, ll_cent_hd_thresh = [[] for _ in ndbits_by_len], [[] for _ in ndbits_by_len]
 	for plen, ndbits in enumerate(ndbits_by_len):
 		if ndbits is None or ndbits == []: continue
 		num_recs = ndbits.shape[0]
 		if num_recs < c_num_seeds_initial: continue
 		best_thresh, best_homog_score = -1, sys.float_info.max
 		for gen_cluster_thresh in range(6, ndbits.shape[2] * 2 / 5): # * 2 / 5
-			homog_score, nd_centroids_t, l_cent_hd_thresh_t = cluster_one_thresh(plen, ndbits, num_recs, gen_cluster_thresh, hcbdb)
+			homog_score, nd_centroids_t, l_cent_hd_thresh_t = cluster_one_thresh_old(plen, ndbits, num_recs, gen_cluster_thresh, hcbdb)
 			if homog_score < best_homog_score:
 				best_homog_score = homog_score
 				best_thresh, nd_centroids, l_cent_hd_thresh = gen_cluster_thresh, nd_centroids_t, l_cent_hd_thresh_t

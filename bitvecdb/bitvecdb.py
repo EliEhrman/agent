@@ -303,8 +303,8 @@ def init_num_left_buf(hcapp, plen):
     return _bitvecdb.init_num_left_buf(hcapp, plen)
 init_num_left_buf = _bitvecdb.init_num_left_buf
 
-def get_cluster_seed(hcapp, cent_ret, hd_avg_ret, plen, hd_thresh):
-    return _bitvecdb.get_cluster_seed(hcapp, cent_ret, hd_avg_ret, plen, hd_thresh)
+def get_cluster_seed(hcapp, cent_ret, hd_avg_ret, hd_thresh_ret, plen, hd_thresh):
+    return _bitvecdb.get_cluster_seed(hcapp, cent_ret, hd_avg_ret, hd_thresh_ret, plen, hd_thresh)
 get_cluster_seed = _bitvecdb.get_cluster_seed
 # This file is compatible with both classic and new-style classes.
 

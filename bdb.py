@@ -36,6 +36,7 @@ class cl_bitvec_db(object):
 		self.__l_rperms = [] # type: List[int] # list of perm each a global ref ot a perm from phraseperms
 		self.__l_perm_iphrase = [] # type: List[int] # list of local iphrase refs for each perm in l_phrase_perms
 		self.__l_perm_len = [] # type: List[int] # list of lengths for each perm in l_phrase_perms
+		self.__max_perm_len = -1
 		self.__phraseperms = phraseperms_mgr
 		self.__el_bitvec_mgr = None
 		self.__phrase_perms_notifier = cl_phrase_perms_notifier(self)
@@ -48,6 +49,9 @@ class cl_bitvec_db(object):
 	def set_nlb_mgr(self, el_bitvec_mgr):
 		self.__el_bitvec_mgr = el_bitvec_mgr
 		self.__el_bitvec_mgr.register_notific(self.__nlb_mgr_notifier)
+
+	def get_max_plen(self):
+		return self.__max_perm_len
 
 	def add_new_phrase(self, rphrase):
 		iphrase = len(self.__l_phrase_rphrases)
@@ -121,7 +125,10 @@ class cl_bitvec_db(object):
 		self.__ll_iperms[iphrase].append(iperm_new)
 		self.__l_perm_iphrase.append(iphrase)
 		l_perm_eids = self.__phraseperms.get_perm_eids(rperm)
-		self.__l_perm_len.append(len(l_perm_eids))
+		perm_len = len(l_perm_eids)
+		self.__l_perm_len.append(perm_len)
+		if perm_len > self.__max_perm_len:
+			__max_perm_len = perm_len
 		phrase_bitvec = []
 		for iel in l_perm_eids:
 			phrase_bitvec += self.__el_bitvec_mgr.get_bin_by_id(iel).tolist()
@@ -161,5 +168,5 @@ class cl_bitvec_db(object):
 		nd_obits = np.reshape(nd_obits, (num_ret, bitvec_size))
 		return l_idexs_ret, l_hds_arr, nd_obits
 
-	def do_clusters(self, ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs):
-		return cluster.cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs, self.__hcbdb)
+	def do_clusters(self, ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs, max_plen):
+		return cluster.cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs, self.__hcbdb, max_plen)

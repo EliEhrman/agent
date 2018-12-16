@@ -4889,6 +4889,7 @@ SWIGINTERN PyObject *_wrap_init_num_left_buf(PyObject *SWIGUNUSEDPARM(self), PyO
   int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
+  int result;
   
   if (!PyArg_ParseTuple(args,(char *)"OO:init_num_left_buf",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
@@ -4900,8 +4901,8 @@ SWIGINTERN PyObject *_wrap_init_num_left_buf(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "init_num_left_buf" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = (int)(val2);
-  init_num_left_buf(arg1,arg2);
-  resultobj = SWIG_Py_Void();
+  result = (int)init_num_left_buf(arg1,arg2);
+  resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
   return NULL;
@@ -4913,26 +4914,30 @@ SWIGINTERN PyObject *_wrap_get_cluster_seed(PyObject *SWIGUNUSEDPARM(self), PyOb
   void *arg1 = (void *) 0 ;
   char *arg2 = (char *) 0 ;
   float *arg3 = (float *) 0 ;
-  int arg4 ;
+  int *arg4 = (int *) 0 ;
   int arg5 ;
+  int arg6 ;
   int res1 ;
   int res2 ;
   char *buf2 = 0 ;
   int alloc2 = 0 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
   int val5 ;
   int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
   int result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:get_cluster_seed",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:get_cluster_seed",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "get_cluster_seed" "', argument " "1"" of type '" "void *""'"); 
@@ -4947,17 +4952,22 @@ SWIGINTERN PyObject *_wrap_get_cluster_seed(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "get_cluster_seed" "', argument " "3"" of type '" "float *""'"); 
   }
   arg3 = (float *)(argp3);
-  ecode4 = SWIG_AsVal_int(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "get_cluster_seed" "', argument " "4"" of type '" "int""'");
-  } 
-  arg4 = (int)(val4);
+  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "get_cluster_seed" "', argument " "4"" of type '" "int *""'"); 
+  }
+  arg4 = (int *)(argp4);
   ecode5 = SWIG_AsVal_int(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "get_cluster_seed" "', argument " "5"" of type '" "int""'");
   } 
   arg5 = (int)(val5);
-  result = (int)get_cluster_seed(arg1,arg2,arg3,arg4,arg5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "get_cluster_seed" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  result = (int)get_cluster_seed(arg1,arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;

@@ -2655,7 +2655,12 @@ CIW:
 
 Initial work on reorg passes initial story stages.
 
+Saturday 15th December 2018
 
+The swig commands are:
+
+swig -python bitvecdb.i
+python setup.py build_ext --inplace
 
 
 

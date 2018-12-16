@@ -403,7 +403,7 @@ class cl_nlb_mgr(object):
 
 		score, l_nd_centroids, ll_cent_hd_thresh = \
 			self.__bdb_all.do_clusters(	self.__ndbits_by_len, self.__l_rule_name, self.__iphrase_by_len,
-										self.__d_rule_grps)
+										self.__d_rule_grps, self.__bdb_all.get_max_plen())
 		# self.__l_nd_centroids = l_nd_centroids
 		# self.__ll_cent_hd_thresh = ll_cent_hd_thresh
 		self.save_word_db()

@@ -418,12 +418,20 @@ int get_closest_recs(	void * happ, int k, int * idxs_ret, int * hds_ret, char * 
 	return num_ret;
 }
 
-void init_num_left_buf(void * hcapp, int plen) {
+int init_num_left_buf(void * hcapp, int plen) {
 	tSBDBApp * papp = (tSBDBApp *)hcapp;
 	papp->num_left_buf = (bool*)bdballoc(papp->num_left_buf, &(papp->num_left_buf_alloc), sizeof(bool), papp->num_rec_ptrs);
+	int num_left = 0;
 	for (int irec = 0; irec<papp->num_rec_ptrs; irec++) {
-		papp->num_left_buf[irec] = (papp->rec_lens[irec]==plen);
+		if (papp->rec_lens[irec]==plen) {
+			papp->num_left_buf[irec] = true;
+			num_left++;
+		}
+		else {
+			papp->num_left_buf[irec] = false;
+		}
 	}
+	return num_left;
 }
 
 void fill_hd_buf(tSBDBApp * papp, int iseed, int plen) {
@@ -453,10 +461,9 @@ void fill_hd_buf(tSBDBApp * papp, int iseed, int plen) {
 	}
 }
 
-int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int plen, int hd_thresh) {
+int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int * hd_thresh_ret, int plen, int hd_thresh) {
 	tSBDBApp * papp = (tSBDBApp *)hcapp;
 
-	int num_left = 0;
 	float best_score = 0;
 	int ibest_score = -1;
 	int best_thresh = -1;
@@ -470,23 +477,27 @@ int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int plen
 			int num_hit = 0;
 			for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 				int dist = papp->hd_buf[irec].dist;
-				if (dist > 0 && dist <= thresh) {
+				if (dist >= 0 && dist <= thresh) {
 					if (!papp->num_left_buf[irec]) {
+						printf("for thresh %d, iseed %d overlapped rec at %d\n", thresh, iseed, irec);
 						b_overlap = true;
 						break;
 					}
+					dist_sum += dist;
+					num_hit++;				
 				}
-				dist_sum += dist;
-				num_hit++;				
 			}
 			if (b_overlap) continue;
 			if (num_hit > 0) {
-				float avg_dist = (float)dist_sum/plen;
+				float avg_dist = (float)dist_sum/(plen*num_hit);
 				float seed_score = ((papp->bitvec_size - avg_dist)/papp->bitvec_size)*num_hit;
+				printf(	"for thresh %d, iseed %d achieved num_hit %d with dist_sum %d, seed_score %f\n", 
+						thresh, iseed, num_hit, dist_sum, seed_score);
 				if (seed_score>best_score) {
 					best_score = seed_score;
 					ibest_score = iseed;
 					best_thresh = thresh;
+					printf("iseed %d best so far.\n", iseed);
 				}
 				b_seed_scored = true;
 			}
@@ -502,19 +513,28 @@ int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int plen
 		
 		for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 			int dist = papp->hd_buf[irec].dist;
-			if (dist > 0 && dist <= best_thresh) {
+			if (dist >= 0 && dist <= best_thresh) {
 				if (!papp->num_left_buf[irec]) {
-					papp->num_left_buf[irec] = true;
-					break;
+					printf("Error! Unexpected overlap with rec %d for seed %d that was declared the winner\n", irec, ibest_score);
 				}
+				papp->num_left_buf[irec] = false;
+				dist_sum += dist;
+				num_hit++;				
 			}
-			dist_sum += dist;
-			num_hit++;				
+		}
+
+		for (int iel=0; iel<plen; iel++) {
+			char * prec = &(papp->db[(papp->rec_ptrs[ibest_score] + iel)*papp->bitvec_size]);
+			for (int ibit =0; ibit < papp->bitvec_size; ibit++) {
+				cent_ret[(iel*papp->bitvec_size) + ibit] = prec[ibit];
+			}
 		}
 		
 		*hd_avg_ret = (float)dist_sum / (plen * num_hit);
+		*hd_thresh_ret = best_thresh;
 	}
 
+	int num_left = 0;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 		if (papp->rec_lens[irec] != plen || !papp->num_left_buf[irec]) continue;
 		num_left++;
