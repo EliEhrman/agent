@@ -128,7 +128,7 @@ class cl_bitvec_db(object):
 		perm_len = len(l_perm_eids)
 		self.__l_perm_len.append(perm_len)
 		if perm_len > self.__max_perm_len:
-			__max_perm_len = perm_len
+			self.__max_perm_len = perm_len
 		phrase_bitvec = []
 		for iel in l_perm_eids:
 			phrase_bitvec += self.__el_bitvec_mgr.get_bin_by_id(iel).tolist()
@@ -168,5 +168,13 @@ class cl_bitvec_db(object):
 		nd_obits = np.reshape(nd_obits, (num_ret, bitvec_size))
 		return l_idexs_ret, l_hds_arr, nd_obits
 
-	def do_clusters(self, ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs, max_plen):
-		return cluster.cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_gprs, self.__hcbdb, max_plen)
+	def do_clusters(self, ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_grps, max_plen):
+		return cluster.cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_grps,
+							   self.__hcbdb, max_plen, self)
+
+	def get_rec_rule_names(self, nd_cent, hd_thresh, plen, num_recs, l_rule_names):
+		iperm_arr = bitvecdb.intArray(num_recs)
+		cent_arr = self.convert_charvec_to_arr(nd_cent.tolist(), nd_cent.shape[0])
+		num_ret = bitvecdb.get_cluster(self.__hcbdb, iperm_arr, num_recs, cent_arr, plen, hd_thresh)
+		l_ret = [l_rule_names[self.__l_phrase_rphrases[self.__l_perm_iphrase[iperm_arr[iperm]]]] for iperm in range(num_ret)]
+		return l_ret

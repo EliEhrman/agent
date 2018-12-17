@@ -18,7 +18,8 @@ c_bitvec_size = 50 # 16
 c_bitvec_neibr_divider_offset = 5
 c_num_ham_winners = 30
 c_num_assign_tries = 5
-c_pair_avg_hd_cutoff = 8.0
+c_pair_avg_hd_cutoff = 6.0
+c_b_find_pairs = True
 
 # bitvals are the values that are rounded to make the bits. Kept in this form because uniqueness only calculated at insertion into main dict
 # avg_hd is the average hd between the phrase minues the el and the corresponding closest phrases of n shorter length
@@ -351,7 +352,8 @@ class cl_nlb_mgr(object):
 					self.process_new_row(idelayed)
 			del iel, el_stats, word
 
-		self.find_pair_bins_for_phrase(phrase, l_phrase_iels, i_all_phrases)
+		if c_b_find_pairs:
+			self.find_pair_bins_for_phrase(phrase, l_phrase_iels, i_all_phrases)
 
 		return i_all_phrases
 

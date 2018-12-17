@@ -143,7 +143,7 @@ class cl_bitvec_mgr(object):
 	def get_hcvo(self):
 		return self.__hcvo
 
-	def get_d_rule_gprs(self):
+	def get_d_rule_grps(self):
 		return self.__d_rule_grps
 
 	def load_rule_grps(self):

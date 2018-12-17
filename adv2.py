@@ -30,7 +30,7 @@ c_num_tries_per_player = 30
 c_goal_init_level_limit = 3
 c_goal_max_level_limit = 7
 c_max_story_time_to_repeat = 250000 # ignore the fact that an action has already be done after this much time and random when less
-c_b_restart_from_glv = True
+c_b_restart_from_glv = False
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]

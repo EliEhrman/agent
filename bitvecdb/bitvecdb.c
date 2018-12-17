@@ -479,7 +479,7 @@ int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int * hd
 				int dist = papp->hd_buf[irec].dist;
 				if (dist >= 0 && dist <= thresh) {
 					if (!papp->num_left_buf[irec]) {
-						printf("for thresh %d, iseed %d overlapped rec at %d\n", thresh, iseed, irec);
+//						printf("for thresh %d, iseed %d overlapped rec at %d\n", thresh, iseed, irec);
 						b_overlap = true;
 						break;
 					}
@@ -491,13 +491,13 @@ int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int * hd
 			if (num_hit > 0) {
 				float avg_dist = (float)dist_sum/(plen*num_hit);
 				float seed_score = ((papp->bitvec_size - avg_dist)/papp->bitvec_size)*num_hit;
-				printf(	"for thresh %d, iseed %d achieved num_hit %d with dist_sum %d, seed_score %f\n", 
-						thresh, iseed, num_hit, dist_sum, seed_score);
+//				printf(	"for thresh %d, iseed %d achieved num_hit %d with dist_sum %d, seed_score %f\n", 
+//						thresh, iseed, num_hit, dist_sum, seed_score);
 				if (seed_score>best_score) {
 					best_score = seed_score;
 					ibest_score = iseed;
 					best_thresh = thresh;
-					printf("iseed %d best so far.\n", iseed);
+//					printf("iseed %d best so far.\n", iseed);
 				}
 				b_seed_scored = true;
 			}
@@ -541,6 +541,48 @@ int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int * hd
 	}
 
 	return num_left;
+}
+
+int get_num_plen(void * hcapp, int plen) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+    int n = 0;
+	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+		if (papp->rec_lens[irec] == plen) 
+            n++;
+    }
+    return n;
+}
+
+int get_cluster(void * hcapp, int * members_ret, int num_ret, char * cent, 
+				int plen, int hd_thresh) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+
+//	printf("get_cluster: num_ret: %d, plen: %d, hd_thresh %d. num recs: %d. db size %d\n", 
+//			num_ret, plen, hd_thresh, papp->num_rec_ptrs, papp->num_db_els);
+    int num_found = 0;
+	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+		if (papp->rec_lens[irec] != plen) continue;
+		int hd = 0;
+    	for (int iel = 0; iel < plen; iel++) { // qpos == pos ind query phrase
+			char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel)*papp->bitvec_size]);
+//			char * qrec = &(papp->db[(papp->rec_ptrs[iseed] + qpos)*papp->bitvec_size]);
+//			printf("iel: %d irec %d: ptr %d. \n", iel, irec, papp->rec_ptrs[irec]);
+			for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
+//				printf("%hhd ", prec[ibit]);
+				if (prec[ibit] != cent[(iel*papp->bitvec_size)+ibit]) {
+					hd++;
+				}
+			}
+//			printf("\n");
+//			papp->hd_buf[irec].dist += (float)hd;
+		}
+		if (hd <= hd_thresh) {
+//			printf("Found cluster member %d at %d.\n", num_found, irec);
+			members_ret[num_found] = irec;
+			num_found++;
+		}
+	}
+	return num_found;
 }
 
 void free_capp(void * hcapp) {

@@ -2663,7 +2663,11 @@ swig -python bitvecdb.i
 python setup.py build_ext --inplace
 
 
+Monday 17th December 2018
 
+Pause to check in before implementing the phrase bin db for mpdbs
 
+CIW:
 
+Implemented a swig-c db for the bitvecs of the phrases for the all phrases db.
 
