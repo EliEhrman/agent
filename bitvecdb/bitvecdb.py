@@ -279,6 +279,10 @@ def set_el_bitvec_size(happ, size):
     return _bitvecdb.set_el_bitvec_size(happ, size)
 set_el_bitvec_size = _bitvecdb.set_el_bitvec_size
 
+def clear_db(happ):
+    return _bitvecdb.clear_db(happ)
+clear_db = _bitvecdb.clear_db
+
 def add_rec(happ, num_els, data):
     return _bitvecdb.add_rec(happ, num_els, data)
 add_rec = _bitvecdb.add_rec
@@ -294,6 +298,10 @@ del_rec = _bitvecdb.del_rec
 def add_agent(happ):
     return _bitvecdb.add_agent(happ)
 add_agent = _bitvecdb.add_agent
+
+def agent_change_rec(happ, iagent, irec, badd):
+    return _bitvecdb.agent_change_rec(happ, iagent, irec, badd)
+agent_change_rec = _bitvecdb.agent_change_rec
 
 def get_closest_recs(happ, k, idxs_ret, hds_ret, obits, num_els, qdata, iskip, delta):
     return _bitvecdb.get_closest_recs(happ, k, idxs_ret, hds_ret, obits, num_els, qdata, iskip, delta)

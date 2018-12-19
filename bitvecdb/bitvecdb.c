@@ -209,7 +209,6 @@ typedef struct SBDBApp {
 
 void * init_capp(void) {
 	tSBDBApp * papp = (tSBDBApp *)bdbmalloc(sizeof(tSBDBApp));
-	return (void*)papp;
 	papp->db = NULL;
 	papp->num_db_els = 0;
 	papp->num_db_els_alloc = 0;
@@ -227,12 +226,20 @@ void * init_capp(void) {
 	papp->agent_num_allocs_alloc = 0;
 	papp->num_left_buf = NULL;
 	papp->num_left_buf_alloc = 0;
+	return (void*)papp;
 }
 
 void set_el_bitvec_size(void * happ, int size) {
 	tSBDBApp * papp = (tSBDBApp *)happ;
 	papp->bitvec_size = size;
 	printf("bitvec size set at %d\n", papp->bitvec_size);
+}
+
+void clear_db(void * happ) {
+	tSBDBApp * papp = (tSBDBApp *)happ;
+	papp->num_db_els = 0;
+	papp->num_rec_ptrs = 0;
+	papp->num_agents = 1;
 }
 
 void add_rec(void * happ, int num_els, char * data) {
@@ -262,7 +269,7 @@ void add_rec(void * happ, int num_els, char * data) {
 		papp->agent_mrks[iagent][papp->num_rec_ptrs] = ((papp->num_agents==1) ? 1 : 0);
 	}
 	papp->num_rec_ptrs++;
-//	printf("bitvecdb add_rec. Added %d els. db now %d long.\n", num_els, papp->num_db_els);
+	printf("bitvecdb add_rec. Added %d els. db now %d long.\n", num_els, papp->num_db_els);
 //	for (int irec=0; irec<papp->num_rec_ptrs; irec++) {
 //		for (int ii = 0; ii<papp->rec_lens[irec]; ii++) {
 //			int iel = papp->rec_ptrs[irec] + ii;
@@ -332,11 +339,11 @@ void del_rec(void * happ, int num_els, int irec) {
 	
 }
 
-void add_agent(void * happ) {
+int add_agent(void * happ) {
 	tSBDBApp * papp = (tSBDBApp *)happ;
 	if (papp->num_rec_ptrs==0) {
 		papp->num_agents++;
-		return;
+		return papp->num_agents;
 	}
 	
 	papp->agent_mrk_allocs = (int *)bdballoc(	papp->agent_mrk_allocs, &(papp->agent_num_allocs_alloc), 
@@ -349,6 +356,12 @@ void add_agent(void * happ) {
 														sizeof(char*), papp->num_rec_ptrs);
 	memset(papp->agent_mrks[papp->num_agents], 0, sizeof(char)*papp->num_rec_ptrs);
 	papp->num_agents++;
+	return papp->num_agents;
+}
+
+void agent_change_rec(void * happ, int iagent, int irec, int badd) {
+	tSBDBApp * papp = (tSBDBApp *)happ;
+	papp->agent_mrks[iagent][irec] = (badd == 1);
 }
 
 int dist_cmp(const void * r1, const void * r2) {

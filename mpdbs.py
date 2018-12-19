@@ -12,11 +12,17 @@ get involved in the bitvec db.
 
 from __future__ import print_function
 import warnings
+import bdb
 
 class cl_mpdbs_mgr(object):
-	def __init__(self, phrase_mgr):
+	def __init__(self, phrase_mgr, phraseperms):
 		self.__phrase_mgr = phrase_mgr
+		self.__phraseperms = phraseperms
+		self.__bdb_story = bdb.cl_bitvec_db(phraseperms, 'story')
 		self.clear_dbs()
+
+	def set_nlb_mgr(self, nlbitvec_mgr):
+		self.__bdb_story.set_nlb_mgr(nlbitvec_mgr)
 
 	def clear_dbs(self):
 		self.__l_dbs = []  # type: List[List[int]] # list of rphrase in each idb
@@ -33,6 +39,8 @@ class cl_mpdbs_mgr(object):
 			return idb
 		idb = len(self.__l_dbs)
 		self.__l_dbs.append([])
+		if idb != 0:
+			self.__bdb_story.agent_add(idb)
 		# self.__l_d_story_len_refs.append(dict())
 		self.__d_db_names[db_name] = idb
 		if idb == 0:
@@ -67,6 +75,8 @@ class cl_mpdbs_mgr(object):
 			isrphrase = len(self.__l_rphrases)
 			self.__map_rphrase_to_irphrase[rphrase] = isrphrase
 			self.__l_rphrases.append(rphrase)
+			# l_rperms = self.__phraseperms.get_perms(rphrase)
+			self.__bdb_story.add_new_phrase(rphrase)
 			for idb_mrk in self.__ll_idb_mrks:
 				idb_mrk.append(False)
 		if self.__ll_idb_mrks[idb][isrphrase]:
@@ -74,6 +84,7 @@ class cl_mpdbs_mgr(object):
 			db_name = self.get_db_name_from_idb(idb)
 			print('not adding duplicate', self.__phrase_mgr.get_phrase(rphrase), 'to db', db_name)
 		self.__ll_idb_mrks[idb][isrphrase] = True
+		self.__bdb_story.agent_change_phrase(idb, rphrase, badd=True)
 
 
 	def apply_delayed_inserts(self):
@@ -104,6 +115,7 @@ class cl_mpdbs_mgr(object):
 			# self.__l_dbs[idb].remove(phrase_ref)
 			self.__l_dbs[idb] = filter(lambda a: a != rphrase, self.__l_dbs[idb])
 			self.__ll_idb_mrks[idb][isrphrase] = False
+			self.__bdb_story.agent_change_phrase(idb, rphrase, badd=False)
 
 	def get_idb_from_db_name(self, db_name):
 		return self.__d_db_names.get(db_name, -1)

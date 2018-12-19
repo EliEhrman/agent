@@ -43,12 +43,12 @@ class cl_phrase_perms(object):
 		self.__ll_rperms[iphrase].append(rperm_new)
 		self.__l_phrase_perms.append(l_phrase_eids)
 		for notific in self.__l_notifics:
-			notific.rphrase_perm_added_alert(rphrase, rperm_new)
+			notific.rphrase_perm_added(rphrase, rperm_new)
 
 	def get_perms(self, rphrase):
-		iphrase = self.__d_rphrase_to_iphrase[rphrase]
+		iphrase = self.__d_rphrase_to_iphrase.get(rphrase, -1)
 		if iphrase == -1:
-			print('Warning. phraseperms received request for perps for unknown rphrase', rphrase)
+			print('Warning. phraseperms received request for perms for unknown rphrase', rphrase)
 			return []
 		return self.__ll_rperms[iphrase]
 

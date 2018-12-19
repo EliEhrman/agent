@@ -3,10 +3,12 @@
 void * init_capp(void);
 void free_capp(void * hcapp);
 void set_el_bitvec_size(void * happ, int size);
+void clear_db(void * happ);
 void add_rec(void * happ, int num_els, char * data);
 void change_rec(void * happ, int num_els, char * data, int irec);
 void del_rec(void * happ, int num_els, int irec);
-void add_agent(void * happ);
+int add_agent(void * happ);
+void agent_change_rec(void * happ, int iagent, int irec, int badd);
 int get_closest_recs(	void * happ, int k, int * idxs_ret, int * hds_ret, char * obits,
 						int num_els, char * qdata, int iskip, int delta);
 int init_num_left_buf(void * hcapp, int plen);

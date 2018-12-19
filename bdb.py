@@ -27,15 +27,10 @@ class cl_nlb_mgr_notifier(nlbitvec.cl_nlb_mgr_notific):
 
 
 class cl_bitvec_db(object):
-	def __init__(self, phraseperms_mgr):
-		self.__d_rphrase_to_iphrase = dict() # type: Dict[int, int]  # map of global ref of phrase to index in local list
-		self.__d_rperm_to_iperm = dict() # type: Dict[int, int]  # map of global ref of perm to index in local list
-		self.__d_iel_to_l_iperm = dict() # type: Dict[int, Set[int]] # maps iel to each iperm that the iel appears in
-		self.__l_phrase_rphrases = [] # type: List[int] # list of phrase global refs, this is indexed to give iphrase
-		self.__ll_iperms = [] # type: List[List[int]] # list of local iperm for each entry in l_phrase_rphrases
-		self.__l_rperms = [] # type: List[int] # list of perm each a global ref ot a perm from phraseperms
-		self.__l_perm_iphrase = [] # type: List[int] # list of local iphrase refs for each perm in l_phrase_perms
-		self.__l_perm_len = [] # type: List[int] # list of lengths for each perm in l_phrase_perms
+	def __init__(self, phraseperms_mgr, name):
+		self.__hcbdb = None
+		self.__name = name
+		self.clear_db() # Also initializes
 		self.__max_perm_len = -1
 		self.__phraseperms = phraseperms_mgr
 		self.__el_bitvec_mgr = None
@@ -50,6 +45,18 @@ class cl_bitvec_db(object):
 		self.__el_bitvec_mgr = el_bitvec_mgr
 		self.__el_bitvec_mgr.register_notific(self.__nlb_mgr_notifier)
 
+	def clear_db(self):
+		self.__d_rphrase_to_iphrase = dict() # type: Dict[int, int]  # map of global ref of phrase to index in local list
+		self.__d_rperm_to_iperm = dict() # type: Dict[int, int]  # map of global ref of perm to index in local list
+		self.__d_iel_to_l_iperm = dict() # type: Dict[int, Set[int]] # maps iel to each iperm that the iel appears in
+		self.__l_phrase_rphrases = [] # type: List[int] # list of phrase global refs, this is indexed to give iphrase
+		self.__ll_iperms = [] # type: List[List[int]] # list of local iperm for each entry in l_phrase_rphrases
+		self.__l_rperms = [] # type: List[int] # list of perm each a global ref ot a perm from phraseperms
+		self.__l_perm_iphrase = [] # type: List[int] # list of local iphrase refs for each perm in l_phrase_perms
+		self.__l_perm_len = [] # type: List[int] # list of lengths for each perm in l_phrase_perms
+		if self.__hcbdb != None:
+			bitvecdb.clear_db(self.__hcbdb)
+
 	def get_max_plen(self):
 		return self.__max_perm_len
 
@@ -58,6 +65,9 @@ class cl_bitvec_db(object):
 		self.__d_rphrase_to_iphrase[rphrase] = iphrase
 		self.__l_phrase_rphrases.append(rphrase)
 		self.__ll_iperms.append([])
+		l_rperms = self.__phraseperms.get_perms(rphrase)
+		for rperm in l_rperms:
+			self.add_perm(rphrase, rperm)
 		self.__phrase_perms_notifier.notify_on_rphrase(rphrase)
 
 	def del_phrase(self, rphrase):
@@ -137,6 +147,18 @@ class cl_bitvec_db(object):
 			self.__d_iel_to_l_iperm[iel] = s_iperms
 			self.__nlb_mgr_notifier.notify_on_iel(iel)
 		bitvecdb.add_rec(self.__hcbdb, len(l_perm_eids), self.convert_charvec_to_arr(phrase_bitvec, len(phrase_bitvec)))
+
+	def agent_add(self, idb):
+		num_agents = bitvecdb.add_agent(self.__hcbdb)
+		assert idb == (num_agents-1), 'Error! The idb num added does not match the cdb expected value'
+
+	def agent_change_phrase(self, idb, rphrase, badd):
+		iphrase = self.__d_rphrase_to_iphrase.get(rphrase, -1)
+		assert iphrase != -1, 'Error. add_perm received for unknown rphrase: ' + str(rphrase)
+		# get the perms and add them
+		for iperm in self.__ll_iperms[iphrase]:
+			# rperm = self.__l_rperms[iperm]
+			bitvecdb.agent_change_rec(self.__hcbdb, idb, iperm, 1 if badd else 0)
 
 	def convert_charvec_to_arr(self, bin, size):
 		bin_arr = bitvecdb.charArray(size)

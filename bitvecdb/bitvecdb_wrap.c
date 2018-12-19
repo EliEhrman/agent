@@ -4637,6 +4637,25 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_clear_db(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  void *arg1 = (void *) 0 ;
+  int res1 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:clear_db",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "clear_db" "', argument " "1"" of type '" "void *""'"); 
+  }
+  clear_db(arg1);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_add_rec(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   void *arg1 = (void *) 0 ;
@@ -4768,13 +4787,60 @@ SWIGINTERN PyObject *_wrap_add_agent(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   void *arg1 = (void *) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
+  int result;
   
   if (!PyArg_ParseTuple(args,(char *)"O:add_agent",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "add_agent" "', argument " "1"" of type '" "void *""'"); 
   }
-  add_agent(arg1);
+  result = (int)add_agent(arg1);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_agent_change_rec(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  void *arg1 = (void *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int res1 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:agent_change_rec",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "agent_change_rec" "', argument " "1"" of type '" "void *""'"); 
+  }
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "agent_change_rec" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "agent_change_rec" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "agent_change_rec" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  agent_change_rec(arg1,arg2,arg3,arg4);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5116,10 +5182,12 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"init_capp", _wrap_init_capp, METH_VARARGS, NULL},
 	 { (char *)"free_capp", _wrap_free_capp, METH_VARARGS, NULL},
 	 { (char *)"set_el_bitvec_size", _wrap_set_el_bitvec_size, METH_VARARGS, NULL},
+	 { (char *)"clear_db", _wrap_clear_db, METH_VARARGS, NULL},
 	 { (char *)"add_rec", _wrap_add_rec, METH_VARARGS, NULL},
 	 { (char *)"change_rec", _wrap_change_rec, METH_VARARGS, NULL},
 	 { (char *)"del_rec", _wrap_del_rec, METH_VARARGS, NULL},
 	 { (char *)"add_agent", _wrap_add_agent, METH_VARARGS, NULL},
+	 { (char *)"agent_change_rec", _wrap_agent_change_rec, METH_VARARGS, NULL},
 	 { (char *)"get_closest_recs", _wrap_get_closest_recs, METH_VARARGS, NULL},
 	 { (char *)"init_num_left_buf", _wrap_init_num_left_buf, METH_VARARGS, NULL},
 	 { (char *)"get_cluster_seed", _wrap_get_cluster_seed, METH_VARARGS, NULL},
