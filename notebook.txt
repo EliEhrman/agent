@@ -2671,3 +2671,19 @@ CIW:
 
 Implemented a swig-c db for the bitvecs of the phrases for the all phrases db.
 
+Wednesday 19th December 2018
+
+While doing the story bitvecdb instance, I also rearranged so that all phrases are added to the phrase mgr,
+it trickels down to the phraseperms and it trickles to the nlbitvec mgr
+
+One thing not dealt with yet is that the phrases labeled with the rules that createed them still expect to go to blbitvec first
+
+After check in, I will start toward rule learning by looking for phrases in the story with a specific word. This is not the
+right order of things, but I want to test the agent code before I forget how I wrote it.
+
+In fact, we neeed a centroids instance of bdb (and bitvecdb with it). This is what is needed for first stage rules
+that don;t actually look at the story db.
+
+CIW:
+
+Applied swig-c db for the phrase bin db

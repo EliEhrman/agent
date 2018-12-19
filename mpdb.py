@@ -261,16 +261,16 @@ class cl_mpdb_mgr(object):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1: raise ValueError('add_phrase should only be called when the db_name has already been added')
 		ilen, iphrase = self.__bitvec_mgr.add_phrase(phrase, phase_data)
-		inlphrase = self.__nlbitvec_mgr.add_phrase(phrase)
+		# inlphrase = self.__nlbitvec_mgr.add_phrase(phrase)
 
-		self.ext_insert([db_name], (ilen, iphrase), inlphrase, bdelay=False)
+		self.ext_insert([db_name], (ilen, iphrase), phrase_nl_ref=0, bdelay=False)
 
 	def remove_phrase_text(self, db_name, phrase, phase_data):
 		idb = self.__d_dn_names.get(db_name, -1)
 		if idb == -1: raise ValueError('add_phrase should only be called when the db_name has already been added')
 		ilen, iphrase = self.__bitvec_mgr.add_phrase(phrase, phase_data)
-		inlphrase = self.__nlbitvec_mgr.add_phrase(phrase)
-		self.remove_phrase([db_name], (ilen, iphrase), inlphrase)
+		# inlphrase = self.__nlbitvec_mgr.add_phrase(phrase)
+		self.remove_phrase([db_name], (ilen, iphrase))
 
 	def apply_mods(self, db_name, phrase, phase_data):
 		insert_phrase, remove_phrase, m_unique_bels = self.__rules_mgr.parse_phrase_for_mod(phrase)
@@ -294,8 +294,8 @@ class cl_mpdb_mgr(object):
 					break
 		if insert_phrase != []:
 			ilen, iphrase = self.__bitvec_mgr.add_phrase(insert_phrase, phase_data)
-			inlphrase = self.__nlbitvec_mgr.add_phrase(insert_phrase)
-			self.ext_insert([db_name], (ilen, iphrase), inlphrase, bdelay=True)
+			# inlphrase = self.__nlbitvec_mgr.add_phrase(insert_phrase)
+			self.ext_insert([db_name], (ilen, iphrase), phrase_nl_ref=-1, bdelay=True)
 			# self.__l_dbs[idb].append((ilen, iphrase))
 
 	def show_dbs(self):

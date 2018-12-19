@@ -84,7 +84,8 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 			ilen, iphrase = bitvec_mgr.add_phrase(story_phrase,
 												  (i_one_story, -1, e_story_loop_stage.story_init,
 												   event_step_id[0]))
-			inlphrase = nlbitvec_mgr.add_phrase(story_phrase)
+			inlphrase = phrase_mgr.add_phrase(story_phrase)
+			# inlphrase = nlbitvec_mgr.add_phrase(story_phrase)
 			bitvec_mgr.save_phrase(init_rule_name, story_phrase)
 			mpdb_mgr.ext_insert([db_name], (ilen, iphrase), inlphrase)
 			mpdbs_mgr.ext_insert([db_name], inlphrase)
@@ -97,7 +98,8 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				added_wlist = rules2.convert_phrase_to_word_list([one_transfer[1:]])[0]
 				ilen, iphrase = bitvec_mgr.add_phrase(added_wlist,
 													  (i_one_story, -1, story_loop_stage, event_step_id[0]))
-				inlphrase = nlbitvec_mgr.add_phrase(added_wlist)
+				inlphrase = phrase_mgr.add_phrase(added_wlist)
+				# inlphrase = nlbitvec_mgr.add_phrase(added_wlist)
 				bitvec_mgr.save_phrase(trnsfr_rule_name, added_wlist)
 				mpdb_mgr.ext_insert([db_name], (ilen, iphrase), inlphrase)
 				mpdbs_mgr.ext_insert([db_name], inlphrase)
@@ -210,7 +212,8 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					l_player_events.append(player_event_phrase)
 					ilen, iphrase = bitvec_mgr.add_phrase(l_player_events[-1], (i_one_story, i_story_step,
 																				story_loop_stage, event_step_id[0]))
-					inlphrase = nlbitvec_mgr.add_phrase(l_player_events[-1])
+					inlphrase = phrase_mgr.add_phrase(l_player_events[-1])
+					# inlphrase = nlbitvec_mgr.add_phrase(l_player_events[-1])
 					bitvec_mgr.save_phrase(event_that_decided, l_player_events[-1])
 					#handle deletes and modifies
 					story_loop_stage = e_story_loop_stage.state1
@@ -383,6 +386,7 @@ def main():
 	if mod.c_b_nl:
 		phrases_mgr = phrases.cl_phrase_mgr()
 		phraseperms_mgr = phraseperms.cl_phrase_perms()
+		phrases_mgr.set_phraseperms(phraseperms_mgr)
 		mpdbs_mgr = mpdbs.cl_mpdbs_mgr(phrases_mgr, phraseperms_mgr)
 		bdb_global = bdb.cl_bitvec_db(phraseperms_mgr, 'global')
 		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(	b_restart_from_glv, phrases_mgr, phraseperms_mgr, bdb_global,
@@ -390,6 +394,7 @@ def main():
 											bitvec_saved_phrases_fnt, nlbitvec_dict_output_fnt, cluster_fnt)
 		bdb_global.set_nlb_mgr(nlbitvec_mgr)
 		mpdbs_mgr.set_nlb_mgr(nlbitvec_mgr)
+		phraseperms_mgr.set_nlb_mgr(nlbitvec_mgr)
 		nlbitvec_mgr.init_data()
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents), nlbitvec_mgr)

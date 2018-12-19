@@ -290,7 +290,7 @@ void change_rec(void * happ, int num_els, char * data, int irec) {
 		return;
 	}
 	memcpy(&(papp->db[papp->rec_ptrs[irec]*papp->bitvec_size]), data, num_els*sizeof(char)*papp->bitvec_size);
-//	printf("bitvecdb change_rec called for irec %d len %d. pos: %d\n", irec, num_els, papp->rec_ptrs[irec]);
+	printf("bitvecdb change_rec called for irec %d len %d. pos: %d\n", irec, num_els, papp->rec_ptrs[irec]);
 //	for (int iel=0; iel<papp->num_db_els; iel++) {
 //		printf("iel: %d. ", iel);
 //		for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {

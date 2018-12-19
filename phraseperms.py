@@ -15,6 +15,9 @@ class cl_phrase_perms_notific(object):
 	def rphrase_perm_added_alert(self, rphrase, rperm):
 		print('Error. This should not be called')
 
+	def reset(self):
+		self.__d_rphrases = dict()
+
 
 class cl_phrase_perms(object):
 	def __init__(self):
@@ -24,7 +27,10 @@ class cl_phrase_perms(object):
 		self.__ll_rperms = [] # type: List[List[int]] # list of rperm for each entry in l_phrase_rphrases
 		self.__l_phrase_perms = [] # type: List[List[int]] # list of perms, each a list of el ids from nlbitvec
 		self.__l_notifics = [] # type: List[cl_phrase_perms_notific]
+		self.__el_bitvec_mgr = None
 
+	def set_nlb_mgr(self, el_bitvec_mgr):
+		self.__el_bitvec_mgr = el_bitvec_mgr
 
 	def add_new_phrase(self, rphrase):
 		iphrase = len(self.__l_phrase_rphrases)
@@ -33,6 +39,7 @@ class cl_phrase_perms(object):
 		# rperm = len(self.__l_phrase_perms)
 		self.__ll_rperms.append([])
 		# self.__l_phrase_perms.append(l_phrase_eids)
+		self.__el_bitvec_mgr.new_phrase_from_phrase_mgr(rphrase)
 
 	def add_perm(self, rphrase, l_phrase_eids):
 		iphrase = self.__d_rphrase_to_iphrase[rphrase]

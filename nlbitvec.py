@@ -51,6 +51,8 @@ class cl_nlb_mgr_notific(object):
 	def iel_bitvec_changed_alert(self, iel, bitvec):
 		print('Error. This should not be called')
 
+	def reset(self):
+		self.__d_iels = dict()
 
 class cl_nlb_mgr(object):
 	def __init__(	self, b_restart_from_glv, phrase_mgr, phraseperms_mgr, bdb_all,
@@ -215,16 +217,18 @@ class cl_nlb_mgr(object):
 			return rphrase
 		return self.add_new_row(phrase)
 
+	def new_phrase_from_phrase_mgr(self, rphrase):
+		phrase = self.__phrase_mgr.get_phrase(rphrase)
+		self.__bdb_all.add_new_phrase(rphrase)
+		return self.__add_new_row(rphrase, phrase)
+
 	def add_new_row(self, phrase):
 		i_all_phrases = self.__phrase_mgr.add_phrase(phrase)
 		self.__phraseperms.add_new_phrase(i_all_phrases)
 		self.__bdb_all.add_new_phrase(i_all_phrases)
-		# magic_del = -1
-		# if magic_del >= 0:
-		# 	self.__bdb_all.del_phrase(magic_del)
-		# i_all_phrases = len(self.__l_phrases)
-		# self.__l_phrases.append(phrase)
-		# self.__map_phrase_to_rphrase[tuple(phrase)] = i_all_phrases
+		self.__add_new_row(i_all_phrases, phrase)
+
+	def __add_new_row(self, i_all_phrases, phrase):
 		grow = 1 + i_all_phrases - len(self.__phrase_by_len_idx)
 		self.__phrase_by_len_idx += [-1 for _ in range(grow)]
 		del grow
@@ -442,6 +446,8 @@ class cl_nlb_mgr(object):
 			divider_local = divider[:num_winners]
 			divider_sum_local = np.sum(1. / divider_local)
 			avg_hd = (np.sum(np.array(l_hds_sorted) / divider_local) / divider_sum_local) / (plen - 1)
+			if num_winners < 5:
+				print('Warning. Learning word', word, 'from only', num_winners, 'examples. avg_hd = ', avg_hd)
 			new_vals = np.sum(nd_obits.transpose() / divider_local, axis=1) / divider_sum_local
 		else:
 			nd_bits_db = self.__ndbits_by_len[plen]

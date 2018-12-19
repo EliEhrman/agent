@@ -56,6 +56,8 @@ class cl_bitvec_db(object):
 		self.__l_perm_len = [] # type: List[int] # list of lengths for each perm in l_phrase_perms
 		if self.__hcbdb != None:
 			bitvecdb.clear_db(self.__hcbdb)
+			self.__phrase_perms_notifier.reset()
+			self.__nlb_mgr_notifier.reset()
 
 	def get_max_plen(self):
 		return self.__max_perm_len

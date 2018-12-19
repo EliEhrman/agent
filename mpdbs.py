@@ -17,7 +17,7 @@ import bdb
 class cl_mpdbs_mgr(object):
 	def __init__(self, phrase_mgr, phraseperms):
 		self.__phrase_mgr = phrase_mgr
-		self.__phraseperms = phraseperms
+		# self.__phraseperms = phraseperms
 		self.__bdb_story = bdb.cl_bitvec_db(phraseperms, 'story')
 		self.clear_dbs()
 
@@ -32,6 +32,7 @@ class cl_mpdbs_mgr(object):
 		self.__map_rphrase_to_irphrase = dict()  # type: Dict[int, int] # maps global ref to phrase (len and iphrase) of bitvec to idx of phrase in l_sphrase
 		self.__l_delayed_inserts = [] # type: List[Tuple[int]] # list of pairs of (idb, rphrase) waiting to be inserted into a specific db
 		self.__l_poss_stmts = [] # keeping here till rules start accessing this info. Perhpas belongs in another module
+		self.__bdb_story.clear_db()
 
 	def add_db(self, db_name):
 		idb = self.__d_db_names.get(db_name, -1)
@@ -178,12 +179,17 @@ class cl_mpdbs_mgr(object):
 		if idb == -1:
 			idb = self.add_db(db_name)
 		if remove_phrase != []:
+			nl_remove_phrase = []; m_unique_bnels = []
+			for el, bel in zip(remove_phrase, m_unique_bels):
+				for nel in el.split():
+					nl_remove_phrase.append(nel)
+					m_unique_bnels.append(bel)
 			for iphrase2, rphrase2 in enumerate( self.__l_dbs[idb]):
 				phrase2 = self.__phrase_mgr.get_phrase(rphrase2)
-				if len(phrase2) != len(remove_phrase):
+				if len(phrase2) != len(nl_remove_phrase):
 					continue
 				bfound = True
-				for breq, word, rword in zip(m_unique_bels, phrase2, remove_phrase):
+				for breq, word, rword in zip(m_unique_bnels, phrase2, nl_remove_phrase):
 					if breq and word != rword:
 						bfound = False
 						break
