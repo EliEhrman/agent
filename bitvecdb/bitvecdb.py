@@ -279,6 +279,10 @@ def set_el_bitvec_size(happ, size):
     return _bitvecdb.set_el_bitvec_size(happ, size)
 set_el_bitvec_size = _bitvecdb.set_el_bitvec_size
 
+def set_name(happ, name):
+    return _bitvecdb.set_name(happ, name)
+set_name = _bitvecdb.set_name
+
 def clear_db(happ):
     return _bitvecdb.clear_db(happ)
 clear_db = _bitvecdb.clear_db
@@ -322,6 +326,18 @@ get_num_plen = _bitvecdb.get_num_plen
 def get_cluster(hcapp, members_ret, num_ret, cent, plen, hd_thresh):
     return _bitvecdb.get_cluster(hcapp, members_ret, num_ret, cent, plen, hd_thresh)
 get_cluster = _bitvecdb.get_cluster
+
+def get_irecs_with_eid(hcapp, ret_arr, iagent, qbits):
+    return _bitvecdb.get_irecs_with_eid(hcapp, ret_arr, iagent, qbits)
+get_irecs_with_eid = _bitvecdb.get_irecs_with_eid
+
+def set_hd_thresh(hcapp, irec, hd_thresh):
+    return _bitvecdb.set_hd_thresh(hcapp, irec, hd_thresh)
+set_hd_thresh = _bitvecdb.set_hd_thresh
+
+def get_thresh_recs(hcapp, ret_arr, plen, qrec):
+    return _bitvecdb.get_thresh_recs(hcapp, ret_arr, plen, qrec)
+get_thresh_recs = _bitvecdb.get_thresh_recs
 # This file is compatible with both classic and new-style classes.
 
 

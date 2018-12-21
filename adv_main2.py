@@ -27,6 +27,7 @@ import phrases
 import mpdbs
 import phraseperms
 import bdb
+import cluster
 
 # import adv_config
 # import adv_learn
@@ -109,7 +110,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 		localtime = time.asctime(time.localtime(time.time()))
 
 		# mpdb_mgr.show_dbs()
-		mpdbs_mgr.show_dbs()
+		# mpdbs_mgr.show_dbs()
 
 		print("Local current time :", localtime)
 
@@ -186,6 +187,9 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				if one_decide == []:
 					story_loop_stage = e_story_loop_stage.decision_init
 				else:
+					phrase_mgr.add_phrase(one_decide)
+					rule_name = d_mod_fns['get_decision_ruleid_name'](ruleid)
+					bitvec_mgr.save_phrase(rule_name, one_decide)
 					story_loop_stage = e_story_loop_stage.event
 					b_decision_made = True
 				continue
@@ -205,6 +209,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					player_event = event_as_decided[0]
 					event_that_decided = l_event_result_rule_names[0]
 					player_event_phrase = rules2.convert_phrase_to_word_list([player_event[1:]])[0]
+					phrase_mgr.add_phrase(player_event_phrase)
 					out_str = 'time: ' + str(i_story_step) + '. Next story step: *** '
 					out_str += ' '.join(player_event_phrase) # els.output_phrase(def_article_dict, out_str, player_event[1:])
 					out_str += ' **** '
@@ -239,6 +244,9 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					mpdb_mgr.learn_rule(one_decide, event_as_decided,
 										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 										  'main')
+					mpdbs_mgr.learn_rule(one_decide, event_as_decided,
+										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
+										  story_names[i_story_player])
 
 
 			elif story_loop_stage == e_story_loop_stage.state1:
@@ -317,7 +325,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					# 	l_story_db_event_refs.append((ilen, iphrase))
 				# print('All dbs for step', event_step_id[0], 'in story num', i_one_story, ':')
 				# mpdb_mgr.show_dbs()
-				mpdbs_mgr.show_dbs()
+				# mpdbs_mgr.show_dbs()
 				story_loop_stage = e_story_loop_stage.decision_init
 				i_story_step += 1
 				if i_story_step >= num_story_steps:
@@ -384,18 +392,23 @@ def main():
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt)
 	nlbitvec_mgr = None
 	if mod.c_b_nl:
-		phrases_mgr = phrases.cl_phrase_mgr()
-		phraseperms_mgr = phraseperms.cl_phrase_perms()
+		phrases_mgr = phrases.cl_phrase_mgr(b_restart_from_glv, bitvec_saved_phrases_fnt)
+		phraseperms_mgr = phraseperms.cl_phrase_perms(phrases_mgr)
 		phrases_mgr.set_phraseperms(phraseperms_mgr)
 		mpdbs_mgr = mpdbs.cl_mpdbs_mgr(phrases_mgr, phraseperms_mgr)
 		bdb_global = bdb.cl_bitvec_db(phraseperms_mgr, 'global')
+		cluster_mgr = cluster.cl_phrase_cluster_mgr(cluster_fnt, rule_grp_fnt)
+		cluster_mgr.set_bdb_all(bdb_global)
+		phraseperms_mgr.set_cluster_mgr(cluster_mgr)
 		nlbitvec_mgr = nlbitvec.cl_nlb_mgr(	b_restart_from_glv, phrases_mgr, phraseperms_mgr, bdb_global,
 											nlbitvec_dict_fnt, rule_grp_fnt,
 											bitvec_saved_phrases_fnt, nlbitvec_dict_output_fnt, cluster_fnt)
 		bdb_global.set_nlb_mgr(nlbitvec_mgr)
 		mpdbs_mgr.set_nlb_mgr(nlbitvec_mgr)
 		phraseperms_mgr.set_nlb_mgr(nlbitvec_mgr)
-		nlbitvec_mgr.init_data()
+		cluster_mgr.set_nlb_mgr(nlbitvec_mgr)
+		if mod.c_b_init_data:
+			phrases_mgr.init_data()
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents), nlbitvec_mgr)
 	gpsai_mgr = gpsai.cl_gpsai_mgr()

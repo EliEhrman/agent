@@ -20,7 +20,7 @@ class cl_phrase_perms_notific(object):
 
 
 class cl_phrase_perms(object):
-	def __init__(self):
+	def __init__(self, phrase_mgr):
 		# iphrase is the local index for the rphrase. It should be the same as rphrase, bit not assuming this for now
 		self.__d_rphrase_to_iphrase = dict()
 		self.__l_phrase_rphrases = []
@@ -28,9 +28,14 @@ class cl_phrase_perms(object):
 		self.__l_phrase_perms = [] # type: List[List[int]] # list of perms, each a list of el ids from nlbitvec
 		self.__l_notifics = [] # type: List[cl_phrase_perms_notific]
 		self.__el_bitvec_mgr = None
+		self.__cluster_mgr = None
+		self.__phrase_mgr = phrase_mgr
 
 	def set_nlb_mgr(self, el_bitvec_mgr):
 		self.__el_bitvec_mgr = el_bitvec_mgr
+
+	def set_cluster_mgr(self, cluster_mgr):
+		self.__cluster_mgr = cluster_mgr
 
 	def add_new_phrase(self, rphrase):
 		iphrase = len(self.__l_phrase_rphrases)
@@ -67,3 +72,38 @@ class cl_phrase_perms(object):
 
 	def register_notific(self, notific):
 		self.__l_notifics.append(notific)
+
+	def get_phrase(self, rphrase):
+		return self.__phrase_mgr.get_phrase(rphrase)
+
+	def init(self, l_rule_names):
+		if self.__cluster_mgr == None:
+			print('Error!. Cluster mgr not set yet for phraseperms')
+			return
+		self.__cluster_mgr.init(l_rule_names)
+		# self.test_clusters()
+
+	def init_from_load(self):
+		if self.__cluster_mgr == None:
+			print('Error!. Cluster mgr not set yet for phraseperms')
+			return
+		self.__cluster_mgr.init_from_load()
+
+	def get_cluster(self, rphrase):
+		print('get_cluster_called for', self.__phrase_mgr.get_phrase(rphrase))
+		l_rperms = self.get_perms(rphrase)
+		l_rcent = []
+		for rperm in l_rperms:
+			l_perm_eids = self.get_perm_eids(rperm)
+			l_phrase_bits = []
+			for eid in l_perm_eids:
+				l_phrase_bits += self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
+			l_rcent += self.__cluster_mgr.get_cluster(l_phrase_bits)
+		return l_rcent
+
+	def test_clusters(self):
+		tot = self.__phrase_mgr.get_num_phrases()
+		for i in range(tot):
+			self.get_cluster(i)
+
+

@@ -13,303 +13,223 @@ from bitvecdb import bitvecdb
 c_num_seeds_initial = 5
 c_cluster_thresh = 10 # 18
 
-__bitvec_size = 0
+# __bitvec_size = 0
 
 nt_cluster = collections.namedtuple('nt_cluster', 'l_cent, hd, score, num_hit')
 
-def init_clusters(bitvec_size):
-	global __bitvec_size
-	__bitvec_size = bitvec_size
+class cl_phrase_cluster_mgr(object):
+	def __init__(self, cluster_fnt, rule_grp_fnt):
+		self.__bitvec_size = -1
+		self.__cluster_fnt = cluster_fnt
+		self.__rule_grp_fnt = rule_grp_fnt
+		self.__d_rule_grps = dict()
+		self.__bdb_all = None
+		self.__l_nd_centroids = []
+		self.__ll_centroids = []
+		self.__ll_cent_hd_thresh = []
+		self.__l_cent_hd = []
+		self.__hcdb_cent = bitvecdb.init_capp()
+		self.__nlb_mgr = None
+		bitvecdb.set_name(self.__hcdb_cent, 'centroids')
 
-def cluster_one_thresh(plen, recc_thresh, hcbdb):
-	num_left = bitvecdb.init_num_left_buf(hcbdb, plen)
-	cent_ret = bitvecdb.charArray(__bitvec_size*plen)
-	hd_avg_ret, hd_thresh = bitvecdb.floatArray(1), bitvecdb.intArray(1)
-	l_clusters = []
-	while num_left > 0:
-		num_left_now = bitvecdb.get_cluster_seed(hcbdb, cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh)
-		num_added = num_left - num_left_now
-		num_left = num_left_now
-		l_cent = [ord(cent_ret[ib]) for ib in range(__bitvec_size*plen)]
-		l_clusters.append(nt_cluster(l_cent=l_cent, hd=hd_thresh[0], score=hd_avg_ret[0], num_hit=num_added))
-	nd_hd_cluster, nd_num = np.zeros(len(l_clusters)), np.zeros(len(l_clusters))
-	nd_centroids = np.zeros((len(l_clusters), __bitvec_size*plen), dtype=np.uint8)
-	l_hd_thresh = []
-	for icluster, cluster in enumerate(l_clusters):
-		nd_hd_cluster[icluster] = cluster.score
-		nd_num[icluster] = cluster.num_hit
-		nd_centroids[icluster, :] = np.array(cluster.l_cent, dtype=np.uint8)
-		l_hd_thresh.append(cluster.hd)
-		# l_homog_score.append(hd_cluster)
-	score = np.sum(np.multiply(nd_hd_cluster, nd_num)) / np.sum(nd_num)
-	final_score = nd_hd_cluster.shape[0] * score
-	return final_score, nd_centroids, l_hd_thresh
 
-def cluster_one_thresh_old(plen, ndbits, num_recs, gen_cluster_thresh, hcbdb):
-	left_out_mrk = np.ones(num_recs, dtype=np.uint8)
-	num_left = num_recs
-	nd_centroids = []
+	def set_bdb_all(self, bdb_all):
+		self.__bdb_all = bdb_all
 
-	while num_left > 0:
-		num_seeds_to_add = min(num_left, c_num_seeds_initial)
-		rand_top_sel = np.multiply(np.random.random(num_recs), left_out_mrk)
-		# arg_sel = np.argsort(rand_top_sel)
-		# l_iseeds = [np.where(arg_sel==ir)[0][0] for ir in range(num_seeds_to_add)]
-		l_iseeds = np.argsort(-rand_top_sel)[:num_seeds_to_add]
-		nd_new_centroids = ndbits[l_iseeds]
-		nd_centroids = nd_new_centroids if nd_centroids == [] else np.concatenate((nd_centroids, nd_new_centroids),
-																				  axis=0)
-		# l_iseeds = random.sample(range(num_recs), c_num_seeds_initial)
-		l_remove = []
-		for ii1, iseed1 in enumerate(nd_centroids):
-			for ii2, iseed2 in enumerate(nd_centroids):
-				if ii2 <= ii1: continue
-				if ii2 in l_remove: continue
-				hd = np.sum(np.not_equal(iseed1, iseed2)) / plen
-				if hd < gen_cluster_thresh:  # using the original thresh here
-					l_remove.append(ii2)
-				del ii2, iseed2, hd
-			del ii1, iseed1
-		l_keep = range(nd_centroids.shape[0])
-		for ii3 in sorted(l_remove, key=int, reverse=True):
-			del l_keep[ii3]
-			del ii3
-		nd_centroids = nd_centroids[l_keep]
-		l_cent_hd_thresh = [gen_cluster_thresh for _ in nd_centroids]
-		left_out_mrk, num_left = create_clusters_from_seeds(num_recs, plen, ndbits, nd_centroids, l_cent_hd_thresh)
-	# nd_cluster_mrks = np.zeros((nd_centroids.shape[0], num_recs), dtype=np.uint8)
-	# for ii1, nd_cent in enumerate(nd_centroids):
-	# 	hd = np.sum(np.not_equal(ndbits, nd_cent), axis=(1,2)) / plen
-	# 	frst_cluster_mrks = np.less(hd, l_cent_hd_thresh[ii1]).astype(np.uint8)
-	# 	cluster_sum = np.sum(np.multiply(np.transpose(ndbits, axes=(1, 2, 0)), frst_cluster_mrks), axis=2)
-	# 	fcentroid = cluster_sum / float(np.count_nonzero(frst_cluster_mrks))
-	# 	centroid = np.round_(fcentroid).astype(np.uint8)
-	# 	hd2 = np.sum(np.not_equal(ndbits, centroid), axis=(1,2)) / plen
-	# 	nd_cluster_mrks[ii1, :] = np.less(hd2, l_cent_hd_thresh[ii1]).astype(np.uint8)
-	# all_mrks = np.any(nd_cluster_mrks, axis=0)
-	# left_out_mrk = np.logical_xor(all_mrks, 1)
-	# num_left = np.count_nonzero(left_out_mrk)
-	l_keep_reducing = [True for _ in nd_centroids]
-	l_cent_hd_thresh = [gen_cluster_thresh for _ in nd_centroids]
-	while any(l_keep_reducing):
-		for icent, nd_centroid in enumerate(nd_centroids):
-			if not l_keep_reducing[icent]: continue
-			l_cent_hd_thresh[icent] -= 1
-			_, num_left = create_clusters_from_seeds(num_recs, plen, ndbits, nd_centroids, l_cent_hd_thresh)
-			if num_left > 0:
-				l_cent_hd_thresh[icent] += 1
-				# _, num_left = create_clusters_from_seeds(num_recs, plen, ndbits, nd_centroids, l_cent_hd_thresh)
-				# assert (num_left == 0), 'Error. No records should be out of cluster at this point'
-				l_keep_reducing[icent] = False
-	homog_score = calc_homog(plen, ndbits, nd_centroids, l_cent_hd_thresh)
-	return homog_score, nd_centroids, l_cent_hd_thresh
+	def set_nlb_mgr(self, nlb_mgr):
+		self.__bitvec_size = nlb_mgr.get_bitvec_size()
+		self.__nlb_mgr = nlb_mgr
+		bitvecdb.set_el_bitvec_size(self.__hcdb_cent, self.__bitvec_size)
 
-def assign_rule_name_score(plen, ndbits, nd_centroids, l_cent_hd_thresh, l_rule_names,
-						   iphrase_by_len, d_rule_grps, bdb_all, num_recs):
-	l_entr, l_tot_hits = [], []
-	for ii1, nd_cent in enumerate(nd_centroids):
-		l_rec_rule_names = bdb_all.get_rec_rule_names(nd_cent, l_cent_hd_thresh[ii1], plen, num_recs, l_rule_names)
-		tot_hits = len(l_rec_rule_names)
-		d_cluster_rules, l_num_hits, l_hit_names = dict(), [], []
-		for irec, rule_names in enumerate(l_rec_rule_names):
-			s_grp_ids = set()
-			for rule_name in rule_names:
-				rule_grp_id = d_rule_grps.get(rule_name, -1)
-				if rule_grp_id != -1:
-					s_grp_ids.add(rule_grp_id)
-			if len(s_grp_ids) != 1:
-				continue
-			rule_grp_id = s_grp_ids.pop()
-			# assert rule_grp_id != -1, 'Error. Rule name not in a rule group'
-			irule = d_cluster_rules.get(rule_grp_id, -1)
-			if irule == -1:
-				d_cluster_rules[rule_grp_id] = len(l_num_hits)
-				l_num_hits.append(1)
-				l_hit_names.append([rule_names])
-			else:
-				l_num_hits[irule] += 1
-				l_hit_names[irule].append(rule_names)
-		entr = 0.
-		for irule, num_hits in enumerate(l_num_hits):
-			p = float(num_hits) / tot_hits
-			entr += -p * math.log(p, 2)
-		l_entr.append(entr)
-		l_tot_hits.append(tot_hits)
-	entr_tot, tot_tot_hits = 0., 0
-	for entr, tot_hits in zip(l_entr, l_tot_hits):
-		entr_tot += entr * tot_hits;
-		tot_tot_hits += tot_hits
-	return entr_tot / tot_tot_hits, tot_tot_hits
-	"""
-	hd = np.sum(np.not_equal(ndbits, nd_cent), axis=(1, 2)) / plen
-		cluster_mrks = np.less(hd, l_cent_hd_thresh[ii1]).astype(np.bool)
-		tot_hits = np.sum(cluster_mrks)
-		d_cluster_rules, l_num_hits, l_hit_names = dict(), [], []
-		for irec, bcluster in enumerate(cluster_mrks):
-			if not bcluster: continue
-			rule_names = l_rule_names[iphrase_by_len[plen][irec]]
-			s_grp_ids = set()
-			for rule_name in rule_names:
-				rule_grp_id = d_rule_grps.get(rule_name, -1)
-				if rule_grp_id != -1:
-					s_grp_ids.add(rule_grp_id)
-			if len(s_grp_ids) != 1:
-				continue
-			rule_grp_id = s_grp_ids.pop()
-			# assert rule_grp_id != -1, 'Error. Rule name not in a rule group'
-			irule = d_cluster_rules.get(rule_grp_id, -1)
-			if irule == -1:
-				d_cluster_rules[rule_grp_id] = len(l_num_hits)
-				l_num_hits.append(1)
-				l_hit_names.append([rule_names])
-			else:
-				l_num_hits[irule] += 1
-				l_hit_names[irule].append(rule_names)
-		entr = 0.
-		for irule, num_hits in enumerate(l_num_hits):
-			p = float(num_hits) / tot_hits
-			entr += -p*math.log(p, 2)
-		l_entr.append(entr)
-		l_tot_hits.append(tot_hits)
-	entr_tot, tot_tot_hits = 0., 0
-	for entr, tot_hits in zip(l_entr, l_tot_hits):
-		entr_tot += entr * tot_hits; tot_tot_hits += tot_hits
-	return entr_tot / tot_tot_hits, tot_tot_hits
-	"""
+	def load_rule_grps(self):
+		fn = self.__rule_grp_fnt
+		try:
+			with open(fn, 'rb') as o_fhr:
+				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+				for irow, row in enumerate(csvr):
+					for rname in row:
+						self.__d_rule_grps[rname] = irow
 
-def cluster(ndbits_by_len, l_rule_names, iphrase_by_len, d_rule_grps, hcbdb, max_plen, bdb_all):
-	entr_tot, tot_hits, tot_clusters = 0., 0, 0
-	l_nd_centroids, ll_cent_hd_thresh = [[] for _ in range(max_plen)], [[] for _ in range(max_plen)]
-	for plen in range(max_plen):
-		num_plen_recs = bitvecdb.get_num_plen(hcbdb, plen)
-		if num_plen_recs <= 0: continue
-		best_thresh, best_homog_score = -1, sys.float_info.max
-		for recc_thresh in range(6, __bitvec_size * 1 / 5): # * 2 / 5
-			homog_score, nd_centroids_t, l_cent_hd_thresh_t = cluster_one_thresh(plen, recc_thresh, hcbdb)
-			if homog_score < best_homog_score:
-				best_homog_score = homog_score
-				best_thresh, nd_centroids, l_cent_hd_thresh = recc_thresh, nd_centroids_t, l_cent_hd_thresh_t
-		l_nd_centroids[plen] = nd_centroids; ll_cent_hd_thresh[plen] = l_cent_hd_thresh
-		entr_score,plen_hits= assign_rule_name_score(plen, None, nd_centroids, l_cent_hd_thresh, l_rule_names,
-													 iphrase_by_len, d_rule_grps, bdb_all, num_plen_recs)
-		entr_tot += entr_score*plen_hits; tot_hits += plen_hits; tot_clusters += nd_centroids.shape[0]
+		except IOError:
+			print('Cannot open or read ', fn)
 
-	# The entropy score is just entr_tot / tot_hits, but I want to penalize for having too many clusters
-	score = tot_clusters * (0.1 + entr_tot / tot_hits)
-	print('Score:', score)
-	# exit()
-	return score, l_nd_centroids, ll_cent_hd_thresh
 
-	entr_tot, tot_hits, tot_clusters = 0., 0, 0
-	l_nd_centroids, ll_cent_hd_thresh = [[] for _ in ndbits_by_len], [[] for _ in ndbits_by_len]
-	for plen, ndbits in enumerate(ndbits_by_len):
-		if ndbits is None or ndbits == []: continue
-		num_plen_recs = ndbits.shape[0]
-		if num_plen_recs < c_num_seeds_initial: continue
-		best_thresh, best_homog_score = -1, sys.float_info.max
-		for gen_cluster_thresh in range(6, ndbits.shape[2] * 2 / 5): # * 2 / 5
-			homog_score, nd_centroids_t, l_cent_hd_thresh_t = cluster_one_thresh_old(plen, ndbits, num_plen_recs, gen_cluster_thresh, hcbdb)
-			if homog_score < best_homog_score:
-				best_homog_score = homog_score
-				best_thresh, nd_centroids, l_cent_hd_thresh = gen_cluster_thresh, nd_centroids_t, l_cent_hd_thresh_t
-		l_nd_centroids[plen] = nd_centroids; ll_cent_hd_thresh[plen] = l_cent_hd_thresh
-		entr_score,plen_hits= assign_rule_name_score(plen, ndbits, nd_centroids, l_cent_hd_thresh, l_rule_names, iphrase_by_len, d_rule_grps)
-		entr_tot += entr_score*plen_hits; tot_hits += plen_hits; tot_clusters += nd_centroids.shape[0]
-		pass
-	# The entropy score is just entr_tot / tot_hits, but I want to penalize for having too many clusters
-	score = tot_clusters * (0.1 + entr_tot / tot_hits)
-	print('Score:', score)
-	# exit()
-	return score, l_nd_centroids, ll_cent_hd_thresh
+	def init(self, l_rule_names):
+		self.load_rule_grps()
+		score = self.cluster(l_rule_names,  self.__bdb_all.get_max_plen())
+		self.save_clusters()
+		# return l_nd_centroids, ll_cent_hd_thresh
 
-def save_cluters(l_nd_centroids, ll_cent_hd_thresh, cluster_fnt):
-	num_cents = 0
-	for ilen, l_hds in enumerate(ll_cent_hd_thresh):
-		num_cents += len(l_hds)
+	def process_clusters(self):
+		for plen, l_cent_hd_thresh in enumerate(self.__ll_cent_hd_thresh):
+			for i_lencent, hd_thresh in enumerate(l_cent_hd_thresh):
+				irec = len(self.__ll_centroids)
+				close_phrase = []
+				for iel in range(plen):
+					word = self.__nlb_mgr.dbg_closest_word(self.__l_nd_centroids[plen][i_lencent][iel*self.__bitvec_size:(iel+1)*self.__bitvec_size])
+					close_phrase.append(word)
+				print('irec:', irec, close_phrase)
+				self.__ll_centroids.append(np.reshape(self.__l_nd_centroids[plen][i_lencent], -1).tolist())
+				self.__l_cent_hd.append(hd_thresh)
+				bitvecdb.add_rec(self.__hcdb_cent, plen,
+								 self.convert_charvec_to_arr(self.__ll_centroids[-1]))
+				bitvecdb.set_hd_thresh(self.__hcdb_cent, irec, hd_thresh)
 
-	fn = expanduser(cluster_fnt)
+	def init_from_load(self):
+		self.load_clusters()
+		self.process_clusters()
 
-	if os.path.isfile(fn):
-		copyfile(fn, fn + '.bak')
-	fh = open(fn, 'wb')
-	csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
-	csvw.writerow(['blbitvec centroids', 'Version', '1'])
-	csvw.writerow(['Num Cents:', num_cents, 'num lengths', len(ll_cent_hd_thresh)])
-	for ilen, l_hds in enumerate(ll_cent_hd_thresh):
-		for icent, hd in enumerate(l_hds):
-			cent = l_nd_centroids[ilen][icent, :]
-			lbits = cent.tolist() # [onebit for l in cent.tolist() for onebit in l]
-			# cent = l_nd_centroids[ilen][icent, :, :]
-			# llbits = [cent[i].tolist() for i in range(ilen)]
-			# lbits = [onebit for l in llbits for onebit in l]
-			csvw.writerow([ilen, hd] + lbits)
+	def cluster_one_thresh(self, plen, recc_thresh):
+		num_left = self.__bdb_all.init_num_left_buf(plen)
+		cent_ret = bitvecdb.charArray(self.__bitvec_size*plen)
+		hd_avg_ret, hd_thresh = bitvecdb.floatArray(1), bitvecdb.intArray(1)
+		l_clusters = []
+		while num_left > 0:
+			num_left_now = self.__bdb_all.get_cluster_seed(cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh)
+			num_added = num_left - num_left_now
+			num_left = num_left_now
+			l_cent = [ord(cent_ret[ib]) for ib in range(self.__bitvec_size*plen)]
+			l_clusters.append(nt_cluster(l_cent=l_cent, hd=hd_thresh[0], score=hd_avg_ret[0], num_hit=num_added))
+		nd_hd_cluster, nd_num = np.zeros(len(l_clusters)), np.zeros(len(l_clusters))
+		nd_centroids = np.zeros((len(l_clusters), self.__bitvec_size*plen), dtype=np.uint8)
+		l_hd_thresh = []
+		for icluster, cluster in enumerate(l_clusters):
+			nd_hd_cluster[icluster] = cluster.score
+			nd_num[icluster] = cluster.num_hit
+			nd_centroids[icluster, :] = np.array(cluster.l_cent, dtype=np.uint8)
+			l_hd_thresh.append(cluster.hd)
+			# l_homog_score.append(hd_cluster)
+		score = np.sum(np.multiply(nd_hd_cluster, nd_num)) / np.sum(nd_num)
+		final_score = nd_hd_cluster.shape[0] * score
+		return final_score, nd_centroids, l_hd_thresh
 
-	fh.close()
-
-def load_clusters(cluster_fnt, bitvec_size):
-	fn = expanduser(cluster_fnt)
-	# if True:
-	try:
-		with open(fn, 'rb') as o_fhr:
-			csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
-			_, _, version_str = next(csvr)
-			_, snum_cents, _, snum_lens = next(csvr)
-			ll_centroids, ll_cent_hd_thresh = [[] for _ in range(int(snum_lens))], [[] for _ in range(int(snum_lens))]
-			for irow in range(int(snum_cents)):
-				row = next(csvr)
-				ilen, hd, lsbits = int(row[0]), int(row[1]), row[2:]
-				bitvals = np.reshape(np.array(map(int, lsbits), dtype=np.int8), (ilen, bitvec_size))
-				ll_cent_hd_thresh[ilen].append(hd)
-				ll_centroids[ilen].append(bitvals)
-				del row, ilen, hd, lsbits
-			l_nd_centroids = []
-			for ilen, l_cents in enumerate(ll_centroids):
-				if l_cents == []:
-					l_nd_centroids.append([])
+	def assign_rule_name_score(self, plen, nd_centroids, l_cent_hd_thresh, l_rule_names,
+							   num_recs):
+		l_entr, l_tot_hits = [], []
+		for ii1, nd_cent in enumerate(nd_centroids):
+			l_rec_rule_names = self.__bdb_all.get_rec_rule_names(nd_cent, l_cent_hd_thresh[ii1], plen, num_recs, l_rule_names)
+			tot_hits = len(l_rec_rule_names)
+			d_cluster_rules, l_num_hits, l_hit_names = dict(), [], []
+			for irec, rule_names in enumerate(l_rec_rule_names):
+				s_grp_ids = set()
+				for rule_name in rule_names:
+					rule_grp_id = self.__d_rule_grps.get(rule_name, -1)
+					if rule_grp_id != -1:
+						s_grp_ids.add(rule_grp_id)
+				if len(s_grp_ids) != 1:
+					continue
+				rule_grp_id = s_grp_ids.pop()
+				# assert rule_grp_id != -1, 'Error. Rule name not in a rule group'
+				irule = d_cluster_rules.get(rule_grp_id, -1)
+				if irule == -1:
+					d_cluster_rules[rule_grp_id] = len(l_num_hits)
+					l_num_hits.append(1)
+					l_hit_names.append([rule_names])
 				else:
-					l_nd_centroids.append(np.stack(l_cents, axis=0))
+					l_num_hits[irule] += 1
+					l_hit_names[irule].append(rule_names)
+			entr = 0.
+			for irule, num_hits in enumerate(l_num_hits):
+				p = float(num_hits) / tot_hits
+				entr += -p * math.log(p, 2)
+			l_entr.append(entr)
+			l_tot_hits.append(tot_hits)
+		entr_tot, tot_tot_hits = 0., 0
+		for entr, tot_hits in zip(l_entr, l_tot_hits):
+			entr_tot += entr * tot_hits;
+			tot_tot_hits += tot_hits
+		return entr_tot / tot_tot_hits, tot_tot_hits
 
-	except IOError:
-		raise ValueError('Cannot open or read ', fn)
+	def cluster(self, l_rule_names, max_plen):
+		entr_tot, tot_hits, tot_clusters = 0., 0, 0
+		self.__l_nd_centroids, self.__ll_cent_hd_thresh = [[] for _ in range(max_plen)], [[] for _ in range(max_plen)]
+		for plen in range(max_plen):
+			num_plen_recs = self.__bdb_all.get_num_plen(plen)
+			if num_plen_recs <= 0: continue
+			best_thresh, best_homog_score = -1, sys.float_info.max
+			for recc_thresh in range(6, self.__bitvec_size * 1 / 5): # * 2 / 5
+				homog_score, nd_centroids_t, l_cent_hd_thresh_t = self.cluster_one_thresh(plen, recc_thresh)
+				if homog_score < best_homog_score:
+					best_homog_score = homog_score
+					best_thresh, nd_centroids, l_cent_hd_thresh = recc_thresh, nd_centroids_t, l_cent_hd_thresh_t
+			self.__l_nd_centroids[plen] = nd_centroids; self.__ll_cent_hd_thresh[plen] = l_cent_hd_thresh
+			entr_score,plen_hits= self.assign_rule_name_score(plen, nd_centroids, l_cent_hd_thresh, l_rule_names,
+														 num_plen_recs)
+			entr_tot += entr_score*plen_hits; tot_hits += plen_hits; tot_clusters += nd_centroids.shape[0]
 
-	return l_nd_centroids, ll_cent_hd_thresh
+		# The entropy score is just entr_tot / tot_hits, but I want to penalize for having too many clusters
+		score = tot_clusters * (0.1 + entr_tot / tot_hits)
+		print('Score:', score)
+		self.process_clusters()
+		# exit()
+		return score
 
 
-def calc_homog(plen, ndbits, nd_centroids, l_cent_hd_thresh):
-	nd_hd_cluster, nd_num = np.zeros(nd_centroids.shape[0]), np.zeros(nd_centroids.shape[0])
-	for ii1, nd_cent in enumerate(nd_centroids):
-		hd = np.sum(np.not_equal(ndbits, nd_cent), axis=(1, 2)) / plen
-		# cluster_mrks = np.less(hd, l_cent_hd_thresh[ii1]).astype(np.uint8)
-		# cluster_sum = np.sum(np.multiply(np.transpose(ndbits, axes=(1, 2, 0)), cluster_mrks), axis=2)
-		# fcentroid = cluster_sum / float(np.count_nonzero(cluster_mrks))
-		# centroid = np.round_(fcentroid).astype(np.uint8)
-		# nd_cluster = ndbits[cluster_mrks, :, :]
-		cluster_mrks = np.less(hd, l_cent_hd_thresh[ii1]).astype(np.bool)
-		nd_cluster = ndbits[cluster_mrks, :, :]
-		fcentroid = np.average(nd_cluster, axis=0)
-		centroid = np.round_(fcentroid).astype(np.uint8)
-		nd_hd_cluster[ii1] = np.sum(np.average(np.not_equal(nd_cluster, centroid), axis=0)) / plen
-		nd_num[ii1] = np.sum(cluster_mrks)
-		# l_homog_score.append(hd_cluster)
-	score = np.sum(np.multiply(nd_hd_cluster, nd_num)) / np.sum(nd_num)
-	return nd_centroids.shape[0] * score # * score
+	def save_clusters(self):
+		num_cents = 0
+		for ilen, l_hds in enumerate(self.__ll_cent_hd_thresh):
+			num_cents += len(l_hds)
 
-def create_clusters_from_seeds(num_recs, plen, ndbits, nd_centroids, l_cent_hd_thresh):
-	nd_cluster_mrks = np.zeros((nd_centroids.shape[0], num_recs), dtype=np.uint8)
-	for ii1, nd_cent in enumerate(nd_centroids):
-		hd = np.sum(np.not_equal(ndbits, nd_cent), axis=(1, 2)) / plen
-		# frst_cluster_mrks = np.less(hd, l_cent_hd_thresh[ii1]).astype(np.uint8)
-		# cluster_sum = np.sum(np.multiply(np.transpose(ndbits, axes=(1, 2, 0)), frst_cluster_mrks), axis=2)
-		# fcentroid = cluster_sum / float(np.count_nonzero(frst_cluster_mrks))
-		# centroid = np.round_(fcentroid).astype(np.uint8)
-		# hd2 = np.sum(np.not_equal(ndbits, centroid), axis=(1, 2)) / plen
-		# nd_cluster_mrks[ii1, :] = np.less(hd2, l_cent_hd_thresh[ii1]).astype(np.uint8)
-		nd_cluster_mrks[ii1, :] = np.less(hd, l_cent_hd_thresh[ii1]).astype(np.uint8)
-		# nd_centroids[ii1, :, :] = centroid
-	all_mrks = np.any(nd_cluster_mrks, axis=0)
-	left_out_mrk = np.logical_xor(all_mrks, 1)
-	num_left = np.count_nonzero(left_out_mrk)
-	return  left_out_mrk, num_left
+		fn = expanduser(self.__cluster_fnt)
+
+		if os.path.isfile(fn):
+			copyfile(fn, fn + '.bak')
+		fh = open(fn, 'wb')
+		csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+		csvw.writerow(['blbitvec centroids', 'Version', '1'])
+		csvw.writerow(['Num Cents:', num_cents, 'num lengths', len(self.__ll_cent_hd_thresh)])
+		for ilen, l_hds in enumerate(self.__ll_cent_hd_thresh):
+			for icent, hd in enumerate(l_hds):
+				cent = self.__l_nd_centroids[ilen][icent, :]
+				lbits = cent.tolist() # [onebit for l in cent.tolist() for onebit in l]
+				csvw.writerow([ilen, hd] + lbits)
+
+		fh.close()
+
+	def load_clusters(self):
+		fn = expanduser(self.__cluster_fnt)
+		# if True:
+		try:
+			with open(fn, 'rb') as o_fhr:
+				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+				_, _, version_str = next(csvr)
+				_, snum_cents, _, snum_lens = next(csvr)
+				ll_centroids, self.__ll_cent_hd_thresh = [[] for _ in range(int(snum_lens))], [[] for _ in range(int(snum_lens))]
+				for irow in range(int(snum_cents)):
+					row = next(csvr)
+					ilen, hd, lsbits = int(row[0]), int(row[1]), row[2:]
+					bitvals = np.reshape(np.array(map(int, lsbits), dtype=np.int8), (ilen, self.__bitvec_size))
+					self.__ll_cent_hd_thresh[ilen].append(hd)
+					ll_centroids[ilen].append(bitvals)
+					del row, ilen, hd, lsbits
+				self.__l_nd_centroids = []
+				for ilen, l_cents in enumerate(ll_centroids):
+					if l_cents == []:
+						self.__l_nd_centroids.append([])
+					else:
+						self.__l_nd_centroids.append(np.stack(l_cents, axis=0))
+
+		except IOError:
+			raise ValueError('Cannot open or read ', fn)
+
+		# return l_nd_centroids, ll_cent_hd_thresh
+
+	def convert_charvec_to_arr(self, bin, size=-1):
+		size = len(bin)
+		bin_arr = bitvecdb.charArray(size)
+		for ib in range(size): bin_arr[ib] = chr(bin[ib])
+		return bin_arr
+
+
+	def get_cluster(self, l_phrase_bits):
+		plen = len(l_phrase_bits) / self.__bitvec_size
+		# Each cent is an array of el bitvecs, each cent is also an array of hd, one for each el
+		num_recs = len(self.__l_cent_hd)
+		ret_arr = bitvecdb.intArray(num_recs)
+		num_ret = bitvecdb.get_thresh_recs(	self.__hcdb_cent, ret_arr, plen,
+											self.convert_charvec_to_arr(l_phrase_bits))
+		l_rcents = [ret_arr[i] for i in range(num_ret)]
+		return l_rcents
 
 
 

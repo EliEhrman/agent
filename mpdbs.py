@@ -17,11 +17,12 @@ import bdb
 class cl_mpdbs_mgr(object):
 	def __init__(self, phrase_mgr, phraseperms):
 		self.__phrase_mgr = phrase_mgr
-		# self.__phraseperms = phraseperms
+		self.__phraseperms = phraseperms
 		self.__bdb_story = bdb.cl_bitvec_db(phraseperms, 'story')
 		self.clear_dbs()
 
 	def set_nlb_mgr(self, nlbitvec_mgr):
+		self.__nl_el_mgr = nlbitvec_mgr
 		self.__bdb_story.set_nlb_mgr(nlbitvec_mgr)
 
 	def clear_dbs(self):
@@ -203,3 +204,12 @@ class cl_mpdbs_mgr(object):
 			# self.__l_dbs[idb].append((ilen, iphrase))
 
 
+	def learn_rule(self, stmt, l_results, phase_data, db_name):
+		idb = self.__d_db_names.get(db_name, -1)
+		if idb == -1:
+			print('Warning. mpdb requested to learn rule on db', db_name, 'which doesnt exist.')
+			return
+		print('learning for:', stmt, 'for db:', db_name)
+		rphrase = self.__phrase_mgr.get_rphrase(stmt)
+		# return self.__bdb_story.get_matching_irecs(idb, rphrase)
+		l_rcents = self.__phraseperms.get_cluster(rphrase)

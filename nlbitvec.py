@@ -80,8 +80,8 @@ class cl_nlb_mgr(object):
 		self.__l_delayed_iphrases = []
 		self.__l_rule_name  = [] # for each entry of l_phrases, the name of the rule that created it
 		self.__rule_grp_fnt = rule_grp_fnt
-		self.__d_rule_grps = dict()
-		self.load_rule_grps()
+		# self.__d_rule_grps = dict()
+		# self.load_rule_grps()
 		self.__bitvec_saved_phrases_fnt = saved_phrases_fnt
 		self.__l_saved_phrases = []
 		self.__b_restart_from_glv = b_restart_from_glv
@@ -104,15 +104,16 @@ class cl_nlb_mgr(object):
 		# self.learn_pair_bins()
 		pass
 
-	def init_data(self):
-		if self.__b_restart_from_glv:
-			self.load_save_phrases()
-			l_nd_centroids, ll_cent_hd_thresh = self.load_sample_texts(c_phrase_fnt)
-		else:
-			l_nd_centroids, ll_cent_hd_thresh = cluster.load_clusters(self.__cluster_fnt, c_bitvec_size)
-		self.__l_nd_centroids = l_nd_centroids
-		self.__ll_cent_hd_thresh = ll_cent_hd_thresh
-
+	# def init_data(self):
+	# 	if self.__b_restart_from_glv:
+	# 		self.load_save_phrases()
+	# 		l_nd_centroids, ll_cent_hd_thresh = self.load_sample_texts(c_phrase_fnt)
+	# 	else:
+	# 		l_nd_centroids, ll_cent_hd_thresh = cluster.load_clusters(self.__cluster_fnt, c_bitvec_size)
+	# 	self.__l_nd_centroids = l_nd_centroids
+	# 	self.__ll_cent_hd_thresh = ll_cent_hd_thresh
+	def get_bitvec_size(self):
+		return c_bitvec_size
 
 	def load_word_db(self, bitvec_dict_fnt):
 		fn = expanduser(bitvec_dict_fnt)
@@ -182,6 +183,9 @@ class cl_nlb_mgr(object):
 
 	def get_bin_by_id(self, id):
 		return self.__nd_word_bin[id]
+
+	def get_el_by_eid(self, eid):
+		return self.__l_els_stats[eid].el
 
 	def add_unique_bits(self, new_bits):
 		self.__s_word_bit_db.add(tuple(new_bits))
@@ -427,6 +431,11 @@ class cl_nlb_mgr(object):
 		hd_idx_sorted = idx_of_hd_winners[iwinners]
 		for iclosest in hd_idx_sorted:
 			l_closest.append(self.__l_els_here[iclosest])
+
+	def dbg_closest_word(self, bins):
+		nd_hd_iword = np.sum(np.not_equal(bins, self.__nd_word_bin), axis=1)
+		iclosest = np.argmin(nd_hd_iword)
+		return self.__l_els_here[iclosest]
 
 	def assert_glove_uniqueness(self, bitvec):
 		print('Implement shoving a non-glove bitvec out of the way if already taken by a glove')

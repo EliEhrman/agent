@@ -21,7 +21,7 @@ c_nlbitvec_dict_input_fnt = '~/tmp/glv_bin_dict.txt'
 # c_nlbitvec_dict_input_fnt = '~/tmp/nlbitvec_dict.txt'
 c_nlbitvec_dict_output_fnt = '~/tmp/nlbitvec_dict.txt'
 c_nlbitvec_clusters_fnt = '~/tmp/nlbitvec_clusters.txt'
-c_bitvec_saved_phrases_fnt = '~/tmp/saved_phrases_small.txt' # '~/tmp/saved_phrases_small.txt' # '~/tmp/saved_phrases.txt'
+c_bitvec_saved_phrases_fnt = '~/tmp/saved_phrases.txt' # '~/tmp/saved_phrases_small.txt' # '~/tmp/saved_phrases.txt'
 c_rule_grp_fnt = 'adv/rule_groups.txt'
 c_num_agents_per_story = 5 # 50
 c_num_countries_per_story = 5 # 80
@@ -30,7 +30,8 @@ c_num_tries_per_player = 30
 c_goal_init_level_limit = 3
 c_goal_max_level_limit = 7
 c_max_story_time_to_repeat = 250000 # ignore the fact that an action has already be done after this much time and random when less
-c_b_restart_from_glv = False
+c_b_restart_from_glv = True
+c_b_init_data = True
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
@@ -127,7 +128,8 @@ def init_functions():
 				# 'set_player_goal':set_player_goal,
 				'get_decision_for_player':get_decision_for_player_dummy if c_b_dummy
 						else (get_decision_by_goal if c_b_gpsai else get_decision_for_player),
-				'get_mgr':get_mgr}
+				'get_mgr':get_mgr,
+				'get_decision_ruleid_name':get_decision_ruleid_name}
 	return d_fns
 
 def create_initial_db():
@@ -279,6 +281,8 @@ def time_decor(fn):
 		return r
 	return wr
 
+def get_decision_ruleid_name(ruleid):
+	return 'decision_' + e_player_decide(ruleid+1)._name_
 # @profile_decor
 def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice_src = None):
 	for one_try in range(c_num_tries_per_player):

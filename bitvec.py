@@ -192,7 +192,9 @@ class cl_bitvec_mgr(object):
 	def save_phrase(self, rule_name, phrase):
 		self.__l_saved_phrases.append([rule_name, ' '.join(phrase)])
 
-	def convert_charvec_to_arr(self, bin, size):
+	def convert_charvec_to_arr(self, bin, size=-1):
+		if size==-1:
+			size = len(bin)
 		bin_arr = varopts.charArray(size)
 		for ib in range(size): bin_arr[ib] = chr(bin[ib])
 		return bin_arr
@@ -817,7 +819,7 @@ class cl_bitvec_mgr(object):
 		self.__s_word_bit_db.add(tuple(word_binvec))
 		self.__l_word_fix_num.append(0)
 		print('adding', word)
-		cnum = varopts.add_el_bin(self.__hcvo, word, self.convert_charvec_to_arr(word_binvec, c_bitvec_size))
+		cnum = varopts.add_el_bin(self.__hcvo, word, self.convert_charvec_to_arr(word_binvec))
 		print('added', word)
 		assert cnum == len(self.__d_words), 'Error. c version of el db misaligned with base code.'
 		return word_id

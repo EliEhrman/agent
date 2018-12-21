@@ -187,6 +187,7 @@ typedef struct SDistRec {
 
 typedef struct SBDBApp {
 	int bitvec_size;
+	char * name;
 	char * db;
 	int num_db_els;
 	int num_db_els_alloc;
@@ -204,11 +205,14 @@ typedef struct SBDBApp {
 	int agent_num_allocs_alloc;
 	bool * num_left_buf; // length num_rec_ptrs
 	int num_left_buf_alloc;
+	int * hd_thresh; // array of hd thresh, one for each record, for matches where the query must come within hd of the rec to match
+	int hd_thresh_alloc;
 } tSBDBApp;
 
 
 void * init_capp(void) {
 	tSBDBApp * papp = (tSBDBApp *)bdbmalloc(sizeof(tSBDBApp));
+	papp->name = NULL;
 	papp->db = NULL;
 	papp->num_db_els = 0;
 	papp->num_db_els_alloc = 0;
@@ -226,13 +230,22 @@ void * init_capp(void) {
 	papp->agent_num_allocs_alloc = 0;
 	papp->num_left_buf = NULL;
 	papp->num_left_buf_alloc = 0;
+	papp->hd_thresh = NULL;
+	papp->hd_thresh_alloc = 0;
 	return (void*)papp;
 }
 
 void set_el_bitvec_size(void * happ, int size) {
 	tSBDBApp * papp = (tSBDBApp *)happ;
 	papp->bitvec_size = size;
-	printf("bitvec size set at %d\n", papp->bitvec_size);
+//	printf("bitvec size set at %d\n", papp->bitvec_size);
+}
+
+void set_name(void * happ, char * name) {
+	tSBDBApp * papp = (tSBDBApp *)happ;
+	size_t len = strlen(name);
+	papp->name = (char *)bdbmalloc2(len+1, sizeof(char));
+	strncpy(papp->name, name, len);
 }
 
 void clear_db(void * happ) {
@@ -254,6 +267,8 @@ void add_rec(void * happ, int num_els, char * data) {
 	papp->hd_buf[papp->num_rec_ptrs].idx = papp->num_rec_ptrs;
 	papp->rec_lens = (int*)bdballoc(papp->rec_lens, &(papp->rec_lens_alloc), sizeof(int), papp->num_rec_ptrs+1);
 	papp->rec_lens[papp->num_rec_ptrs] = num_els;
+	papp->hd_thresh = (int*)bdballoc(papp->hd_thresh, &(papp->hd_thresh_alloc), sizeof(int), papp->num_rec_ptrs+1);
+	papp->hd_thresh[papp->num_rec_ptrs] = -1;
 	if (papp->num_rec_ptrs==0) {
 		papp->agent_mrk_allocs = (int *)bdballoc(	papp->agent_mrk_allocs, &(papp->agent_num_allocs_alloc), 
 													sizeof(int), papp->num_agents);
@@ -269,7 +284,7 @@ void add_rec(void * happ, int num_els, char * data) {
 		papp->agent_mrks[iagent][papp->num_rec_ptrs] = ((papp->num_agents==1) ? 1 : 0);
 	}
 	papp->num_rec_ptrs++;
-	printf("bitvecdb add_rec. Added %d els. db now %d long.\n", num_els, papp->num_db_els);
+//	printf("%s bitvecdb add_rec. Added %d els. db now %d long.\n", papp->name, num_els, papp->num_db_els);
 //	for (int irec=0; irec<papp->num_rec_ptrs; irec++) {
 //		for (int ii = 0; ii<papp->rec_lens[irec]; ii++) {
 //			int iel = papp->rec_ptrs[irec] + ii;
@@ -290,7 +305,7 @@ void change_rec(void * happ, int num_els, char * data, int irec) {
 		return;
 	}
 	memcpy(&(papp->db[papp->rec_ptrs[irec]*papp->bitvec_size]), data, num_els*sizeof(char)*papp->bitvec_size);
-	printf("bitvecdb change_rec called for irec %d len %d. pos: %d\n", irec, num_els, papp->rec_ptrs[irec]);
+//	printf("bitvecdb change_rec called for irec %d len %d. pos: %d\n", irec, num_els, papp->rec_ptrs[irec]);
 //	for (int iel=0; iel<papp->num_db_els; iel++) {
 //		printf("iel: %d. ", iel);
 //		for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
@@ -362,6 +377,8 @@ int add_agent(void * happ) {
 void agent_change_rec(void * happ, int iagent, int irec, int badd) {
 	tSBDBApp * papp = (tSBDBApp *)happ;
 	papp->agent_mrks[iagent][irec] = (badd == 1);
+//	printf("%s bitvecdb agent_change_rec. Changed rec %d for iagent %d to %s.\n",
+//			papp->name, irec, iagent, (papp->agent_mrks[iagent][irec] ? "true" : "false"));
 }
 
 int dist_cmp(const void * r1, const void * r2) {
@@ -594,6 +611,61 @@ int get_cluster(void * hcapp, int * members_ret, int num_ret, char * cent,
 			members_ret[num_found] = irec;
 			num_found++;
 		}
+	}
+	return num_found;
+}
+
+int get_irecs_with_eid(void* hcapp, int * ret_arr, int iagent, char * qbits) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+	int num_found = 0;
+	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+		if (!papp->agent_mrks[iagent][irec]) continue;
+		bool bfound = false;
+    	for (int iel = 0; iel < papp->rec_lens[irec]; iel++) { // qpos == pos ind query phrase
+			char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel)*papp->bitvec_size]);
+			if (memcmp(prec, qbits, papp->bitvec_size) == 0) {
+				bfound = true;
+				break;
+			}
+		}
+		if (bfound) {
+			ret_arr[num_found] = irec;
+			num_found++;
+		}
+	}
+	
+	return num_found;
+	
+}
+
+void set_hd_thresh(void * hcapp, int irec, int hd_thresh) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+	papp->hd_thresh[irec] = hd_thresh;
+}
+
+int get_thresh_recs(void * hcapp, int * ret_arr, int plen, char * qrec) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+	int num_found = 0;
+	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+		int hd = 0;
+		if (papp->rec_lens[irec] != plen) continue;
+    	for (int iel = 0; iel < papp->rec_lens[irec]; iel++) { // qpos == pos ind query phrase
+			char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel)*papp->bitvec_size]);
+			char * qel = &(qrec[iel*papp->bitvec_size]);
+//			printf("iel %d db vs. q:", iel);
+			for (int ibit =0; ibit < papp->bitvec_size; ibit++) {
+//				printf(" %hhdvs.%hhd", prec[ibit], qel[ibit]);
+				if (prec[ibit] != qel[ibit]) hd++;
+			}
+//			printf("\n");
+		}
+//		printf("get_thresh_recs: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->hd_thresh[irec]);
+		if (hd <= papp->hd_thresh[irec]) {
+			if (ret_arr != NULL) 
+				ret_arr[num_found] = irec;
+			num_found++;
+		}
+		
 	}
 	return num_found;
 }

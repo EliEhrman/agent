@@ -2686,4 +2686,10 @@ that don;t actually look at the story db.
 
 CIW:
 
-Applied swig-c db for the phrase bin db
+Applied swigc db for the phrase bin db
+
+Friday 21st December
+
+CIW:
+
+Applied swigc db for clusters
