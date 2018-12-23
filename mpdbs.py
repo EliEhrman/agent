@@ -13,6 +13,7 @@ get involved in the bitvec db.
 from __future__ import print_function
 import warnings
 import bdb
+import rule_learn
 
 class cl_mpdbs_mgr(object):
 	def __init__(self, phrase_mgr, phraseperms):
@@ -20,6 +21,7 @@ class cl_mpdbs_mgr(object):
 		self.__phraseperms = phraseperms
 		self.__bdb_story = bdb.cl_bitvec_db(phraseperms, 'story')
 		self.clear_dbs()
+		self.__lrule_mgr = rule_learn.cl_lrule_mgr(phrase_mgr, phraseperms)
 
 	def set_nlb_mgr(self, nlbitvec_mgr):
 		self.__nl_el_mgr = nlbitvec_mgr
@@ -34,6 +36,9 @@ class cl_mpdbs_mgr(object):
 		self.__l_delayed_inserts = [] # type: List[Tuple[int]] # list of pairs of (idb, rphrase) waiting to be inserted into a specific db
 		self.__l_poss_stmts = [] # keeping here till rules start accessing this info. Perhpas belongs in another module
 		self.__bdb_story.clear_db()
+
+	def get_bdb_story(self):
+		return self.__bdb_story
 
 	def add_db(self, db_name):
 		idb = self.__d_db_names.get(db_name, -1)
@@ -210,6 +215,7 @@ class cl_mpdbs_mgr(object):
 			print('Warning. mpdb requested to learn rule on db', db_name, 'which doesnt exist.')
 			return
 		print('learning for:', stmt, 'for db:', db_name)
-		rphrase = self.__phrase_mgr.get_rphrase(stmt)
-		# return self.__bdb_story.get_matching_irecs(idb, rphrase)
-		l_rcents = self.__phraseperms.get_cluster(rphrase)
+		self.__lrule_mgr.learn_rule(self, stmt, l_results, phase_data, idb)
+		# rphrase = self.__phrase_mgr.get_rphrase(stmt)
+		# # return self.__bdb_story.get_matching_irecs(idb, rphrase)
+		# l_rcents = self.__phraseperms.get_cluster(rphrase)

@@ -198,7 +198,8 @@ class cl_phrase_cluster_mgr(object):
 				for irow in range(int(snum_cents)):
 					row = next(csvr)
 					ilen, hd, lsbits = int(row[0]), int(row[1]), row[2:]
-					bitvals = np.reshape(np.array(map(int, lsbits), dtype=np.int8), (ilen, self.__bitvec_size))
+					# bitvals = np.reshape(np.array(map(int, lsbits), dtype=np.int8), (ilen, self.__bitvec_size))
+					bitvals = np.array(map(int, lsbits), dtype=np.int8)
 					self.__ll_cent_hd_thresh[ilen].append(hd)
 					ll_centroids[ilen].append(bitvals)
 					del row, ilen, hd, lsbits

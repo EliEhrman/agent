@@ -213,9 +213,11 @@ class cl_bitvec_db(object):
 			l_perm_eids = self.__phraseperms.get_perm_eids(rperm)
 			for eid in l_perm_eids:
 				s_eids.add(eid)
+		s_rphrases_close = set()
 		for eid in s_eids:
 			print('Story phrases for:', self.__el_bitvec_mgr.get_el_by_eid(eid))
-			self.get_irecs_with_eid(idb, eid)
+			s_rphrases_close |= self.get_irecs_with_eid(idb, eid)
+		return s_rphrases_close
 
 
 	def get_irecs_with_eid(self, idb, eid):
@@ -224,10 +226,13 @@ class cl_bitvec_db(object):
 		el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
 		num_ret = bitvecdb.get_irecs_with_eid(self.__hcbdb, irec_arr, idb,
 							self.convert_charvec_to_arr(el_bitvec, bitvec_size))
+		s_rphrases_close = set()
 		for iret in range(num_ret):
 			rphrase =  self.__l_phrase_rphrases[self.__l_perm_iphrase[irec_arr[iret]]]
 			phrase = self.__phraseperms.get_phrase(rphrase)
 			print(phrase)
+			s_rphrases_close.add(rphrase)
+		return s_rphrases_close
 
 	def get_num_plen(self, plen):
 		return bitvecdb.get_num_plen(self.__hcbdb, plen)
