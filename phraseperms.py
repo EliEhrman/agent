@@ -106,4 +106,7 @@ class cl_phrase_perms(object):
 		for i in range(tot):
 			self.get_cluster(i)
 
+	def print_cluster(self, rcent):
+		self.__cluster_mgr.print_cluster(rcent)
+
 

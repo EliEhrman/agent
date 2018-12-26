@@ -2693,3 +2693,34 @@ Friday 21st December
 CIW:
 
 Applied swigc db for clusters
+
+Monday 24th December 2018
+
+Procedure for restarting when the tmp dir is missing or out of date
+
+Delete saved_phrases.txt
+
+In adv2
+c_b_learn_full_rules = False
+c_b_save_phrases = True
+c_b_init_data = False
+c_b_restart_from_glv = True
+
+run on command line. If saved_phrases.txt is 500 lines, you can develop code. 1000 is better. 5000 takes a very long time
+in the next stage
+
+next set:
+
+c_b_save_phrases = False
+c_b_init_data = True
+
+Should create nlbitvec_clusters.txt
+
+run adv_main2.py
+
+c_b_learn_full_rules = True
+c_b_restart_from_glv = False
+
+
+
+

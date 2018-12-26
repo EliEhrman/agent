@@ -60,7 +60,19 @@ class cl_phrase_cluster_mgr(object):
 		self.save_clusters()
 		# return l_nd_centroids, ll_cent_hd_thresh
 
+	def print_cluster(self, rcluster):
+		close_phrase = []
+		l_centroid = self.__ll_centroids[rcluster]
+		plen = len(l_centroid)/self.__bitvec_size
+
+		for iel in range(plen):
+			word = self.__nlb_mgr.dbg_closest_word(
+				l_centroid[iel * self.__bitvec_size:(iel + 1) * self.__bitvec_size])
+			close_phrase.append(word)
+		print('centroid:', rcluster, close_phrase)
+
 	def process_clusters(self):
+		print('Cluster closest els:')
 		for plen, l_cent_hd_thresh in enumerate(self.__ll_cent_hd_thresh):
 			for i_lencent, hd_thresh in enumerate(l_cent_hd_thresh):
 				irec = len(self.__ll_centroids)
