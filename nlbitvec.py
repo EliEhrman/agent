@@ -19,7 +19,7 @@ c_bitvec_neibr_divider_offset = 5
 c_num_ham_winners = 30
 c_num_assign_tries = 5
 c_pair_avg_hd_cutoff = 6.0
-c_b_find_pairs = True
+c_b_find_pairs = False
 
 # bitvals are the values that are rounded to make the bits. Kept in this form because uniqueness only calculated at insertion into main dict
 # avg_hd is the average hd between the phrase minues the el and the corresponding closest phrases of n shorter length

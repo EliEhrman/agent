@@ -206,7 +206,20 @@ class cl_bitvec_db(object):
 		l_ret = [l_rule_names[self.__l_phrase_rphrases[self.__l_perm_iphrase[iperm_arr[iperm]]]] for iperm in range(num_ret)]
 		return l_ret
 
-	def get_matching_irecs(self, idb, rphrase):
+	def get_matching_irec_pairs(self, idb, rphrase):
+		s_rphrases_close = self.get_matching_irecs(idb, rphrase)
+		s_close_pairs = set()
+		for rphrase2 in s_rphrases_close:
+			s_rphrases_close2 = self.get_matching_irecs(idb, rphrase2, [rphrase])
+			for rphrase3 in s_rphrases_close2:
+				if rphrase3 == rphrase: continue
+				p = (rphrase2, rphrase3)
+				if p[1] < p[0]: p = (p[1], p[0])
+				s_close_pairs.add(p)
+		return s_close_pairs
+
+
+	def get_matching_irecs(self, idb, rphrase, l_rphrase_excl = []):
 		l_rperms = self.__phraseperms.get_perms(rphrase)
 		s_eids = set()
 		for rperm in l_rperms:
@@ -215,12 +228,12 @@ class cl_bitvec_db(object):
 				s_eids.add(eid)
 		s_rphrases_close = set()
 		for eid in s_eids:
-			print('Story phrases for:', self.__el_bitvec_mgr.get_el_by_eid(eid))
-			s_rphrases_close |= self.get_irecs_with_eid(idb, eid)
+			# print('Story phrases for:', )
+			s_rphrases_close |= self.get_irecs_with_eid(idb, eid, rphrase, l_rphrase_excl)
 		return s_rphrases_close
 
 
-	def get_irecs_with_eid(self, idb, eid):
+	def get_irecs_with_eid(self, idb, eid, rphrase_src, l_rphrase_excl):
 		bufsize = len(self.__l_rperms)
 		irec_arr = bitvecdb.intArray(bufsize)
 		el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
@@ -229,8 +242,9 @@ class cl_bitvec_db(object):
 		s_rphrases_close = set()
 		for iret in range(num_ret):
 			rphrase =  self.__l_phrase_rphrases[self.__l_perm_iphrase[irec_arr[iret]]]
-			phrase = self.__phraseperms.get_phrase(rphrase)
-			print(phrase)
+			if rphrase in [rphrase_src] + l_rphrase_excl: continue
+			# phrase = self.__phraseperms.get_phrase(rphrase)
+			# print(phrase)
 			s_rphrases_close.add(rphrase)
 		return s_rphrases_close
 

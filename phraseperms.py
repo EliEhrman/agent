@@ -82,6 +82,7 @@ class cl_phrase_perms(object):
 			return
 		self.__cluster_mgr.init(l_rule_names)
 		# self.test_clusters()
+		self.__el_bitvec_mgr.save_word_db()
 
 	def init_from_load(self):
 		if self.__cluster_mgr == None:
@@ -90,7 +91,7 @@ class cl_phrase_perms(object):
 		self.__cluster_mgr.init_from_load()
 
 	def get_cluster(self, rphrase):
-		print('get_cluster_called for', self.__phrase_mgr.get_phrase(rphrase))
+		# print('get_cluster_called for', self.__phrase_mgr.get_phrase(rphrase))
 		l_rperms = self.get_perms(rphrase)
 		l_rcent = []
 		for rperm in l_rperms:
@@ -107,6 +108,7 @@ class cl_phrase_perms(object):
 			self.get_cluster(i)
 
 	def print_cluster(self, rcent):
+		if rcent < 0: return
 		self.__cluster_mgr.print_cluster(rcent)
 
 

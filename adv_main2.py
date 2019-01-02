@@ -247,7 +247,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				if mod.c_b_learn_full_rules_nl:
 					mpdbs_mgr.learn_rule(one_decide, event_as_decided,
 										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
-										  'main') # story_names[i_story_player])
+										  story_names[i_story_player]) # 'main') #
 
 
 			elif story_loop_stage == e_story_loop_stage.state1:

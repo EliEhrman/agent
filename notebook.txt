@@ -2721,6 +2721,13 @@ run adv_main2.py
 c_b_learn_full_rules = True
 c_b_restart_from_glv = False
 
+Wednesday 2nd January 2019
 
+Finally have a decent version of the rule_learn code. Turned off learning 2+ word phrases. Learning 0 entropy for multi-stage
+rules such as A went to C, A picked up O, A asks B etc.
+
+CIW:
+
+rule learning showing promising results without multi-word phrases.
 
 
