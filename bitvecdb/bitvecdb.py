@@ -327,9 +327,13 @@ def get_cluster(hcapp, members_ret, num_ret, cent, plen, hd_thresh):
     return _bitvecdb.get_cluster(hcapp, members_ret, num_ret, cent, plen, hd_thresh)
 get_cluster = _bitvecdb.get_cluster
 
-def get_irecs_with_eid(hcapp, ret_arr, iagent, qbits):
-    return _bitvecdb.get_irecs_with_eid(hcapp, ret_arr, iagent, qbits)
+def get_irecs_with_eid(hcapp, ret_arr, iagent, iel_at, qbits):
+    return _bitvecdb.get_irecs_with_eid(hcapp, ret_arr, iagent, iel_at, qbits)
 get_irecs_with_eid = _bitvecdb.get_irecs_with_eid
+
+def get_irecs_with_eid_by_list(hcapp, ret_arr, iagent, iel_at, cand_arr, num_cands, qbits):
+    return _bitvecdb.get_irecs_with_eid_by_list(hcapp, ret_arr, iagent, iel_at, cand_arr, num_cands, qbits)
+get_irecs_with_eid_by_list = _bitvecdb.get_irecs_with_eid_by_list
 
 def set_hd_thresh(hcapp, irec, hd_thresh):
     return _bitvecdb.set_hd_thresh(hcapp, irec, hd_thresh)
@@ -338,6 +342,26 @@ set_hd_thresh = _bitvecdb.set_hd_thresh
 def get_thresh_recs(hcapp, ret_arr, plen, qrec):
     return _bitvecdb.get_thresh_recs(hcapp, ret_arr, plen, qrec)
 get_thresh_recs = _bitvecdb.get_thresh_recs
+
+def get_thresh_recs_by_list(hcapp, ret_arr, plen, cand_arr, num_cands, qrec):
+    return _bitvecdb.get_thresh_recs_by_list(hcapp, ret_arr, plen, cand_arr, num_cands, qrec)
+get_thresh_recs_by_list = _bitvecdb.get_thresh_recs_by_list
+
+def set_b_hd_thresh(hcapp):
+    return _bitvecdb.set_b_hd_thresh(hcapp)
+set_b_hd_thresh = _bitvecdb.set_b_hd_thresh
+
+def set_b_rules(hcapp):
+    return _bitvecdb.set_b_rules(hcapp)
+set_b_rules = _bitvecdb.set_b_rules
+
+def set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs):
+    return _bitvecdb.set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs)
+set_rule_data = _bitvecdb.set_rule_data
+
+def find_matching_rules(hcapp, ret_arr, hcdb, num_srcs, src_rperms):
+    return _bitvecdb.find_matching_rules(hcapp, ret_arr, hcdb, num_srcs, src_rperms)
+find_matching_rules = _bitvecdb.find_matching_rules
 # This file is compatible with both classic and new-style classes.
 
 

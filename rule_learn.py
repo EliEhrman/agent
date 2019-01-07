@@ -1,12 +1,33 @@
 from __future__ import print_function
 import math
 import sys
+import csv
+import os
+from os.path import expanduser
+from shutil import copyfile
 import itertools
-import rules2
+from bitvecdb import bitvecdb
 
 ltotup = lambda l: tuple([tuple(li) for li in l])
 
 c_print_every = 500
+
+
+def convert_charvec_to_arr(bin, size=-1):
+	if size == -1:
+		size = len(bin)
+	bin_arr = bitvecdb.charArray(size)
+	for ib in range(size): bin_arr[ib] = chr(bin[ib])
+	return bin_arr
+
+
+def convert_intvec_to_arr(bin, size=-1):
+	if size == -1:
+		size = len(bin)
+	bin_arr = bitvecdb.intArray(size)
+	for ib in range(size): bin_arr[ib] = int(bin[ib])
+	return bin_arr
+
 
 class cl_rule_event(object):
 	def __init__(self, ts, rphrase, rphrase_result, ll_rphrases_close, ll_hits):
@@ -40,6 +61,40 @@ class cl_lrule(object):
 		self.__var_list = var_list
 		self.__creation_ts = creation_ts
 		self.__l_ts_hits = [creation_ts]
+		self.__cdb_irec = -1
+		if self.__rpg.get_b_written(): self.write_rec_new()
+
+	def get_cdb_irec(self):
+		return self.__cdb_irec
+
+	def get_var_list(self):
+		return self.__var_list
+
+	def get_result_rcent(self):
+		return self.__result_rcent
+
+	def write_rec_new(self):
+		self.write_rec(self.__mgr.get_hcdb(), self.__rsg.get_src_rcent(), self.__rpg.get_l_close_rcent())
+
+	def write_rec(self, hcdb, src_rcent, l_close_rcent):
+		if self.__cdb_irec != -1:
+			return
+		cluster_mgr = self.__mgr.get_cluster_mgr()
+		bitvec_size = self.__mgr.get_bitvec_size()
+		phrase_bitvec = []; cent_offsets = []; l_cent_hds = []
+		plen = 0
+		for rcent in [src_rcent] + l_close_rcent + [self.__result_rcent]:
+			l_centroid = cluster_mgr.get_centroid(rcent) if rcent >= 0 else []
+			cent_len = len(l_centroid) / bitvec_size
+			cent_offsets.append(plen)
+			plen += cent_len
+			phrase_bitvec += l_centroid
+			l_cent_hds.append(cluster_mgr.get_cent_hd(rcent))
+		bitvecdb.add_rec(hcdb, plen, convert_charvec_to_arr(phrase_bitvec))
+		self.__cdb_irec = self.__mgr.register_write_rec(self.__rsg, self.__rpg, self)
+		bitvecdb.set_rule_data(	hcdb, self.__cdb_irec, len(cent_offsets), convert_intvec_to_arr(cent_offsets),
+								convert_intvec_to_arr(l_cent_hds), len(self.__var_list),
+								convert_intvec_to_arr([vv for var_def in self.__var_list for vv in var_def]))
 
 	def is_match(self, result_rcent, var_list, ts):
 		if result_rcent == self.__result_rcent and var_list == self.__var_list:
@@ -75,6 +130,10 @@ class cl_rule_phrase_grp(object):
 		self.__b_go_further = False
 		self.__b_save = False
 		self.__l_parent_rpgs = l_parent_rpgs # All the rpgs with one missing in l_rcents_close. None for the rpg with no close cent
+		self.__b_written = False
+
+	def get_l_close_rcent(self):
+		return self.__l_rcents_close
 
 	def get_result_entropy(self):
 		return self.__result_entropy
@@ -153,7 +212,12 @@ class cl_rule_phrase_grp(object):
 		# l_event_hits.append(l_ilrules)
 		return l_ilrules
 
+	def get_b_written(self):
+		return self.__b_written
 
+	def write_lrules(self):
+		for lrule in self.__l_rules:
+			lrule.write_rec(self.__mgr.get_hcdb(), self.__rsg.get_src_rcent(), self.__l_rcents_close)
 
 	def calc_status(self):
 		self.__b_go_further = False
@@ -165,6 +229,9 @@ class cl_rule_phrase_grp(object):
 			if self.get_tot_hits() > c_perf_config_learn_rpg_hits * 3:
 				if not self.get_parent_b_save(): # Won't hit myself 'cos we just disabled __b_save
 					self.__b_save = True
+					if not self.__b_written:
+						self.write_lrules()
+						self.__b_written = True
 			return
 		if len(self.__l_rcents_close) <= c_perf_config_learn_min_close:
 			self.__b_go_further = True
@@ -217,6 +284,11 @@ class cl_rule_phrase_grp(object):
 				return True
 		return False
 
+	def load_rules(self, result_rcent, var_list):
+		self.__l_rules.append(cl_lrule(self.__mgr, self.__rsg, self, result_rcent, var_list, -1))
+		self.__l_rules[-1].write_rec_new()
+
+
 c_perf_config_learn_rpg_hits = 10
 c_perf_config_learn_entropy_factor = .9
 c_perf_config_learn_entropy_abs = .8
@@ -233,6 +305,9 @@ class cl_rule_src_grp(object):
 		self.__l_events = []
 		self.__creation_ts = ts
 		self.__num_hits = 0
+
+	def get_src_rcent(self):
+		return self.__phrase_rcent
 
 	def print_rsg(self):
 		print('---------------> rsg cluster hit', self.__num_hits, 'times. src centroid:')
@@ -263,13 +338,6 @@ class cl_rule_src_grp(object):
 		l_rcent_close_sorted = sorted(l_rcent_close)
 		t_vars_grp = self.__mgr.get_grp_vars([rphrase]+l_rphrases_close_sorted) # sorted(l_rcent_close))
 		irpg, rpg = self.find_rpg(l_rcent_close_sorted, t_vars_grp)
-		# remove soon
-		# rpg = None; irpg = -1
-		# for irpg_test, rpg_test in enumerate(self.__l_rpgs):
-		# 	if rpg_test.is_match(l_rcent_close_sorted, t_vars_grp):
-		# 		rpg = rpg_test; irpg = irpg_test
-		# 		break
-		# end remove soon
 		if rpg == None:
 			last_close_idx = len(l_rcent_close)
 			l_parent_rpgs = []
@@ -312,48 +380,50 @@ class cl_rule_src_grp(object):
 		return rpg, event_hits, rpg.get_b_go_further()
 
 
-	def add_event_old(self, rphrase, rphrase_result, result_rcent, ll_rphrases_close, ll_rcents_close, l_t_vars, ts):
-		self.__num_hits += 1
-		l_event_hits = []
-		l_rpgs = []
-		base_event_hits = []
-		for l_rcent_close, t_vars in zip(ll_rcents_close, l_t_vars):
-			result_idx = len(l_rcent_close) + 1
-			t_vars_grp = filter(lambda l: l[2] != result_idx, t_vars)
-			rpg = None;
-			irpg = -1
-			for irpg_test, rpg_test in enumerate(self.__l_rpgs):
-				if rpg_test.is_match(l_rcent_close, t_vars_grp):
-					rpg = rpg_test;
-					irpg = irpg_test
-					break
-			if rpg == None:
-				rpg = cl_rule_phrase_grp(self.__mgr, self, l_rcent_close, t_vars_grp, ts)
-				irpg = len(self.__l_rpgs)
-				self.__l_rpgs.append(rpg)
-			event_hits = rpg.add_event(result_rcent, t_vars, ts)
-			l_event_hits.append([irpg, event_hits])
-			if l_rcent_close == []:
-				base_event_hits = event_hits
-			if rpg not in l_rpgs: l_rpgs.append(rpg)
-			del rpg
-		for rpg in l_rpgs:
-			rpg.assign_base_events(base_event_hits, result_rcent == -1, ts)
-		self.__l_events.append(cl_rule_event(ts, rphrase, rphrase_result, ll_rphrases_close, l_event_hits))
+	def load_rpgs(self, l_rcent_close, result_rcent, t_vars):
+		result_idx = len(l_rcent_close) + 1
+		l_rcent_close_sorted = sorted(l_rcent_close)
+		t_vars_grp = filter(lambda l: l[2] != result_idx, t_vars)
+		irpg, rpg = self.find_rpg(l_rcent_close_sorted, t_vars_grp)
+		if rpg == None:
+			rpg = cl_rule_phrase_grp(self.__mgr, self, l_rcent_close_sorted, t_vars_grp, [], 0)
+			irpg = len(self.__l_rpgs)
+			self.__l_rpgs.append(rpg)
+		rpg.load_rules(result_rcent, t_vars)
+
 
 
 class cl_lrule_mgr(object):
 	ts = 0
 
-	def __init__(self, phrase_mgr, phraseperms):
+	def __init__(self, phrase_mgr, phraseperms, rules_fnt, lrn_rule_fn):
+		self.__rules_fnt = rules_fnt
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms
-		self.__d_lrules = dict()
+		self.__d_rsgs = dict()
 		self.__last_print = c_print_every
+		self.__l_write_recs = []
+		self.__b_learn = (lrn_rule_fn == 'learn')
+		self.__hcdb_rules = bitvecdb.init_capp()
+		bitvecdb.set_name(self.__hcdb_rules, 'rules')
+		bitvecdb.set_b_rules(self.__hcdb_rules)
+		self.__bitvec_size = self.__phraseperms.get_nlb_mgr().get_bitvec_size()
+		bitvecdb.set_el_bitvec_size(self.__hcdb_rules, self.__bitvec_size)
+		if not self.__b_learn:
+			self.load_rules()
 		pass
 
 	def get_phraseperms(self):
 		return self.__phraseperms
+
+	def get_hcdb(self):
+		return self.__hcdb_rules
+
+	def get_cluster_mgr(self):
+		return self.__phraseperms.get_cluster_mgr()
+
+	def get_bitvec_size(self):
+		return self.__bitvec_size
 
 	def convert_phrase_to_word_list(self, stmt):
 		return [el[1] for el in stmt]
@@ -374,7 +444,22 @@ class cl_lrule_mgr(object):
 					l_vars += (src_iphrase, src_iel, iphrase, iel),
 		return l_vars
 
+	def test_rule(self, stmt, l_results, idb):
+		phrase = self.full_split(stmt)
+		rphrase = self.__phrase_mgr.get_rphrase(phrase)
+		l_rperms = self.__phraseperms.get_perms(rphrase)
+		num_rules = len(self.__l_write_recs)
+		irule_arr = bitvecdb.intArray(num_rules)
+		rperms_arr = convert_intvec_to_arr(l_rperms)
+		num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, irule_arr,
+														self.__phraseperms.get_bdb_all_hcdb(), len(l_rperms), rperms_arr)
+		pass
+
+
 	def learn_rule(self, mpdbs, stmt, l_results, phase_data, idb):
+		if not self.__b_learn:
+			self.test_rule(stmt, l_results, idb)
+			return
 		map_rphrase_to_s_rcents = dict()
 		type(self).ts += 1
 		phrase = self.full_split(stmt)
@@ -398,10 +483,10 @@ class cl_lrule_mgr(object):
 		base_event_hits = []
 		while curr_combo < len(ll_rphrases_close):
 			for src_rcent in s_src_rcents:
-				rsg = self.__d_lrules.get(src_rcent, None)
+				rsg = self.__d_rsgs.get(src_rcent, None)
 				if rsg == None:
 					rsg = cl_rule_src_grp(self, src_rcent, type(self).ts)
-					self.__d_lrules[src_rcent] = rsg
+					self.__d_rsgs[src_rcent] = rsg
 				for result_rcent in s_result_rcents:
 					l_rphrases_close = ll_rphrases_close[curr_combo]
 					if l_rphrases_close == []:
@@ -438,77 +523,61 @@ class cl_lrule_mgr(object):
 
 		if type(self).ts > self.__last_print:
 			print('---> start rules learned at timestamp:', type(self).ts)
-			for src_rcent, rsg in self.__d_lrules.iteritems():
+			for src_rcent, rsg in self.__d_rsgs.iteritems():
 				if rsg.get_num_hits() < 10: continue
 				rsg.print_rsg()
 			self.__last_print += c_print_every
 			print('---> end rules learned at timestamp:', type(self).ts)
+			self.save_rules()
 		pass
 
 	def get_grp_vars(self, l_rphrases):
 		phrases_list = [self.__phraseperms.get_phrase(r) for r in l_rphrases]
 		return self.make_var_list(phrases_list)
 
-	def learn_rule_old(self, mpdbs, stmt, l_results, phase_data, idb):
-		type(self).ts += 1
-		phrase = self.full_split(stmt)
-		rphrase = self.__phrase_mgr.get_rphrase(phrase)
-		s_rcents = set(self.__phraseperms.get_cluster(rphrase))
-		if l_results == []:
-			result = []
-			result_rphrase = -1
-			s_result_rcents = set([-1])
-		else:
-			result = self.full_split(self.convert_phrase_to_word_list(l_results[0][1:]))
-			result_rphrase = self.__phrase_mgr.get_rphrase(result)
-			s_result_rcents = set(self.__phraseperms.get_cluster(result_rphrase))
-		t_vars = self.make_var_list([phrase, result])
-		ll_rphrases_close = [[]]; l_t_vars = [t_vars]; ll_rcents_close = [[]]
-		s_rphrases_close = mpdbs.get_bdb_story().get_matching_irecs(idb, rphrase)
-		# s_r_phrase_pairs = mpdbs.get_bdb_story().get_matching_irec_pairs(idb, rphrase)
-		for rphrase_close in s_rphrases_close:
-			l_rcent_close = self.__phraseperms.get_cluster(rphrase_close)
-			for rcent_close in l_rcent_close:
-				ll_rphrases_close.append([rphrase_close]); ll_rcents_close.append([rcent_close])
-				phrase_close = self.__phraseperms.get_phrase(rphrase_close)
-				l_t_vars.append(self.make_var_list([phrase, phrase_close, result]))
-			del l_rcent_close
-		del s_rphrases_close
+	def register_write_rec(self, rsg, rpg, lrule):
+		ret = len(self.__l_write_recs)
+		self.__l_write_recs.append((rsg, rpg, lrule),)
+		return ret
 
-		# The code here is a kind of cache about which 2nd, 3rd etc close we have calculated already
-		# since multiple rsg's might need to make the calculation and we don't want unnecessary repeat
-		d_close_cache = dict()
-		for l_rphrases_close in ll_rphrases_close:
-			d_close_cache[l_rphrases_close] = []
+	def save_rules(self):
+		fn = expanduser(self.__rules_fnt)
 
-		for src_rcent in s_rcents:
-				# trec = (src_rcent, result_rcent, t_vars)
-			rsg = self.__d_lrules.get(src_rcent, None)
-			if rsg == None:
-				rsg = cl_rule_src_grp(self, src_rcent, type(self).ts)
-				self.__d_lrules[src_rcent] = rsg
-			for result_rcent in s_result_rcents:
-				# ll_close_further is a list of lists of rcents we want to do more search on
-				# we actually search on the last in each list but keep the rest o fthe list for passing in again
-				ll_close_further_rphrase, ll_close_further_rcents = rsg.add_event(	rphrase, result_rphrase, result_rcent,
-													ll_rphrases_close, ll_rcents_close,
-													l_t_vars, type(self).ts)
-				ll_rphrases_close2 = []; l_t_vars2 = []; ll_rcents_close2 = []
-				for l_close_rphrase, l_close_rcent in zip(ll_close_further_rphrase, ll_close_further_rcents):
-					l_rcent_closer =  d_close_cache.get(l_close_rphrase, [])
-					if l_rcent_closer == []:
-						s_rphrases_close = mpdbs.get_bdb_story().get_matching_irecs(idb, l_close_rphrase[-1],
-																					l_close_rphrase[:-1] + [rphrase])
-						for rphrase_close in s_rphrases_close:
-							l_rcent_close = self.__phraseperms.get_cluster(rphrase_close)
-							for rcent_close in l_rcent_close:
-								ll_rphrases_close2.append([rphrase_close]); ll_rcents_close2.append([rcent_close])
-								phrase_close = self.__phraseperms.get_phrase(rphrase_close)
-								l_t_vars2.append(self.make_var_list([phrase, phrase_close, result]))
+		if os.path.isfile(fn):
+			copyfile(fn, fn + '.bak')
+		fh = open(fn, 'wb')
+		csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+		csvw.writerow(['nlbitvec rules', 'Version', '1'])
+		csvw.writerow(['Num Rules:', len(self.__l_write_recs)])
+		for irec, write_rec in enumerate(self.__l_write_recs):
+			rsg, rpg, lrule = write_rec
+			src_rcent = rsg.get_src_rcent()
+			l_close_rcent = rpg.get_l_close_rcent()
+			var_list, result_rcent = lrule.get_var_list(), lrule.get_result_rcent()
+			l_var_ints = [vv for var_def in var_list for vv in var_def]
+			csvw.writerow([len(l_close_rcent), src_rcent]+l_close_rcent + [result_rcent] + [len(var_list)] + l_var_ints )
 
-		if type(self).ts > self.__last_print:
-			for src_rcent, rsg in self.__d_lrules.iteritems():
-				if rsg.get_num_hits() < 10: continue
-				rsg.print_rsg()
-			self.__last_print += c_print_every
-		pass
+		fh.close()
+
+	def load_rules(self):
+		fn = expanduser(self.__rules_fnt)
+		try:
+			with open(fn, 'rb') as o_fhr:
+				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
+				_, _, version_str = next(csvr)
+				_, snum_rules = next(csvr)
+				for irow, row in enumerate(csvr):
+					num_close, src_rcent = map(int, row[:2])
+					if num_close > 0:
+						l_close_rcent = map(int, row[2:num_close+2])
+					result_rcent, num_vars = map(int, row[num_close+2:num_close+4])
+					l_var_int = map(int, row[num_close+4:])
+					assert len(l_var_int) == num_vars * 4, 'load_rules: bad num vars'
+					var_list = tuple([tuple(l_var_int[i:i+4]) for i in range(0,num_vars*4,4)])
+					rsg = self.__d_rsgs.get(src_rcent, None)
+					if rsg == None:
+						rsg = cl_rule_src_grp(self, src_rcent, type(self).ts)
+						self.__d_rsgs[src_rcent] = rsg
+					rsg.load_rpgs(l_close_rcent, result_rcent, var_list)
+		except IOError:
+			print('Cannot open or read ', fn)

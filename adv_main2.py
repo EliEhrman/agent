@@ -385,7 +385,7 @@ def main():
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()
 	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt, \
 			bitvec_saved_phrases_fnt, rule_grp_fnt, nlbitvec_dict_fnt, nlbitvec_dict_output_fnt, \
-			cluster_fnt, b_restart_from_glv \
+			cluster_fnt, rules_fnt, b_restart_from_glv, lrn_rule_fn \
 		= d_mod_fns['mod_init']()
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
@@ -410,6 +410,7 @@ def main():
 		cluster_mgr.set_nlb_mgr(nlbitvec_mgr)
 		if mod.c_b_init_data:
 			phrases_mgr.init_data()
+		mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_fn)
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents), nlbitvec_mgr)
 	gpsai_mgr = gpsai.cl_gpsai_mgr()

@@ -60,7 +60,7 @@ class cl_nlb_mgr(object):
 					bitvec_dict_output_fnt, cluster_fnt):
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms_mgr
-		self.__bdb_all = bdb_all
+		self.__bdb_all = bdb_all # Holds a c db of all perms, indexed by the rperm of phraseperms. Each rec is the bitcev od each el in the phrase
 		bitvec_dict_fnt = bitvec_dict_glv_fnt if b_restart_from_glv else bitvec_dict_output_fnt
 		self.__cluster_fnt = cluster_fnt
 		self.__d_words = dict()
@@ -114,6 +114,12 @@ class cl_nlb_mgr(object):
 	# 	self.__ll_cent_hd_thresh = ll_cent_hd_thresh
 	def get_bitvec_size(self):
 		return c_bitvec_size
+
+	def get_bdb_all(self):
+		return self.__bdb_all
+
+	def get_bdb_all_hcdb(self):
+		return self.__bdb_all.get_hcbdb()
 
 	def load_word_db(self, bitvec_dict_fnt):
 		fn = expanduser(bitvec_dict_fnt)

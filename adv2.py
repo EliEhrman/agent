@@ -23,6 +23,7 @@ c_nlbitvec_dict_output_fnt = '~/tmp/nlbitvec_dict.txt'
 c_nlbitvec_clusters_fnt = '~/tmp/nlbitvec_clusters.txt'
 c_bitvec_saved_phrases_fnt = '~/tmp/saved_phrases.txt' # '~/tmp/saved_phrases_small.txt' # '~/tmp/saved_phrases.txt'
 c_rule_grp_fnt = 'adv/rule_groups.txt'
+c_nlbitvec_rules_fnt = '~/tmp/nlbitvec_rules.txt'
 c_num_agents_per_story = 5 # 50
 c_num_countries_per_story = 5 # 80
 c_num_objects_per_story = 5 # 50
@@ -32,6 +33,7 @@ c_goal_max_level_limit = 7
 c_max_story_time_to_repeat = 250000 # ignore the fact that an action has already be done after this much time and random when less
 c_b_restart_from_glv = False
 c_b_init_data = True
+c_lrn_rule_fn = 'load' # 'load', 'learn', 'none'
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]
@@ -78,7 +80,7 @@ def mod_init():
 
 	return 	els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt, \
 			c_bitvec_saved_phrases_fnt, c_rule_grp_fnt, c_nlbitvec_dict_input_fnt, c_nlbitvec_dict_output_fnt, \
-			c_nlbitvec_clusters_fnt, c_b_restart_from_glv
+			c_nlbitvec_clusters_fnt, c_nlbitvec_rules_fnt, c_b_restart_from_glv, c_lrn_rule_fn
 
 def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
 	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod, __rec_def_type, __d_mgrs

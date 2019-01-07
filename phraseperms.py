@@ -34,8 +34,17 @@ class cl_phrase_perms(object):
 	def set_nlb_mgr(self, el_bitvec_mgr):
 		self.__el_bitvec_mgr = el_bitvec_mgr
 
+	def get_nlb_mgr(self):
+		return self.__el_bitvec_mgr
+
+	def get_bdb_all_hcdb(self): # A functionm giving direct access to the c db handle of the bdb_all. Access through the el_bitvec mgr but it is a peer to that mgr
+		return self.__el_bitvec_mgr.get_bdb_all_hcdb()
+
 	def set_cluster_mgr(self, cluster_mgr):
 		self.__cluster_mgr = cluster_mgr
+
+	def get_cluster_mgr(self):
+		return self.__cluster_mgr
 
 	def add_new_phrase(self, rphrase):
 		iphrase = len(self.__l_phrase_rphrases)

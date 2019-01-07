@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random
 import sys
 import math
@@ -31,7 +32,7 @@ class cl_phrase_cluster_mgr(object):
 		self.__hcdb_cent = bitvecdb.init_capp()
 		self.__nlb_mgr = None
 		bitvecdb.set_name(self.__hcdb_cent, 'centroids')
-
+		bitvecdb.set_b_hd_thresh(self.__hcdb_cent)
 
 	def set_bdb_all(self, bdb_all):
 		self.__bdb_all = bdb_all
@@ -60,6 +61,12 @@ class cl_phrase_cluster_mgr(object):
 		self.save_clusters()
 		# return l_nd_centroids, ll_cent_hd_thresh
 
+	def get_centroid(self, rcluster):
+		return self.__ll_centroids[rcluster]
+
+	def get_cent_hd(self, rcluster):
+		return self.__l_cent_hd[rcluster]
+
 	def print_cluster(self, rcluster):
 		close_phrase = []
 		l_centroid = self.__ll_centroids[rcluster]
@@ -80,7 +87,7 @@ class cl_phrase_cluster_mgr(object):
 				for iel in range(plen):
 					word = self.__nlb_mgr.dbg_closest_word(self.__l_nd_centroids[plen][i_lencent][iel*self.__bitvec_size:(iel+1)*self.__bitvec_size])
 					close_phrase.append(word)
-				print('irec:', irec, close_phrase)
+				print('rcent:', irec, ', hd:', hd_thresh, ',', close_phrase)
 				self.__ll_centroids.append(np.reshape(self.__l_nd_centroids[plen][i_lencent], -1).tolist())
 				self.__l_cent_hd.append(hd_thresh)
 				bitvecdb.add_rec(self.__hcdb_cent, plen,

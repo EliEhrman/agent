@@ -63,6 +63,9 @@ class cl_bitvec_db(object):
 	def get_max_plen(self):
 		return self.__max_perm_len
 
+	def get_hcbdb(self):
+		return self.__hcbdb
+
 	def add_new_phrase(self, rphrase):
 		iphrase = len(self.__l_phrase_rphrases)
 		self.__d_rphrase_to_iphrase[rphrase] = iphrase
@@ -237,7 +240,7 @@ class cl_bitvec_db(object):
 		bufsize = len(self.__l_rperms)
 		irec_arr = bitvecdb.intArray(bufsize)
 		el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
-		num_ret = bitvecdb.get_irecs_with_eid(self.__hcbdb, irec_arr, idb,
+		num_ret = bitvecdb.get_irecs_with_eid(self.__hcbdb, irec_arr, idb, -1,
 							self.convert_charvec_to_arr(el_bitvec, bitvec_size))
 		s_rphrases_close = set()
 		for iret in range(num_ret):

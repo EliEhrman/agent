@@ -180,6 +180,21 @@ void* bdballoc (void * ptr, int * palloc_size, size_t elsize, size_t num_els) {
 	return new_ptr;
 }
 
+#define VAR_DEF_SIZE 4
+typedef struct SRuleRec {
+	int num_cents;
+	int * cent_offsets;
+	int cent_offsets_alloc;
+	int * cent_lens;
+	int cent_lens_alloc;
+	int * cent_hds;
+	int cent_hds_alloc;
+	int num_var_defs;
+	int * var_defs;
+	int var_defs_alloc;
+	int b_result;
+} tSRuleRec;
+
 typedef struct SDistRec {
 	int dist;
 	int idx;
@@ -207,6 +222,12 @@ typedef struct SBDBApp {
 	int num_left_buf_alloc;
 	int * hd_thresh; // array of hd thresh, one for each record, for matches where the query must come within hd of the rec to match
 	int hd_thresh_alloc;
+	bool b_hd_thresh;
+	tSRuleRec * rule_data;
+	int rule_data_alloc;
+	bool b_rules;
+	char * rec_buf; // buffer for holding a bitvec record for queries etc
+	int rec_buf_alloc;
 } tSBDBApp;
 
 
@@ -232,6 +253,12 @@ void * init_capp(void) {
 	papp->num_left_buf_alloc = 0;
 	papp->hd_thresh = NULL;
 	papp->hd_thresh_alloc = 0;
+	papp->b_hd_thresh = false;
+	papp->rule_data = NULL;
+	papp->rule_data_alloc = 0;
+	papp->b_rules = false;
+	papp->rec_buf = NULL;
+	papp->rec_buf_alloc = 0;
 	return (void*)papp;
 }
 
@@ -247,6 +274,17 @@ void set_name(void * happ, char * name) {
 	papp->name = (char *)bdbmalloc2(len+1, sizeof(char));
 	strncpy(papp->name, name, len);
 }
+
+void set_b_hd_thresh(void * happ) {
+	tSBDBApp * papp = (tSBDBApp *)happ;
+	papp->b_hd_thresh = true;
+}
+
+void set_b_rules(void * happ) {
+	tSBDBApp * papp = (tSBDBApp *)happ;
+	papp->b_rules = true;
+}
+
 
 void clear_db(void * happ) {
 	tSBDBApp * papp = (tSBDBApp *)happ;
@@ -267,8 +305,14 @@ void add_rec(void * happ, int num_els, char * data) {
 	papp->hd_buf[papp->num_rec_ptrs].idx = papp->num_rec_ptrs;
 	papp->rec_lens = (int*)bdballoc(papp->rec_lens, &(papp->rec_lens_alloc), sizeof(int), papp->num_rec_ptrs+1);
 	papp->rec_lens[papp->num_rec_ptrs] = num_els;
-	papp->hd_thresh = (int*)bdballoc(papp->hd_thresh, &(papp->hd_thresh_alloc), sizeof(int), papp->num_rec_ptrs+1);
-	papp->hd_thresh[papp->num_rec_ptrs] = -1;
+	if (papp->b_hd_thresh) {
+		papp->hd_thresh = (int*)bdballoc(papp->hd_thresh, &(papp->hd_thresh_alloc), sizeof(int), papp->num_rec_ptrs+1);
+		papp->hd_thresh[papp->num_rec_ptrs] = -1;
+	}
+	if (papp->b_rules) {
+		papp->rule_data = (tSRuleRec*)bdballoc(papp->rule_data, &(papp->rule_data_alloc), sizeof(tSRuleRec), papp->num_rec_ptrs+1);
+		memset(&(papp->rule_data[papp->num_rec_ptrs]), 0, sizeof(tSRuleRec));
+	}
 	if (papp->num_rec_ptrs==0) {
 		papp->agent_mrk_allocs = (int *)bdballoc(	papp->agent_mrk_allocs, &(papp->agent_num_allocs_alloc), 
 													sizeof(int), papp->num_agents);
@@ -615,27 +659,45 @@ int get_cluster(void * hcapp, int * members_ret, int num_ret, char * cent,
 	return num_found;
 }
 
-int get_irecs_with_eid(void* hcapp, int * ret_arr, int iagent, char * qbits) {
+bool test_rec_for_eid(tSBDBApp * papp, int iagent, int irec, int iel_at, char * qbits) {
+	if (!papp->agent_mrks[iagent][irec]) return false;
+	bool bfound = false;
+	for (int iel = 0; iel < papp->rec_lens[irec]; iel++) { // qpos == pos ind query phrase
+		if (iel_at != -1 && iel_at != iel) continue;
+		char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel)*papp->bitvec_size]);
+		if (memcmp(prec, qbits, papp->bitvec_size) == 0) {
+			bfound = true;
+			break;
+		}
+	}
+	return bfound;
+}
+
+int get_irecs_with_eid(void* hcapp, int * ret_arr, int iagent, int iel_at, char * qbits) {
 	tSBDBApp * papp = (tSBDBApp *)hcapp;
 	int num_found = 0;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
-		if (!papp->agent_mrks[iagent][irec]) continue;
-		bool bfound = false;
-    	for (int iel = 0; iel < papp->rec_lens[irec]; iel++) { // qpos == pos ind query phrase
-			char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel)*papp->bitvec_size]);
-			if (memcmp(prec, qbits, papp->bitvec_size) == 0) {
-				bfound = true;
-				break;
-			}
-		}
-		if (bfound) {
+		if (test_rec_for_eid(papp, iagent, irec, iel_at, qbits)) {
 			ret_arr[num_found] = irec;
 			num_found++;
 		}
 	}
 	
-	return num_found;
-	
+	return num_found;	
+}
+
+int get_irecs_with_eid_by_list(	void* hcapp, int * ret_arr, int iagent, int iel_at, int * cand_arr, 
+								int num_cands, char * qbits) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+	int num_found = 0;
+	for (int icand = 0; icand < num_cands; icand++ ) {
+		int irec = cand_arr[icand];
+		if (test_rec_for_eid(papp, iagent, irec, iel_at, qbits)) {
+			ret_arr[num_found] = irec;
+			num_found++;
+		}
+	}
+	return num_found;	
 }
 
 void set_hd_thresh(void * hcapp, int irec, int hd_thresh) {
@@ -643,32 +705,149 @@ void set_hd_thresh(void * hcapp, int irec, int hd_thresh) {
 	papp->hd_thresh[irec] = hd_thresh;
 }
 
+bool test_for_thresh(tSBDBApp * papp, int plen, int irec, char * qrec) {
+	int hd = 0;
+	if (papp->rec_lens[irec] != plen) return false;
+	for (int iel = 0; iel < papp->rec_lens[irec]; iel++) { // qpos == pos ind query phrase
+		char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel)*papp->bitvec_size]);
+		char * qel = &(qrec[iel*papp->bitvec_size]);
+//			printf("iel %d db vs. q:", iel);
+		for (int ibit =0; ibit < papp->bitvec_size; ibit++) {
+//				printf(" %hhdvs.%hhd", prec[ibit], qel[ibit]);
+			if (prec[ibit] != qel[ibit]) hd++;
+		}
+//			printf("\n");
+	}
+//		printf("get_thresh_recs: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->hd_thresh[irec]);
+	if (hd <= papp->hd_thresh[irec]) {
+		return true;
+	}
+	
+	return false;
+}
+
 int get_thresh_recs(void * hcapp, int * ret_arr, int plen, char * qrec) {
 	tSBDBApp * papp = (tSBDBApp *)hcapp;
 	int num_found = 0;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
-		int hd = 0;
-		if (papp->rec_lens[irec] != plen) continue;
-    	for (int iel = 0; iel < papp->rec_lens[irec]; iel++) { // qpos == pos ind query phrase
-			char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel)*papp->bitvec_size]);
-			char * qel = &(qrec[iel*papp->bitvec_size]);
-//			printf("iel %d db vs. q:", iel);
-			for (int ibit =0; ibit < papp->bitvec_size; ibit++) {
-//				printf(" %hhdvs.%hhd", prec[ibit], qel[ibit]);
-				if (prec[ibit] != qel[ibit]) hd++;
-			}
-//			printf("\n");
-		}
-//		printf("get_thresh_recs: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->hd_thresh[irec]);
-		if (hd <= papp->hd_thresh[irec]) {
+		if (test_for_thresh(papp, plen, irec, qrec)) {
 			if (ret_arr != NULL) 
 				ret_arr[num_found] = irec;
 			num_found++;
-		}
-		
+		}		
 	}
 	return num_found;
 }
+
+int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int * cand_arr, int num_cands, char * qrec) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+	int num_found = 0;
+	for (int icand = 0; icand < num_cands; icand++ ) {
+		int irec = cand_arr[icand];
+		if (test_for_thresh(papp, plen, irec, qrec)) {
+			if (ret_arr != NULL) 
+				ret_arr[num_found] = irec;
+			num_found++;
+		}		
+	}
+	return num_found;
+}
+
+
+void set_rule_data(void * hcapp, int irec, int num_cents, int * cent_offsets, int * cent_hds, int num_var_defs, int * var_defs) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+	tSRuleRec * prule = (tSRuleRec *)&(papp->rule_data[irec]);
+	prule->num_cents = num_cents;
+	prule->cent_offsets = (int*)bdballoc(prule->cent_offsets, &(prule->cent_offsets_alloc), sizeof(int), prule->num_cents);
+	prule->cent_lens = (int*)bdballoc(prule->cent_lens, &(prule->cent_lens_alloc), sizeof(int), prule->num_cents);
+	prule->cent_hds = (int*)bdballoc(prule->cent_hds, &(prule->cent_hds_alloc), sizeof(int), prule->num_cents);
+	memcpy(prule->cent_offsets, cent_offsets, sizeof(int)*prule->num_cents);
+	printf("set_rule_data called for irec %d.\n", irec);
+	for (int icent=0;icent<prule->num_cents-1; icent++) {
+		prule->cent_lens[icent] = prule->cent_offsets[icent+1] - prule->cent_offsets[icent];
+		printf("set_rule_data: cent %d, len = %d\n", icent, prule->cent_lens[icent]);
+	}
+	prule->cent_lens[prule->num_cents-1] = papp->rec_lens[irec] - prule->cent_offsets[prule->num_cents-1];
+	printf("set_rule_data: Last cent, len = %d\n", prule->cent_lens[prule->num_cents-1]);
+	memcpy(prule->cent_hds, cent_hds, sizeof(int)*prule->num_cents);
+	prule->num_var_defs = num_var_defs;
+	prule->var_defs = (int*)bdballoc(prule->var_defs, &(prule->var_defs_alloc), sizeof(int)*VAR_DEF_SIZE, prule->num_var_defs);
+	memcpy(prule->var_defs, var_defs, sizeof(int)*VAR_DEF_SIZE*prule->num_var_defs);
+	return;
+}
+
+// meant for use by one db (c code) getting records from another db. Usually from the bdb_all where each record is another rperm
+int get_rec_len(tSBDBApp * pdb, int irec) {
+	printf("get_rec_len get rec of len %d.\n", pdb->rec_lens[irec]);
+	return pdb->rec_lens[irec];
+}
+
+char * get_rec(tSBDBApp * pdb, int irec) {
+	return &(pdb->db[pdb->rec_ptrs[irec] * pdb->bitvec_size]);
+}
+
+int find_matching_rules(void * hcapp, int * ret_arr, void * hcdb, int num_srcs, int * src_rperms) {
+	tSBDBApp * papp = (tSBDBApp *)hcapp;
+	tSBDBApp * pdb = (tSBDBApp *)hcdb;
+	int num_found = 0;
+	for (int isrc = 0; isrc < num_srcs; isrc++) {
+		int qlen = get_rec_len(pdb, src_rperms[isrc]);
+//		papp->rec_buf = (char*)bdballoc(papp->rec_buf, &(papp->rec_buf_alloc), sizeof(char)*papp->bitvec_size, qlen);
+//		memcpy(papp->rec_buf, get_rec(pdb, src_rperms[isrc]), qlen*sizeof(char)*papp->bitvec_size);
+		char * pdbrec[1];
+		int icent = 0;
+		pdbrec[icent] = get_rec(pdb, src_rperms[isrc]);
+		printf("find_matching_rules: finding for rperm %d, found so far %d.\n", src_rperms[isrc], num_found);
+		for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+			tSRuleRec * prule = &(papp->rule_data[irec]);
+			bool b_rule_matched = true;
+			int num_var_defs = prule->num_var_defs;
+			int * pvar_defs[num_var_defs];
+			for (int ivar=0; ivar<num_var_defs; ivar++) {
+				pvar_defs[ivar] = &(prule->var_defs[ivar*4]);
+			}
+			int hd = 0;
+			if (qlen != papp->rule_data[irec].cent_lens[icent]) continue;
+			printf("find_matching_rules: searching cand %d.\n", irec);
+			int off = papp->rec_ptrs[irec] + papp->rule_data[irec].cent_offsets[icent];
+			for (int iel = 0; iel < qlen; iel++) { // qpos == pos ind query phrase
+				char * qel = &(pdbrec[icent][iel*papp->bitvec_size]);
+				for (int ivar=0; ivar<num_var_defs; ivar++) {
+					if ((icent == pvar_defs[ivar][2]) && (iel == pvar_defs[ivar][3])) {
+						printf(	"Checking for var def %d that iel %d,%d == iel %d,%d.\n", 
+								ivar, icent, iel, pvar_defs[ivar][0], pvar_defs[ivar][1]);
+						char * qvar = &(pdbrec[pvar_defs[ivar][0]][pvar_defs[ivar][1]*papp->bitvec_size]);
+						if (memcmp(qel, qvar, sizeof(char)*papp->bitvec_size) != 0) {
+							printf("find_matching_rules fails var match!\n");
+							b_rule_matched = false;
+							break;
+						}
+					}
+				}
+				if (!b_rule_matched) break;
+				char * pel = &(papp->db[(off + iel)*papp->bitvec_size]);
+				printf("iel %d db vs. q:", iel);
+				for (int ibit =0; ibit < papp->bitvec_size; ibit++) {
+					printf(" %hhdvs.%hhd", pel[ibit], qel[ibit]);
+					if (pel[ibit] != qel[ibit]) hd++;
+				}
+				printf("\n");
+			}
+			if (!b_rule_matched) continue;
+			printf("find_matching_rules: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->rule_data[irec].cent_hds[icent]);
+			if (hd <= papp->rule_data[irec].cent_hds[icent]) {
+				if (ret_arr != NULL) 
+					ret_arr[num_found] = irec;
+				num_found++;
+			}
+
+		}
+	}
+	
+	return num_found;
+}
+
+
 
 void free_capp(void * hcapp) {
 	tSBDBApp * papp = (tSBDBApp *)hcapp;
