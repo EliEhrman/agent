@@ -210,10 +210,11 @@ class cl_bitvec_db(object):
 		return l_ret
 
 	def get_matching_irec_pairs(self, idb, rphrase):
-		s_rphrases_close = self.get_matching_irecs(idb, rphrase)
+		assert False, 'Remove wrapping before use.'
+		s_rphrases_close = self.get_matching_rphrases(idb, rphrase)
 		s_close_pairs = set()
 		for rphrase2 in s_rphrases_close:
-			s_rphrases_close2 = self.get_matching_irecs(idb, rphrase2, [rphrase])
+			s_rphrases_close2 = self.get_matching_rphrases(idb, rphrase2, [rphrase])
 			for rphrase3 in s_rphrases_close2:
 				if rphrase3 == rphrase: continue
 				p = (rphrase2, rphrase3)
@@ -222,7 +223,7 @@ class cl_bitvec_db(object):
 		return s_close_pairs
 
 
-	def get_matching_irecs(self, idb, rphrase, l_rphrase_excl = []):
+	def get_matching_rphrases(self, idb, rphrase, l_rphrase_excl = []):
 		l_rperms = self.__phraseperms.get_perms(rphrase)
 		s_eids = set()
 		for rperm in l_rperms:
@@ -251,8 +252,30 @@ class cl_bitvec_db(object):
 			s_rphrases_close.add(rphrase)
 		return s_rphrases_close
 
+	def get_rperms_with_eid_at(self, idb, eid, pos, num_cands, cands_arr):
+		bufsize = len(self.__l_rperms)
+		irec_arr = bitvecdb.intArray(bufsize)
+		el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
+		num_ret = bitvecdb.get_irecs_with_eid_by_list(	self.__hcbdb, irec_arr, idb, pos, cands_arr, num_cands,
+														self.convert_charvec_to_arr(el_bitvec, bitvec_size))
+		return num_ret, irec_arr
+
 	def get_num_plen(self, plen):
 		return bitvecdb.get_num_plen(self.__hcbdb, plen)
+
+	def get_plen_irecs(self, idb, plen):
+		bufsize = len(self.__l_rperms)
+		irec_arr = bitvecdb.intArray(bufsize)
+		num_ret = bitvecdb.get_plen_irecs(self.__hcbdb, irec_arr, plen, idb)
+		return num_ret, irec_arr
+
+	def get_close_recs(self, idb, plen, hd_thresh, l_qbits):
+		num_ret, len_arr = self.get_plen_irecs(idb, plen)
+		ret_arr = bitvecdb.intArray(num_ret)
+		num_ret = bitvecdb.get_thresh_recs_by_list(	self.__hcbdb, ret_arr, plen, hd_thresh, len_arr, num_ret,
+													self.convert_charvec_to_arr(l_qbits))
+		return num_ret, ret_arr
+
 
 	def get_cluster_seed(self, cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh):
 		num_left_now = bitvecdb.get_cluster_seed(self.__hcbdb, cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh)

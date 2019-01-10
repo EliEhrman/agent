@@ -2730,4 +2730,46 @@ CIW:
 
 rule learning showing promising results without multi-word phrases.
 
+Monday 7th January 2019
 
+To build tmp files from saved phrases:
+
+c_lrn_rule_fn = 'none'
+c_b_learn_full_rules_nl = False
+c_b_save_phrases = False
+c_b_init_data = True
+c_b_restart_from_glv = True
+In nlbitvec.py :
+c_b_find_pairs = False # Keeps it simple for now, one eid per word, max 1 rperm per rphrase
+
+To create rules:
+
+c_lrn_rule_fn = 'learn'
+c_b_learn_full_rules_nl = True
+c_b_restart_from_glv = False
+
+To load rules and test them
+
+c_lrn_rule_fn = 'load'
+leave alone:
+c_b_learn_full_rules_nl = True
+
+Thursday 10th January 2019
+
+Rules that have been learned can now be tested. The test process finds the rule in a c db of rules. A record
+in this db is the whole rule el by el of each phrase. There is an extra header added to the db that shows the breakdown of the phrases of
+the the rule. In rule_learn the rules are stored as rcents the reference to a centroid from cluster.py. However,
+in the c db the perms of the cent are stored so that a search, like a cent, is a thresh closeness to each phrase.
+
+Currently this db is only searched for the src preconds of the rule. Once a number of rules are so extracted, each
+rule looks in the bdb_story attached to mpdbs for phrases matching the close phrases of the rule. The search in the
+bdb c db is for length, threshold (externally specified by the needs of the rule, not that stored in the db) and
+exact el matches based on the rule_learn.py definition of the rule vars.
+
+So far only 2 actions were tested. The first passed and the second does not even have that length in the db. However,
+I want to do a little work on the gpsai to see whether the code is on the right track for testing that. The testing
+was done against to short a run of rule learning and with no pair-word learning.
+
+CIW:
+
+Rule testing works on one rule.

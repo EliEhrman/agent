@@ -25,10 +25,10 @@ class cl_phrase_cluster_mgr(object):
 		self.__rule_grp_fnt = rule_grp_fnt
 		self.__d_rule_grps = dict()
 		self.__bdb_all = None
-		self.__l_nd_centroids = []
-		self.__ll_centroids = []
+		self.__l_nd_centroids = [] # list of np arrays, one for each len
+		self.__ll_centroids = [] # list of centroids, each centroid a list of different length
 		self.__ll_cent_hd_thresh = []
-		self.__l_cent_hd = []
+		self.__l_cent_hd = [] # list of hds, one for each in __ll_centroids
 		self.__hcdb_cent = bitvecdb.init_capp()
 		self.__nlb_mgr = None
 		bitvecdb.set_name(self.__hcdb_cent, 'centroids')
@@ -67,15 +67,21 @@ class cl_phrase_cluster_mgr(object):
 	def get_cent_hd(self, rcluster):
 		return self.__l_cent_hd[rcluster]
 
-	def print_cluster(self, rcluster):
+	def get_cent_len(self, rcluster):
+		return len(self.__ll_centroids[rcluster])
+
+	def get_cluster_words(self, rcluster):
 		close_phrase = []
 		l_centroid = self.__ll_centroids[rcluster]
-		plen = len(l_centroid)/self.__bitvec_size
-
+		plen = len(l_centroid) / self.__bitvec_size
 		for iel in range(plen):
 			word = self.__nlb_mgr.dbg_closest_word(
 				l_centroid[iel * self.__bitvec_size:(iel + 1) * self.__bitvec_size])
 			close_phrase.append(word)
+		return close_phrase
+
+	def print_cluster(self, rcluster):
+		close_phrase = self.get_cluster_words(rcluster)
 		print('centroid:', rcluster, close_phrase)
 
 	def process_clusters(self):
@@ -246,10 +252,11 @@ class cl_phrase_cluster_mgr(object):
 		# Each cent is an array of el bitvecs, each cent is also an array of hd, one for each el
 		num_recs = len(self.__l_cent_hd)
 		ret_arr = bitvecdb.intArray(num_recs)
-		num_ret = bitvecdb.get_thresh_recs(	self.__hcdb_cent, ret_arr, plen,
+		num_ret = bitvecdb.get_thresh_recs(	self.__hcdb_cent, ret_arr, plen, -1,
 											self.convert_charvec_to_arr(l_phrase_bits))
 		l_rcents = [ret_arr[i] for i in range(num_ret)]
 		return l_rcents
+
 
 
 

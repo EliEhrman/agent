@@ -111,6 +111,15 @@ class cl_phrase_perms(object):
 			l_rcent += self.__cluster_mgr.get_cluster(l_phrase_bits)
 		return l_rcent
 
+	def get_cent_len(self, rcent):
+		return self.__cluster_mgr.get_cent_len(rcent)
+
+	def get_cent_hd(self, rcent):
+		return self.__cluster_mgr.get_cent_hd(rcent)
+
+	def get_centroid(self, rcent):
+		return self.__cluster_mgr.get_centroid(rcent)
+
 	def test_clusters(self):
 		tot = self.__phrase_mgr.get_num_phrases()
 		for i in range(tot):

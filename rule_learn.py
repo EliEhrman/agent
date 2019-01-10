@@ -62,6 +62,7 @@ class cl_lrule(object):
 		self.__creation_ts = creation_ts
 		self.__l_ts_hits = [creation_ts]
 		self.__cdb_irec = -1
+		self.__rpg_pct_hit = 0.
 		if self.__rpg.get_b_written(): self.write_rec_new()
 
 	def get_cdb_irec(self):
@@ -111,6 +112,16 @@ class cl_lrule(object):
 				'no result' if self.__result_rcent == -1 else 'result cent:')
 		self.__mgr.get_phraseperms().print_cluster(self.__result_rcent)
 
+	def calc_rule_pct_hits(self, rpg_tot):
+		if rpg_tot == 0: return
+		self.__rpg_pct_hit = float(self.get_num_hits())/rpg_tot
+
+	def get_rpg_pct_hit(self):
+		return self.__rpg_pct_hit
+
+	def load_rpg_pct_hit(self, pct_hit):
+		self.__rpg_pct_hit = pct_hit
+
 class cl_rule_phrase_grp(object):
 	def __init__(self, mgr, rsg, l_rcents_close, grp_vars, l_parent_rpgs, ts):
 		self.__mgr = mgr
@@ -131,6 +142,10 @@ class cl_rule_phrase_grp(object):
 		self.__b_save = False
 		self.__l_parent_rpgs = l_parent_rpgs # All the rpgs with one missing in l_rcents_close. None for the rpg with no close cent
 		self.__b_written = False
+		self.__num_test_hits_good = 0
+		self.__num_test_hits_bad = 0
+		self.__test_pct_hit_good = 0.
+		self.__test_pct_hit_bad = 0.
 
 	def get_l_close_rcent(self):
 		return self.__l_rcents_close
@@ -168,6 +183,14 @@ class cl_rule_phrase_grp(object):
 			n1 = float(len(self.__l_ts_no_result)) / totb
 			n2 = float(len(self.__l_ts_some_result)) / totb
 			self.__result_entropy = -(n1 * math.log(n1, 2.0)) - (n2 * math.log(n2, 2.0))
+
+	def calc_rule_pct_hits(self):
+		tot = 0
+		for lrule in self.__l_rules:
+			tot += lrule.get_num_hits()
+		for lrule in self.__l_rules:
+			lrule.calc_rule_pct_hits(tot)
+
 
 	def is_match(self, l_rcents_close, grp_vars):
 		return l_rcents_close == self.__l_rcents_close and grp_vars == self.__grp_vars
@@ -284,9 +307,46 @@ class cl_rule_phrase_grp(object):
 				return True
 		return False
 
-	def load_rules(self, result_rcent, var_list):
+	def load_rules(self, result_rcent, var_list, rpg_pct_hit):
 		self.__l_rules.append(cl_lrule(self.__mgr, self.__rsg, self, result_rcent, var_list, -1))
+		self.__l_rules[-1].load_rpg_pct_hit(rpg_pct_hit)
 		self.__l_rules[-1].write_rec_new()
+
+	def test_rule(self, mpdbs, src_rperm, idb):
+		bitvec_size = self.__mgr.get_bitvec_size()
+		ll_rperms_src, ll_rperms = [[src_rperm]], []
+		for iclose, rcent_close in enumerate(self.__l_rcents_close):
+			# plen = self.__mgr.get_phraseperms().get_cent_len(rcent_close) / bitvec_size
+			cent_thresh = self.__mgr.get_phraseperms().get_cent_hd(rcent_close)
+			l_cent_bits = self.__mgr.get_phraseperms().get_centroid(rcent_close)
+			# num_cands, cands_arr = mpdbs.get_bdb_story().get_plen_irecs(plen, idb)
+			num_cands, cands_arr = mpdbs.get_bdb_story().get_close_recs(idb, len(l_cent_bits) / bitvec_size,
+																		cent_thresh, l_cent_bits)
+			for rperm_combo in ll_rperms_src:
+			# TBD. Do the same for the src cluster. Is anyone checking its length
+				ll_eids = [self.__mgr.get_phraseperms().get_perm_eids(src_rperm) for src_rperm in rperm_combo]
+				iclose_vars = filter(lambda l: l[2] == (iclose+1), self.__grp_vars)
+				num_match, match_arr = num_cands, cands_arr
+				for one_var in iclose_vars:
+					src_eid = ll_eids[one_var[0]][one_var[1]]
+					num_match, match_arr = \
+							mpdbs.get_bdb_story().get_rperms_with_eid_at(idb, src_eid, one_var[3], num_match, match_arr)
+				for imatch in range(num_match):
+					ll_rperms.append(rperm_combo+[match_arr[imatch]])
+					pass
+			if ll_rperms == []: return []
+			ll_rperms_src = list(ll_rperms)
+			ll_rperms = []
+
+		return ll_rperms_src
+
+	def add_test_stat(self, bcorrect, lrule_pct_hit):
+		if bcorrect:
+			self.__num_test_hits_good += 1
+			self.__test_pct_hit_good += lrule_pct_hit
+		else:
+			self.__num_test_hits_bad += 1
+			self.__test_pct_hit_bad += lrule_pct_hit
 
 
 c_perf_config_learn_rpg_hits = 10
@@ -380,7 +440,7 @@ class cl_rule_src_grp(object):
 		return rpg, event_hits, rpg.get_b_go_further()
 
 
-	def load_rpgs(self, l_rcent_close, result_rcent, t_vars):
+	def load_rpgs(self, l_rcent_close, result_rcent, t_vars, rpg_pct_hit):
 		result_idx = len(l_rcent_close) + 1
 		l_rcent_close_sorted = sorted(l_rcent_close)
 		t_vars_grp = filter(lambda l: l[2] != result_idx, t_vars)
@@ -389,7 +449,7 @@ class cl_rule_src_grp(object):
 			rpg = cl_rule_phrase_grp(self.__mgr, self, l_rcent_close_sorted, t_vars_grp, [], 0)
 			irpg = len(self.__l_rpgs)
 			self.__l_rpgs.append(rpg)
-		rpg.load_rules(result_rcent, t_vars)
+		rpg.load_rules(result_rcent, t_vars, rpg_pct_hit)
 
 
 
@@ -405,6 +465,8 @@ class cl_lrule_mgr(object):
 		self.__l_write_recs = []
 		self.__b_learn = (lrn_rule_fn == 'learn')
 		self.__hcdb_rules = bitvecdb.init_capp()
+		self.__test_stat_num_rules_found = 0
+		self.__test_stat_num_rules_not_found = 0
 		bitvecdb.set_name(self.__hcdb_rules, 'rules')
 		bitvecdb.set_b_rules(self.__hcdb_rules)
 		self.__bitvec_size = self.__phraseperms.get_nlb_mgr().get_bitvec_size()
@@ -444,21 +506,50 @@ class cl_lrule_mgr(object):
 					l_vars += (src_iphrase, src_iel, iphrase, iel),
 		return l_vars
 
-	def test_rule(self, stmt, l_results, idb):
+	def test_rule(self, mpdbs, stmt, l_results, idb):
 		phrase = self.full_split(stmt)
+		result_words = ''
+		if l_results != []:
+			result_words = ' '.join(self.full_split(self.convert_phrase_to_word_list(l_results[0][1:]))).lower()
+		print('Testing rules for', phrase)
 		rphrase = self.__phrase_mgr.get_rphrase(phrase)
 		l_rperms = self.__phraseperms.get_perms(rphrase)
-		num_rules = len(self.__l_write_recs)
-		irule_arr = bitvecdb.intArray(num_rules)
+		# The maximum theoretical returns is the num of rules * the number of source perms
+		num_poss_ret = len(self.__l_write_recs) * len(l_rperms)
+		irule_arr = bitvecdb.intArray(num_poss_ret); rperms_ret_arr = bitvecdb.intArray(num_poss_ret)
 		rperms_arr = convert_intvec_to_arr(l_rperms)
-		num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, irule_arr,
+		num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, irule_arr, rperms_ret_arr,
 														self.__phraseperms.get_bdb_all_hcdb(), len(l_rperms), rperms_arr)
+		for iret in range(num_rules_found):
+			rsg, rpg, lrule = self.__l_write_recs[irule_arr[iret]]
+			rperm_ret = rperms_ret_arr[iret]
+			ll_rperms = rpg.test_rule(mpdbs, rperm_ret, idb)
+			if ll_rperms == []: continue
+			result_rcent = lrule.get_result_rcent()
+			if result_rcent == -1:
+				print('no result')
+				rpg.add_test_stat(result_words == '', lrule.get_rpg_pct_hit())
+				continue
+			result_cent_stmt = self.__phraseperms.get_cluster_mgr().get_cluster_words(result_rcent)
+			for l_rperms in ll_rperms:
+				result_stmt = list(result_cent_stmt)
+				ll_eids = [self.get_phraseperms().get_perm_eids(rperm) for rperm in l_rperms]
+				iclose_vars = filter(lambda l: l[2] == len(l_rperms), lrule.get_var_list())
+				for one_var in iclose_vars:
+					result_stmt[one_var[3]] = self.__phraseperms.get_nlb_mgr().get_el_by_eid(ll_eids[one_var[0]][one_var[1]])
+				print('result:', result_stmt)
+				rpg.add_test_stat(' '.join(result_stmt).lower() == result_words, lrule.get_rpg_pct_hit())
+				# join to space. Add up all the results for the rpg
+		if num_rules_found > 0:
+			self.__test_stat_num_rules_found += 1
+		else:
+			self.__test_stat_num_rules_not_found += 1
 		pass
 
 
 	def learn_rule(self, mpdbs, stmt, l_results, phase_data, idb):
 		if not self.__b_learn:
-			self.test_rule(stmt, l_results, idb)
+			self.test_rule(mpdbs, stmt, l_results, idb)
 			return
 		map_rphrase_to_s_rcents = dict()
 		type(self).ts += 1
@@ -509,7 +600,7 @@ class cl_lrule_mgr(object):
 						if bfurther:
 							all_rphrases = [rphrase] + l_rphrases_close
 							s_rphrases_close_new \
-									= mpdbs.get_bdb_story().get_matching_irecs(	idb, all_rphrases[-1],all_rphrases[:-1])
+									= mpdbs.get_bdb_story().get_matching_rphrases(idb, all_rphrases[-1], all_rphrases[:-1])
 							# add one of the close and check against the list to see if its there already
 							for rphrase_close_new in s_rphrases_close_new:
 								l_rphrases_close_new = sorted(l_rphrases_close + [rphrase_close_new])
@@ -521,7 +612,7 @@ class cl_lrule_mgr(object):
 			# end loop over src_rcent
 			curr_combo += 1
 
-		if type(self).ts > self.__last_print:
+		if type(self).ts > self.__last_print and self.__b_learn:
 			print('---> start rules learned at timestamp:', type(self).ts)
 			for src_rcent, rsg in self.__d_rsgs.iteritems():
 				if rsg.get_num_hits() < 10: continue
@@ -547,15 +638,17 @@ class cl_lrule_mgr(object):
 			copyfile(fn, fn + '.bak')
 		fh = open(fn, 'wb')
 		csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
-		csvw.writerow(['nlbitvec rules', 'Version', '1'])
+		csvw.writerow(['nlbitvec rules', 'Version', '2'])
 		csvw.writerow(['Num Rules:', len(self.__l_write_recs)])
+		csvw.writerow(['Num Close', 'src cent', 'list close cents', 'rpg pct hit', 'result cent', 'num vars', 'var list'])
 		for irec, write_rec in enumerate(self.__l_write_recs):
 			rsg, rpg, lrule = write_rec
+			rpg.calc_rule_pct_hits()
 			src_rcent = rsg.get_src_rcent()
 			l_close_rcent = rpg.get_l_close_rcent()
 			var_list, result_rcent = lrule.get_var_list(), lrule.get_result_rcent()
 			l_var_ints = [vv for var_def in var_list for vv in var_def]
-			csvw.writerow([len(l_close_rcent), src_rcent]+l_close_rcent + [result_rcent] + [len(var_list)] + l_var_ints )
+			csvw.writerow([len(l_close_rcent), src_rcent]+l_close_rcent + [lrule.get_rpg_pct_hit()] + [result_rcent] + [len(var_list)] + l_var_ints )
 
 		fh.close()
 
@@ -565,19 +658,22 @@ class cl_lrule_mgr(object):
 			with open(fn, 'rb') as o_fhr:
 				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
 				_, _, version_str = next(csvr)
+				assert version_str == '2', 'cl_rule_mgr load rules. Wrong version'
 				_, snum_rules = next(csvr)
+				next(csvr)
 				for irow, row in enumerate(csvr):
 					num_close, src_rcent = map(int, row[:2])
 					if num_close > 0:
 						l_close_rcent = map(int, row[2:num_close+2])
-					result_rcent, num_vars = map(int, row[num_close+2:num_close+4])
-					l_var_int = map(int, row[num_close+4:])
+					rpg_pct_hit = float(row[num_close+2])
+					result_rcent, num_vars = map(int, row[num_close+3:num_close+5])
+					l_var_int = map(int, row[num_close+5:])
 					assert len(l_var_int) == num_vars * 4, 'load_rules: bad num vars'
 					var_list = tuple([tuple(l_var_int[i:i+4]) for i in range(0,num_vars*4,4)])
 					rsg = self.__d_rsgs.get(src_rcent, None)
 					if rsg == None:
 						rsg = cl_rule_src_grp(self, src_rcent, type(self).ts)
 						self.__d_rsgs[src_rcent] = rsg
-					rsg.load_rpgs(l_close_rcent, result_rcent, var_list)
+					rsg.load_rpgs(l_close_rcent, result_rcent, var_list, rpg_pct_hit)
 		except IOError:
 			print('Cannot open or read ', fn)
