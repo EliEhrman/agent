@@ -515,7 +515,7 @@ class cl_bitvec_gg(object):
 
 	find_var_opts_num_calls = 0
 
-	@profile_decor
+	# @profile_decor
 	def find_var_opts(self, l_var_opts, db_name, var_obj_parent, calc_level):
 		# global a0time_tot, atime_tot, btime_tot, ctime_tot
 		cl_bitvec_gg.find_var_opts_num_calls += 1

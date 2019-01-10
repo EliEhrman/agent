@@ -1,0 +1,23 @@
+adv ext rules	version	1
+rules start
+player_action_goto..	get_player_action	ml,c:f,c:a,c:s,Edgar:0. decided to go to Finland:0.,c:e,
+											c:s,I am Edgar,c:e,c:e,
+											c:t,Edgar decided to go to Finland,mle
+player_action_pickup	get_player_action	ml,c:f,c:a,c:s,Edgar:0. decided to pick up chair:0.,c:e,
+											c:s,I am Edgar,c:e,c:e,
+											c:t,Edgar decided to pick up chair,mle
+plyr_actn_ask_where.	get_player_action	ml,c:f,c:a,c:s,Edgar:0. decided to ask Roy:0. where is chair:0.,c:e,
+											c:s,I am Edgar,c:e,c:e,
+											c:t,Edgar decided to ask Roy where is chair,mle
+plyr_actn_tell_where	get_player_action	ml,c:f,c:a,c:s,Edgar:0. decided to tell Roy:0. where is chair:0.,c:e,
+											c:s,I am Edgar,c:e,c:e,
+											c:t,Edgar decided to tell Roy where is chair,mle
+get_done_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.,c:e,
+											c:s,Edgar wants chair:0.,c:e,
+											c:s,Edgar has chair,c:e,c:e,
+											c:t,Edgar is done,mle
+get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.,c:e,
+											c:s,Edgar wants chair:0.,c:e,
+											c:t,Edgar has chair,mle
+rules end
+

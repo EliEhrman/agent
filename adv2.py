@@ -8,6 +8,7 @@ from utils import profile_decor
 
 c_set_list = ['name', 'object', 'countrie']
 c_rules_fn = 'adv/rules.txt'
+c_ext_rules_fn = 'adv/ext_rules.txt'
 c_dummy_init_fn = 'adv/dummy_init.txt'
 c_dummy_events_fn = 'adv/dummy_events.txt'
 c_phrase_freq_fnt = '~/tmp/adv_phrase_freq.txt'
@@ -52,7 +53,7 @@ l_names = []
 l_countries = []
 l_objects = []
 c_b_learn_full_rules = False
-c_b_learn_full_rules_nl = True
+c_b_learn_full_rules_nl = False
 c_b_save_freq_stats= False
 c_story_len = 30 # 200
 c_num_stories = 5000
@@ -62,7 +63,7 @@ l_dummy_types = []
 l_dummy_events = []
 l_dummy_ruleid = []
 g_dummy_idx = -1
-c_b_gpsai = False
+c_b_gpsai = True
 c_b_save_phrases = False # Create a file of phrases with the rule that generated them
 
 e_player_decide = Enum('e_player_decide', 'goto pickup ask_where tell_where ask_give give')
@@ -78,7 +79,7 @@ def mod_init():
 
 	l_agents = els_sets[set_names.index('names')]
 
-	return 	els_sets, set_names, l_agents, c_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt, \
+	return 	els_sets, set_names, l_agents, c_rules_fn, c_ext_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt, \
 			c_bitvec_saved_phrases_fnt, c_rule_grp_fnt, c_nlbitvec_dict_input_fnt, c_nlbitvec_dict_output_fnt, \
 			c_nlbitvec_clusters_fnt, c_nlbitvec_rules_fnt, c_b_restart_from_glv, c_lrn_rule_fn
 

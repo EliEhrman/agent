@@ -698,7 +698,7 @@ class cl_bitvec_mgr(object):
 		l_rule_names = [self.__l_rule_names[ir] for ir in l_use_rules_ids]
 		return l_use_rules, l_rule_names
 
-	@profile_decor
+	# @profile_decor
 	def _run_rule(	self, phrase, ilen, iphrase, idb, l_rule_cats, l_rule_names=[], l_result_rule_names=None):
 		# d_story_len_refs = self.__mpdb_mgr.get_d_story_len_refs(idb)
 		if l_result_rule_names == None:

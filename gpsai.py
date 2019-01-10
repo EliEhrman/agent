@@ -333,7 +333,7 @@ class cl_gpsai_mgr(object):
 		# end itry loop
 		return [], -1
 
-	@profile_decor
+	# @profile_decor
 	def make_decision_by_goal(self, player_name, phase_data, rule_stats):
 		l_compul_stmt = self.__mpdb_mgr.run_rule(['I', 'am', player_name], phase_data,
 									   player_name, ['compul_goal_actv'])[1]

@@ -28,6 +28,7 @@ import mpdbs
 import phraseperms
 import bdb
 import cluster
+import rules3
 
 # import adv_config
 # import adv_learn
@@ -383,13 +384,14 @@ def main():
 
 	# following need not be string dynamic but keeping working code to show how it's done
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()
-	els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt, \
+	els_sets, set_names, l_agents, rules_fn, ext_rules_fn, phrase_freq_fnt, bitvec_dict_fnt, \
 			bitvec_saved_phrases_fnt, rule_grp_fnt, nlbitvec_dict_fnt, nlbitvec_dict_output_fnt, \
 			cluster_fnt, rules_fnt, b_restart_from_glv, lrn_rule_fn \
 		= d_mod_fns['mod_init']()
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
+	ext_rule_mgr = rules3.cl_ext_rules(ext_rules_fn)
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt)
 	nlbitvec_mgr = None
 	if mod.c_b_nl:
