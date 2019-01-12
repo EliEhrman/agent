@@ -1,5 +1,8 @@
 adv ext rules	version	1
 rules start
+gen_rule_went_from..	state_from_event	ml,c:f,c:a,c:s,Edgar:0. went to Finland:0.,c:e,
+											c:s,Edgar is located in Belgium:0.,c:e,c:e,
+											c:t,c:d,Edgar::r was::r located::r in::r Belgium::r,mle
 player_action_goto..	get_player_action	ml,c:f,c:a,c:s,Edgar:0. decided to go to Finland:0.,c:e,
 											c:s,I am Edgar,c:e,c:e,
 											c:t,Edgar decided to go to Finland,mle
@@ -20,4 +23,5 @@ get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.,c:e,
 											c:s,Edgar wants chair:0.,c:e,
 											c:t,Edgar has chair,mle
 rules end
+
 

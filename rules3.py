@@ -17,6 +17,9 @@ class cl_ext_rules(object):
 		self.__l_rules = []
 		self.__l_categories = []
 		self.__l_names = []
+		self.__lll_vars = [] # ll_vars for each rule
+		self.__lll_phrase_data = []
+		self.__lll_el_data = []
 		self.load_rules(fn)
 
 	def load_rules(self, fn):
@@ -49,27 +52,13 @@ class cl_ext_rules(object):
 			raise
 
 		for rule_name, category, srule in l_rules_data:
-			rule_pre = self.extract_rec_from_str(srule)
-			rule, var_dict = [], dict()
-			for iel, el in enumerate(rule_pre):
-				if el[0] in [rec_def_type.like, rec_def_type.obj] and len(el) > 3:
-					var_dict[el[3]] = iel
-					rule += [el[:3]]
-				elif el[0] == rec_def_type.var:
-					rule += [[el[0], var_dict[el[1]]]]
-					if len(el) > 2:
-						rule[-1] += [el[2]]
-				elif el[0] == rec_def_type.conn \
-						and el[1] in [conn_type.Insert, conn_type.Modify, conn_type.Broadcast,
-									  conn_type.Remove, conn_type.Unique, conn_type.start] \
-						and len(el) > 2:
-					rule += [el[:2] + [var_dict[e] for e in el[2:]]]
-				else:
-					rule += [el]
+			rule, ll_phrase_data, ll_el_data = self.extract_rec_from_str(srule)
 
 			self.__l_categories.append(category)
 			self.__l_rules.append(rule)
 			self.__l_names.append(rule_name)
+			self.__lll_el_data.append(ll_el_data)
+			self.__lll_phrase_data.append(ll_phrase_data)
 
 		pass
 
@@ -134,6 +123,9 @@ class cl_ext_rules(object):
 				elif lelf[1] == 't':
 					el += [conn_type.THEN]
 					bgens = True
+					b_in_phrase = True
+					ipos_in_phrase = -1
+					iphrase += 1
 				elif lelf[1] == 'b':
 					el += [conn_type.Broadcast]
 				else:
@@ -162,25 +154,38 @@ class cl_ext_rules(object):
 				# el += [lelf[1]]
 				ipos += 1
 				ipos_in_phrase += 1
+				if len(l_phrase_data) <= iphrase:
+					l_phrase_data.append([])
+					ll_el_data.append([])
+				l_phrase_data[iphrase].append(lelf[0])
 				ivar = vars_dict.get(lelf[0], -1)
 				if ivar == -1:
 					vars_dict[lelf[0]] = len(l_vars_tbl)
 					l_vars_tbl.append((ipos, (iphrase, ipos_in_phrase)),)
-					if len(lelf) == 1:
+					if len(lelf) == 1 or (len(lelf) > 1 and lelf[1] == ''):
 						if bgens:
 							el = [rec_def_type.obj]
 							el += [lelf[0]]
+							ll_el_data[iphrase].append([rec_def_type.obj])
 						else:
 							el = [rec_def_type.like] # old. change this to obj
 							el += [lelf[0], 1., ipos]
-					elif len(lelf) == 2:
+							ll_el_data[iphrase].append([rec_def_type.like])
+					else:
 						el = [rec_def_type.like]
 						el += [lelf[0], float(lelf[1]), ipos]
+						ll_el_data[iphrase].append([rec_def_type.like])
 				else:
 					el = [rec_def_type.var]
 					el += [l_vars_tbl[ivar][0]]
+					ll_el_data[iphrase].append([rec_def_type.var])
+					vpos = l_vars_tbl[ivar][1]
+					ll_vars.append((vpos[0], vpos[1], iphrase, ipos_in_phrase))
+				if len(lelf) > 2 and lelf[2] == 'r':
+					el += [conn_type.replace_with_next]
+					ll_el_data[iphrase][-1].append(conn_type.replace_with_next)
 
 			rec += [el]
 
-		return rec
+		return rec, l_phrase_data, ll_el_data
 
