@@ -185,10 +185,17 @@ class cl_nlb_mgr(object):
 		fh.close()
 
 	def get_el_id(self, word):
-		return self.__d_words.get(word, -1)
+		return self.__d_words.get(word.lower(), -1)
 
 	def get_bin_by_id(self, id):
 		return self.__nd_word_bin[id]
+
+	def get_el_bin(self, word):
+		iel = self.get_el_id(word)
+		if iel == -1:
+			print('Warning! get_el_bin called for unknown word')
+			return []
+		return self.__nd_word_bin[iel].tolist()
 
 	def get_el_by_eid(self, eid):
 		return self.__l_els_stats[eid].el

@@ -58,6 +58,8 @@ class cl_phrase_mgr(object):
 		else:
 			if self.__phraseperms != None:
 				self.__phraseperms.init_from_load()
+			saved_phrases = self.load_saved_phrases()
+			self.load_sample_texts(saved_phrases)
 
 
 	def load_saved_phrases(self):

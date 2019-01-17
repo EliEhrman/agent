@@ -323,16 +323,16 @@ class cl_rule_phrase_grp(object):
 			num_cands, cands_arr = mpdbs.get_bdb_story().get_close_recs(idb, len(l_cent_bits) / bitvec_size,
 																		cent_thresh, l_cent_bits)
 			for rperm_combo in ll_rperms_src:
-			# TBD. Do the same for the src cluster. Is anyone checking its length
+				# TBD. Do the same for the src cluster. Is anyone checking its length
 				ll_eids = [self.__mgr.get_phraseperms().get_perm_eids(src_rperm) for src_rperm in rperm_combo]
-				iclose_vars = filter(lambda l: l[2] == (iclose+1), self.__grp_vars)
+				iclose_vars = filter(lambda l: l[2] == (iclose + 1), self.__grp_vars)
 				num_match, match_arr = num_cands, cands_arr
 				for one_var in iclose_vars:
 					src_eid = ll_eids[one_var[0]][one_var[1]]
 					num_match, match_arr = \
-							mpdbs.get_bdb_story().get_rperms_with_eid_at(idb, src_eid, one_var[3], num_match, match_arr)
+						mpdbs.get_bdb_story().get_rperms_with_eid_at(idb, src_eid, one_var[3], num_match, match_arr)
 				for imatch in range(num_match):
-					ll_rperms.append(rperm_combo+[match_arr[imatch]])
+					ll_rperms.append(rperm_combo + [match_arr[imatch]])
 					pass
 			if ll_rperms == []: return []
 			ll_rperms_src = list(ll_rperms)
@@ -348,7 +348,6 @@ class cl_rule_phrase_grp(object):
 			self.__num_test_hits_bad += 1
 			self.__test_pct_hit_bad += lrule_pct_hit
 
-
 c_perf_config_learn_rpg_hits = 10
 c_perf_config_learn_entropy_factor = .9
 c_perf_config_learn_entropy_abs = .8
@@ -361,7 +360,7 @@ class cl_rule_src_grp(object):
 		self.__mgr = mgr
 		self.__phrase_rcent = phrase_rcent
 		self.__l_rpgs = []
-		self.__l_rpg_var_lists = [] # indexed as l_rpgs
+		self.__l_rpg_var_lists = []  # indexed as l_rpgs
 		self.__l_events = []
 		self.__creation_ts = ts
 		self.__num_hits = 0
@@ -456,7 +455,7 @@ class cl_rule_src_grp(object):
 class cl_lrule_mgr(object):
 	ts = 0
 
-	def __init__(self, phrase_mgr, phraseperms, rules_fnt, lrn_rule_fn):
+	def __init__(self, phrase_mgr, phraseperms, rules_fnt, lrn_rule_fn, rule_mgr):
 		self.__rules_fnt = rules_fnt
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms
@@ -464,16 +463,19 @@ class cl_lrule_mgr(object):
 		self.__last_print = c_print_every
 		self.__l_write_recs = []
 		self.__b_learn = (lrn_rule_fn == 'learn')
-		self.__hcdb_rules = bitvecdb.init_capp()
+		self.__hcdb_rules = rule_mgr.get_hcdb_rules() #  bitvecdb.init_capp()
 		self.__test_stat_num_rules_found = 0
 		self.__test_stat_num_rules_not_found = 0
-		bitvecdb.set_name(self.__hcdb_rules, 'rules')
-		bitvecdb.set_b_rules(self.__hcdb_rules)
+		self.__rule_mgr = rule_mgr # overall rule mgr that includes both external rules and references to the lrules learned here
+		# bitvecdb.set_name(self.__hcdb_rules, 'rules')
+		# bitvecdb.set_b_rules(self.__hcdb_rules)
 		self.__bitvec_size = self.__phraseperms.get_nlb_mgr().get_bitvec_size()
-		bitvecdb.set_el_bitvec_size(self.__hcdb_rules, self.__bitvec_size)
+		# bitvecdb.set_el_bitvec_size(self.__hcdb_rules, self.__bitvec_size)
 		if not self.__b_learn:
 			self.load_rules()
 		pass
+
+	# def get_hcdb_rules(self):
 
 	def get_phraseperms(self):
 		return self.__phraseperms
@@ -629,6 +631,7 @@ class cl_lrule_mgr(object):
 	def register_write_rec(self, rsg, rpg, lrule):
 		ret = len(self.__l_write_recs)
 		self.__l_write_recs.append((rsg, rpg, lrule),)
+		self.__rule_mgr.register_lrule(ret)
 		return ret
 
 	def save_rules(self):

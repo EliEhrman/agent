@@ -2773,3 +2773,13 @@ was done against to short a run of rule learning and with no pair-word learning.
 CIW:
 
 Rule testing works on one rule.
+
+Thursday 17th January 2017
+
+Really important requirement. Must be noted somewhere.
+
+Rules are expressed in terms of words. It makes no sense to create an external rule where any word that has a CD below 1.0
+is an unknown word.
+
+Therefore, before rules can be input, there must be a body of sample sentences. They must include some sample usages
+of any word needed with CD in the rules.

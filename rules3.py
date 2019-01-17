@@ -7,10 +7,20 @@ import copy
 import collections
 import random
 import re
+from bitvecdb import bitvecdb
 
 import rules2
 from rules2 import conn_type
 from rules2 import rec_def_type
+
+# TBD: Move this to a utils py. This function is copied all over the place
+def convert_charvec_to_arr(bin, size=-1):
+	if size == -1:
+		size = len(bin)
+	bin_arr = bitvecdb.charArray(size)
+	for ib in range(size): bin_arr[ib] = chr(bin[ib])
+	return bin_arr
+
 
 class cl_ext_rules(object):
 	def __init__(self, fn):
@@ -20,7 +30,17 @@ class cl_ext_rules(object):
 		self.__lll_vars = [] # ll_vars for each rule
 		self.__lll_phrase_data = []
 		self.__lll_el_data = []
+		self.__el_bitvec_mgr = None
+		self.__phrase_mgr = None
+		self.__l_active_rules = [] # A list of pairs, first a bool for ext rule, second an index into either l_rules or rule_learn.py's write_recs array
+		self.__hcdb_rules = None
 		self.load_rules(fn)
+
+	def register_lrule(self, ilrule):
+		self.__l_active_rules.append((False, ilrule))
+
+	def get_hcdb_rules(self):
+		return self.__hcdb_rules
 
 	def load_rules(self, fn):
 		l_rules_data = []
@@ -188,4 +208,28 @@ class cl_ext_rules(object):
 			rec += [el]
 
 		return rec, l_phrase_data, ll_el_data
+
+	def set_mgrs(self, nlbitvec_mgr, phrase_mgr):
+		self.__el_bitvec_mgr = nlbitvec_mgr
+		self.__phrase_mgr = phrase_mgr
+		self.__hcdb_rules = bitvecdb.init_capp()
+		bitvecdb.set_name(self.__hcdb_rules, 'rules')
+		bitvecdb.set_b_rules(self.__hcdb_rules)
+		self.__bitvec_size = nlbitvec_mgr.get_bitvec_size()
+		bitvecdb.set_el_bitvec_size(self.__hcdb_rules, self.__bitvec_size)
+		for i_ext_rule, phrase_data in enumerate(self.__lll_phrase_data):
+			self.write_crec(phrase_data)
+			self.__l_active_rules.append((True, i_ext_rule))
+
+	def write_crec(self, phrase_data):
+		phrase_bitvec = []; plen = 0
+		for phrase in phrase_data:
+			self.__phrase_mgr.add_phrase(phrase)
+			for el in phrase:
+				el_bitvec = self.__el_bitvec_mgr.get_el_bin(el)
+				assert el_bitvec.count(1) > 0, 'Any external rule may only use one word not found in samples in a rule'
+				phrase_bitvec += el_bitvec
+				plen += 1
+		bitvecdb.add_rec(self.__hcdb_rules, plen, convert_charvec_to_arr(phrase_bitvec))
+		pass
 

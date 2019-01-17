@@ -20,16 +20,19 @@ class cl_mpdbs_mgr(object):
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms
 		self.__bdb_story = bdb.cl_bitvec_db(phraseperms, 'story')
-		self.__lrule_mgr = None
+		self.__rule_mgr = None
+		self.__lrule_mgr = None # for learned rules
 		self.clear_dbs()
 
 	def set_nlb_mgr(self, nlbitvec_mgr):
 		self.__nl_el_mgr = nlbitvec_mgr
 		self.__bdb_story.set_nlb_mgr(nlbitvec_mgr)
 
-	def init_lrule_mgr(self, rules_fnt, lrn_rule_fn):
+	def init_lrule_mgr(self, rules_fnt, lrn_rule_fn, rule_mgr):
+		self.__rule_mgr = rule_mgr
 		if lrn_rule_fn != 'none':
-			self.__lrule_mgr = rule_learn.cl_lrule_mgr(self.__phrase_mgr, self.__phraseperms, rules_fnt, lrn_rule_fn)
+			self.__lrule_mgr = rule_learn.cl_lrule_mgr(	self.__phrase_mgr, self.__phraseperms, rules_fnt,
+														lrn_rule_fn, rule_mgr)
 
 	def clear_dbs(self):
 		self.__l_dbs = []  # type: List[List[int]] # list of rphrase in each idb

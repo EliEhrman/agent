@@ -789,6 +789,28 @@ void set_rule_data(void * hcapp, int irec, int num_cents, int * cent_offsets, in
 	return;
 }
 
+void set_rule_el_data(void * hcapp, int irec, int num_cents, int * cent_offsets, int * el_hds, int num_var_defs, int * var_defs) {
+	tSBDBApp * papp = (tSBDBApp *) hcapp;
+	tSRuleRec * prule = (tSRuleRec *)&(papp->rule_data[irec]);
+	prule->num_cents = num_cents;
+	prule->cent_offsets = (int*) bdballoc(prule->cent_offsets, &(prule->cent_offsets_alloc), sizeof (int), prule->num_cents);
+	prule->cent_lens = (int*) bdballoc(prule->cent_lens, &(prule->cent_lens_alloc), sizeof (int), prule->num_cents);
+	prule->cent_hds = (int*) bdballoc(prule->cent_hds, &(prule->cent_hds_alloc), sizeof (int), prule->num_cents);
+	memcpy(prule->cent_offsets, cent_offsets, sizeof (int)*prule->num_cents);
+	printf("set_rule_data called for irec %d.\n", irec);
+	for (int icent = 0; icent < prule->num_cents - 1; icent++) {
+		prule->cent_lens[icent] = prule->cent_offsets[icent + 1] - prule->cent_offsets[icent];
+		printf("set_rule_data: cent %d, len = %d\n", icent, prule->cent_lens[icent]);
+	}
+	prule->cent_lens[prule->num_cents - 1] = papp->rec_lens[irec] - prule->cent_offsets[prule->num_cents - 1];
+	printf("set_rule_data: Last cent, len = %d\n", prule->cent_lens[prule->num_cents - 1]);
+	memcpy(prule->cent_hds, cent_hds, sizeof (int)*prule->num_cents);
+	prule->num_var_defs = num_var_defs;
+	prule->var_defs = (int*) bdballoc(prule->var_defs, &(prule->var_defs_alloc), sizeof (int)*VAR_DEF_SIZE, prule->num_var_defs);
+	memcpy(prule->var_defs, var_defs, sizeof (int)*VAR_DEF_SIZE * prule->num_var_defs);
+	return;
+}
+
 // meant for use by one db (c code) getting records from another db. Usually from the bdb_all where each record is another rperm
 
 int get_rec_len(tSBDBApp * pdb, int irec) {
