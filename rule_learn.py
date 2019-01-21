@@ -62,11 +62,15 @@ class cl_lrule(object):
 		self.__creation_ts = creation_ts
 		self.__l_ts_hits = [creation_ts]
 		self.__cdb_irec = -1
+		self.__mgr_irec = -1
 		self.__rpg_pct_hit = 0.
 		if self.__rpg.get_b_written(): self.write_rec_new()
 
 	def get_cdb_irec(self):
 		return self.__cdb_irec
+
+	def get_mgr_irec(self):
+		return self.__mgr_irec
 
 	def get_var_list(self):
 		return self.__var_list
@@ -92,7 +96,7 @@ class cl_lrule(object):
 			phrase_bitvec += l_centroid
 			l_cent_hds.append(cluster_mgr.get_cent_hd(rcent))
 		bitvecdb.add_rec(hcdb, plen, convert_charvec_to_arr(phrase_bitvec))
-		self.__cdb_irec = self.__mgr.register_write_rec(self.__rsg, self.__rpg, self)
+		self.__cdb_irec, self.__mgr_irec = self.__mgr.register_write_rec(self.__rsg, self.__rpg, self)
 		bitvecdb.set_rule_data(	hcdb, self.__cdb_irec, len(cent_offsets), convert_intvec_to_arr(cent_offsets),
 								convert_intvec_to_arr(l_cent_hds), len(self.__var_list),
 								convert_intvec_to_arr([vv for var_def in self.__var_list for vv in var_def]))
@@ -324,7 +328,7 @@ class cl_rule_phrase_grp(object):
 																		cent_thresh, l_cent_bits)
 			for rperm_combo in ll_rperms_src:
 				# TBD. Do the same for the src cluster. Is anyone checking its length
-				ll_eids = [self.__mgr.get_phraseperms().get_perm_eids(src_rperm) for src_rperm in rperm_combo]
+				ll_eids = [self.__mgr.get_phraseperms().get_perm_eids(rperm1) for rperm1 in rperm_combo]
 				iclose_vars = filter(lambda l: l[2] == (iclose + 1), self.__grp_vars)
 				num_match, match_arr = num_cands, cands_arr
 				for one_var in iclose_vars:
@@ -471,6 +475,7 @@ class cl_lrule_mgr(object):
 		# bitvecdb.set_b_rules(self.__hcdb_rules)
 		self.__bitvec_size = self.__phraseperms.get_nlb_mgr().get_bitvec_size()
 		# bitvecdb.set_el_bitvec_size(self.__hcdb_rules, self.__bitvec_size)
+		rule_mgr.register_rule_learner(self)
 		if not self.__b_learn:
 			self.load_rules()
 		pass
@@ -508,30 +513,55 @@ class cl_lrule_mgr(object):
 					l_vars += (src_iphrase, src_iel, iphrase, iel),
 		return l_vars
 
-	def test_rule(self, mpdbs, stmt, l_results, idb):
-		phrase = self.full_split(stmt)
-		result_words = ''
-		if l_results != []:
-			result_words = ' '.join(self.full_split(self.convert_phrase_to_word_list(l_results[0][1:]))).lower()
-		print('Testing rules for', phrase)
-		rphrase = self.__phrase_mgr.get_rphrase(phrase)
-		l_rperms = self.__phraseperms.get_perms(rphrase)
-		# The maximum theoretical returns is the num of rules * the number of source perms
-		num_poss_ret = len(self.__l_write_recs) * len(l_rperms)
-		irule_arr = bitvecdb.intArray(num_poss_ret); rperms_ret_arr = bitvecdb.intArray(num_poss_ret)
-		rperms_arr = convert_intvec_to_arr(l_rperms)
-		num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, irule_arr, rperms_ret_arr,
-														self.__phraseperms.get_bdb_all_hcdb(), len(l_rperms), rperms_arr)
-		for iret in range(num_rules_found):
-			rsg, rpg, lrule = self.__l_write_recs[irule_arr[iret]]
-			rperm_ret = rperms_ret_arr[iret]
+	# def test_rule(self, mpdbs, stmt, l_results, idb):
+	# 	phrase = self.full_split(stmt)
+	# 	result_words = ''
+	# 	if l_results != []:
+	# 		result_words = ' '.join(self.full_split(self.convert_phrase_to_word_list(l_results[0][1:]))).lower()
+	# 	print('Testing rules for', phrase)
+	# 	rphrase = self.__phrase_mgr.get_rphrase(phrase)
+	# 	l_rperms = self.__phraseperms.get_perms(rphrase)
+	# 	# The maximum theoretical returns is the num of rules * the number of source perms
+	# 	num_poss_ret = len(self.__l_write_recs) * len(l_rperms)
+	# 	irule_arr = bitvecdb.intArray(num_poss_ret); rperms_ret_arr = bitvecdb.intArray(num_poss_ret)
+	# 	rperms_arr = convert_intvec_to_arr(l_rperms)
+	# 	num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, irule_arr, rperms_ret_arr,
+	# 													self.__phraseperms.get_bdb_all_hcdb(), len(l_rperms), rperms_arr, b_hd_per_el = False)
+	# 	for iret in range(num_rules_found):
+	# 		rsg, rpg, lrule = self.__l_write_recs[irule_arr[iret]]
+	# 		rperm_ret = rperms_ret_arr[iret]
+	# 		ll_rperms = rpg.test_rule(mpdbs, rperm_ret, idb)
+	# 		if ll_rperms == []: continue
+	# 		result_rcent = lrule.get_result_rcent()
+	# 		if result_rcent == -1:
+	# 			print('no result')
+	# 			rpg.add_test_stat(result_words == '', lrule.get_rpg_pct_hit())
+	# 			continue
+	# 		result_cent_stmt = self.__phraseperms.get_cluster_mgr().get_cluster_words(result_rcent)
+	# 		for l_rperms in ll_rperms:
+	# 			result_stmt = list(result_cent_stmt)
+	# 			ll_eids = [self.get_phraseperms().get_perm_eids(rperm) for rperm in l_rperms]
+	# 			iclose_vars = filter(lambda l: l[2] == len(l_rperms), lrule.get_var_list())
+	# 			for one_var in iclose_vars:
+	# 				result_stmt[one_var[3]] = self.__phraseperms.get_nlb_mgr().get_el_by_eid(ll_eids[one_var[0]][one_var[1]])
+	# 			print('result:', result_stmt)
+	# 			rpg.add_test_stat(' '.join(result_stmt).lower() == result_words, lrule.get_rpg_pct_hit())
+	# 			# join to space. Add up all the results for the rpg
+	# 	if num_rules_found > 0:
+	# 		self.__test_stat_num_rules_found += 1
+	# 	else:
+	# 		self.__test_stat_num_rules_not_found += 1
+	# 	pass
+
+	def test_rule(self, irule, rperm_ret, result_words, mpdbs, idb):
+			rsg, rpg, lrule = self.__l_write_recs[irule]
 			ll_rperms = rpg.test_rule(mpdbs, rperm_ret, idb)
-			if ll_rperms == []: continue
+			if ll_rperms == []: return False
 			result_rcent = lrule.get_result_rcent()
 			if result_rcent == -1:
 				print('no result')
 				rpg.add_test_stat(result_words == '', lrule.get_rpg_pct_hit())
-				continue
+				return False
 			result_cent_stmt = self.__phraseperms.get_cluster_mgr().get_cluster_words(result_rcent)
 			for l_rperms in ll_rperms:
 				result_stmt = list(result_cent_stmt)
@@ -541,13 +571,8 @@ class cl_lrule_mgr(object):
 					result_stmt[one_var[3]] = self.__phraseperms.get_nlb_mgr().get_el_by_eid(ll_eids[one_var[0]][one_var[1]])
 				print('result:', result_stmt)
 				rpg.add_test_stat(' '.join(result_stmt).lower() == result_words, lrule.get_rpg_pct_hit())
+			return True
 				# join to space. Add up all the results for the rpg
-		if num_rules_found > 0:
-			self.__test_stat_num_rules_found += 1
-		else:
-			self.__test_stat_num_rules_not_found += 1
-		pass
-
 
 	def learn_rule(self, mpdbs, stmt, l_results, phase_data, idb):
 		if not self.__b_learn:
@@ -629,10 +654,10 @@ class cl_lrule_mgr(object):
 		return self.make_var_list(phrases_list)
 
 	def register_write_rec(self, rsg, rpg, lrule):
-		ret = len(self.__l_write_recs)
+		mgr_irec = len(self.__l_write_recs)
 		self.__l_write_recs.append((rsg, rpg, lrule),)
-		self.__rule_mgr.register_lrule(ret)
-		return ret
+		cdb_irec = self.__rule_mgr.register_lrule(mgr_irec)
+		return cdb_irec, mgr_irec
 
 	def save_rules(self):
 		fn = expanduser(self.__rules_fnt)

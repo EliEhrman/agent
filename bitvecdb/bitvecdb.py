@@ -351,6 +351,10 @@ def get_thresh_recs_by_list(hcapp, ret_arr, plen, ext_thresh, cand_arr, num_cand
     return _bitvecdb.get_thresh_recs_by_list(hcapp, ret_arr, plen, ext_thresh, cand_arr, num_cands, qrec)
 get_thresh_recs_by_list = _bitvecdb.get_thresh_recs_by_list
 
+def get_el_hd_recs_by_list(hcapp, irec_arr, cand_arr, num_cands, iel, hd, qrec):
+    return _bitvecdb.get_el_hd_recs_by_list(hcapp, irec_arr, cand_arr, num_cands, iel, hd, qrec)
+get_el_hd_recs_by_list = _bitvecdb.get_el_hd_recs_by_list
+
 def set_b_hd_thresh(hcapp):
     return _bitvecdb.set_b_hd_thresh(hcapp)
 set_b_hd_thresh = _bitvecdb.set_b_hd_thresh
@@ -362,6 +366,10 @@ set_b_rules = _bitvecdb.set_b_rules
 def set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs):
     return _bitvecdb.set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs)
 set_rule_data = _bitvecdb.set_rule_data
+
+def set_rule_el_data(hcapp, irec, num_cents, cent_offsets, el_hds, num_var_defs, var_defs):
+    return _bitvecdb.set_rule_el_data(hcapp, irec, num_cents, cent_offsets, el_hds, num_var_defs, var_defs)
+set_rule_el_data = _bitvecdb.set_rule_el_data
 
 def find_matching_rules(hcapp, ret_arr, ret_rperms, hcdb, num_srcs, src_rperms):
     return _bitvecdb.find_matching_rules(hcapp, ret_arr, ret_rperms, hcdb, num_srcs, src_rperms)

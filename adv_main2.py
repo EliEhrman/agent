@@ -29,6 +29,7 @@ import phraseperms
 import bdb
 import cluster
 import rules3
+import gpsnlai
 
 # import adv_config
 # import adv_learn
@@ -111,7 +112,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 		localtime = time.asctime(time.localtime(time.time()))
 
 		# mpdb_mgr.show_dbs()
-		# mpdbs_mgr.show_dbs()
+		mpdbs_mgr.show_dbs()
 
 		print("Local current time :", localtime)
 
@@ -245,10 +246,14 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					mpdb_mgr.learn_rule(one_decide, event_as_decided,
 										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 										  'main')
-				if mod.c_b_learn_full_rules_nl:
-					mpdbs_mgr.learn_rule(one_decide, event_as_decided,
-										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
-										  story_names[i_story_player]) # 'main') #
+				if mod.c_b_learn_full_rules_nl and mod.c_lrn_rule_fn == 'learn':
+					mpdbs_mgr.learn_rule(	one_decide, event_as_decided,
+											(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
+											story_names[i_story_player]) # 'main') #
+				# if mod.c_lrn_rule_fn == 'load':
+				# 	mpdbs_mgr.test_rule(	one_decide, event_as_decided,
+				# 							(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
+				# 							'main') # story_names[i_story_player] #
 
 
 			elif story_loop_stage == e_story_loop_stage.state1:
@@ -327,7 +332,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					# 	l_story_db_event_refs.append((ilen, iphrase))
 				# print('All dbs for step', event_step_id[0], 'in story num', i_one_story, ':')
 				# mpdb_mgr.show_dbs()
-				# mpdbs_mgr.show_dbs()
+				mpdbs_mgr.show_dbs()
 				story_loop_stage = e_story_loop_stage.decision_init
 				i_story_step += 1
 				if i_story_step >= num_story_steps:
@@ -412,13 +417,17 @@ def main():
 		cluster_mgr.set_nlb_mgr(nlbitvec_mgr)
 		if mod.c_b_init_data:
 			phrases_mgr.init_data()
-		ext_rule_mgr.set_mgrs(nlbitvec_mgr, phrases_mgr)
+		ext_rule_mgr.set_mgrs(nlbitvec_mgr, phrases_mgr, phraseperms_mgr)
 		mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_fn, ext_rule_mgr)
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents), nlbitvec_mgr)
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
 	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
-	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
+	gpsnlai_mgr = gpsnlai.cl_gpsnlai_mgr()
+	gpsnlai_mgr.set_mgrs(mpdbs_mgr, nlbitvec_mgr, ext_rule_mgr)
+	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
+	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
+	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2)
 
 
 	event_step_id = -1

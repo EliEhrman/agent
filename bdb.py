@@ -276,6 +276,14 @@ class cl_bitvec_db(object):
 													self.convert_charvec_to_arr(l_qbits))
 		return num_ret, ret_arr
 
+	def get_el_hd_recs(self, pos, hd, el, num_cands, cands_arr):
+		irec_arr = bitvecdb.intArray(num_cands)
+		# el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
+		el_bitvec = self.__el_bitvec_mgr.get_el_bin(el)
+		num_ret = bitvecdb.get_el_hd_recs_by_list(	self.__hcbdb, irec_arr, cands_arr, num_cands, pos, hd,
+													self.convert_charvec_to_arr(el_bitvec))
+		return num_ret, irec_arr
+
 
 	def get_cluster_seed(self, cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh):
 		num_left_now = bitvecdb.get_cluster_seed(self.__hcbdb, cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh)

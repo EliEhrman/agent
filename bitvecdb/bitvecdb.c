@@ -180,17 +180,20 @@ void* bdballoc(void * ptr, int * palloc_size, size_t elsize, size_t num_els) {
 #define VAR_DEF_SIZE 4
 
 typedef struct SRuleRec {
-	int num_cents;
+	int num_cents; // num cents is the same as num phrases. A rule is made of multiple phrases implemented in learning for now as phrase cluster centroids
 	int * cent_offsets;
 	int cent_offsets_alloc;
-	int * cent_lens;
+	int * cent_lens; // length of each phrase/centroid
 	int cent_lens_alloc;
-	int * cent_hds;
+	int * cent_hds; // For rules that have hd only per phrase, the list num_cents long of phrase hds
 	int cent_hds_alloc;
-	int num_var_defs;
-	int * var_defs;
+	int * el_hds; // For rules where b_hd_per_el is true, one hd per el. The size of this list is the length of the Rec in the tSBDBApp->rec_lens
+	int el_hds_alloc;
+	int num_var_defs; // All rules have a quartet of values per var (i_src_phrase, i_src_pos, i_dest_phrase, i_dest_pos).
+	int * var_defs; // Num of quartets
 	int var_defs_alloc;
-	int b_result;
+	int b_result; // rule has a result
+	int b_hd_per_el; // currently true for external rules. If true, each el has its own hd
 } tSRuleRec;
 
 typedef struct SDistRec {
@@ -207,7 +210,7 @@ typedef struct SBDBApp {
 	int * rec_ptrs; // array of indices into the db for each rec. A rec may be variable length. The index must be multiplied by bitvec size
 	int num_rec_ptrs;
 	int num_rec_ptrs_alloc;
-	int * rec_lens;
+	int * rec_lens; // rec lens is the number of els in the phrase. For rules, it is the number of els in all the phrases combined!!!!!!!
 	int rec_lens_alloc;
 	tSDistRec * hd_buf;
 	int hd_buf_alloc;
@@ -752,6 +755,7 @@ int get_thresh_recs(void * hcapp, int * ret_arr, int plen, int ext_thresh, char 
 	return num_found;
 }
 
+// not ext_thresh is not an ext_rule. It is the outside requiring a thresh as oposed to the hd requirement of the db rec itself
 int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int ext_thresh,
 		int * cand_arr, int num_cands, char * qrec) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
@@ -767,6 +771,36 @@ int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int ext_thres
 	return num_found;
 }
 
+bool test_for_el_hd(tSBDBApp * papp, int iel, int hd_req, int irec, char * qrec) {
+	char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel) * papp->bitvec_size]);
+	printf("iel %d db vs. q:", iel);
+	int hd = 0;
+	for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
+		printf(" %hhdvs.%hhd", prec[ibit], qrec[ibit]);
+		if (prec[ibit] != qrec[ibit]) hd++;
+	}
+	printf("\n");
+	printf("get_thresh_recs: irec %d hd %d vs. thresh %d.\n", irec, hd, hd_req);
+	if (hd <= hd_req) return true;
+	return false;
+}
+
+
+int get_el_hd_recs_by_list(	void * hcapp, int * irec_arr, int * cand_arr, int num_cands, int iel, int hd, char * qrec) {
+	tSBDBApp * papp = (tSBDBApp *) hcapp;
+	int num_found = 0;
+	for (int icand = 0; icand < num_cands; icand++) {
+		int irec = cand_arr[icand];
+		if (test_for_el_hd(papp, iel, hd, irec, qrec)) {
+			if (irec_arr != NULL)
+				irec_arr[num_found] = irec;
+			num_found++;
+		}
+	}
+	return num_found;
+	
+}
+
 void set_rule_data(void * hcapp, int irec, int num_cents, int * cent_offsets, int * cent_hds, int num_var_defs, int * var_defs) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	tSRuleRec * prule = (tSRuleRec *)&(papp->rule_data[irec]);
@@ -775,6 +809,7 @@ void set_rule_data(void * hcapp, int irec, int num_cents, int * cent_offsets, in
 	prule->cent_lens = (int*) bdballoc(prule->cent_lens, &(prule->cent_lens_alloc), sizeof (int), prule->num_cents);
 	prule->cent_hds = (int*) bdballoc(prule->cent_hds, &(prule->cent_hds_alloc), sizeof (int), prule->num_cents);
 	memcpy(prule->cent_offsets, cent_offsets, sizeof (int)*prule->num_cents);
+	prule->b_hd_per_el = false;
 	printf("set_rule_data called for irec %d.\n", irec);
 	for (int icent = 0; icent < prule->num_cents - 1; icent++) {
 		prule->cent_lens[icent] = prule->cent_offsets[icent + 1] - prule->cent_offsets[icent];
@@ -795,16 +830,17 @@ void set_rule_el_data(void * hcapp, int irec, int num_cents, int * cent_offsets,
 	prule->num_cents = num_cents;
 	prule->cent_offsets = (int*) bdballoc(prule->cent_offsets, &(prule->cent_offsets_alloc), sizeof (int), prule->num_cents);
 	prule->cent_lens = (int*) bdballoc(prule->cent_lens, &(prule->cent_lens_alloc), sizeof (int), prule->num_cents);
-	prule->cent_hds = (int*) bdballoc(prule->cent_hds, &(prule->cent_hds_alloc), sizeof (int), prule->num_cents);
+	prule->el_hds = (int*) bdballoc(prule->el_hds, &(prule->el_hds_alloc), sizeof (int), papp->rec_lens[irec]);
 	memcpy(prule->cent_offsets, cent_offsets, sizeof (int)*prule->num_cents);
-	printf("set_rule_data called for irec %d.\n", irec);
+	prule->b_hd_per_el = true;
+	printf("set_rule_el_data called for irec %d.\n", irec);
 	for (int icent = 0; icent < prule->num_cents - 1; icent++) {
 		prule->cent_lens[icent] = prule->cent_offsets[icent + 1] - prule->cent_offsets[icent];
 		printf("set_rule_data: cent %d, len = %d\n", icent, prule->cent_lens[icent]);
 	}
 	prule->cent_lens[prule->num_cents - 1] = papp->rec_lens[irec] - prule->cent_offsets[prule->num_cents - 1];
 	printf("set_rule_data: Last cent, len = %d\n", prule->cent_lens[prule->num_cents - 1]);
-	memcpy(prule->cent_hds, cent_hds, sizeof (int)*prule->num_cents);
+	memcpy(prule->el_hds, el_hds, sizeof(int)*papp->rec_lens[irec]);
 	prule->num_var_defs = num_var_defs;
 	prule->var_defs = (int*) bdballoc(prule->var_defs, &(prule->var_defs_alloc), sizeof (int)*VAR_DEF_SIZE, prule->num_var_defs);
 	memcpy(prule->var_defs, var_defs, sizeof (int)*VAR_DEF_SIZE * prule->num_var_defs);
@@ -823,7 +859,7 @@ char * get_rec(tSBDBApp * pdb, int irec) {
 }
 
 int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms,
-		void * hcdb, int num_srcs, int * src_rperms) {
+						void * hcdb, int num_srcs, int * src_rperms) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	tSBDBApp * pdb = (tSBDBApp *) hcdb;
 	int num_found = 0;
@@ -849,8 +885,10 @@ int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms,
 			int off = papp->rec_ptrs[irec] + papp->rule_data[irec].cent_offsets[icent];
 			for (int iel = 0; iel < qlen; iel++) { // qpos == pos ind query phrase
 				char * qel = &(pdbrec[icent][iel * papp->bitvec_size]);
+				int hd_el = 0; bool b_el_var = false;
 				for (int ivar = 0; ivar < num_var_defs; ivar++) {
 					if ((icent == pvar_defs[ivar][2]) && (iel == pvar_defs[ivar][3])) {
+						b_el_var = true;
 						printf("Checking for var def %d that iel %d,%d == iel %d,%d.\n",
 								ivar, icent, iel, pvar_defs[ivar][0], pvar_defs[ivar][1]);
 						char * qvar = &(pdbrec[pvar_defs[ivar][0]][pvar_defs[ivar][1] * papp->bitvec_size]);
@@ -866,13 +904,25 @@ int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms,
 //				printf("iel %d db vs. qel %d:", iel, iel);
 				for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
 //					printf(" %hhdvs.%hhd", pel[ibit], qel[ibit]);
-					if (pel[ibit] != qel[ibit]) hd++;
+					if (pel[ibit] != qel[ibit]) hd_el++;
 				}
+				if (prule->b_hd_per_el && !b_el_var)  {
+					printf("Checking per el hd for iphrase %d iel %d.\n",icent, iel);
+					if (hd_el > prule->el_hds[prule->cent_offsets[icent]+iel]) {
+						printf("hd_el test failed because %d > %d.\n", hd_el, prule->el_hds[prule->cent_offsets[icent]+iel]);
+						b_rule_matched = false;
+						break;
+					}
+				}
+				hd += hd_el;
 //				printf("\n");
 			}
 			if (!b_rule_matched) continue;
-			printf("find_matching_rules: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->rule_data[irec].cent_hds[icent]);
-			if (hd <= papp->rule_data[irec].cent_hds[icent]) {
+			if (prule->b_hd_per_el) 
+				printf("find_matching_rules: irec %d el_per_hd rule passed all tests.\n", irec);
+			else
+				printf("find_matching_rules: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->rule_data[irec].cent_hds[icent]);
+			if (prule->b_hd_per_el || hd <= papp->rule_data[irec].cent_hds[icent]) {
 				if (ret_arr != NULL) {
 					ret_arr[num_found] = irec;
 					ret_rperms[num_found] = src_rperms[isrc];

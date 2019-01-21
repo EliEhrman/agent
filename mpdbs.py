@@ -215,6 +215,17 @@ class cl_mpdbs_mgr(object):
 			self.ext_insert([db_name], rphrase, bdelay=True)
 			# self.__l_dbs[idb].append((ilen, iphrase))
 
+	def run_rule(self, stmt, phase_data, db_name):
+		idb = self.__d_db_names.get(db_name, -1)
+
+	def test_rule(self, stmt, l_results, phase_data, db_name):
+		idb = self.__d_db_names.get(db_name, -1)
+		if idb == -1:
+			print('Warning. mpdb requested to learn rule on db', db_name, 'which doesnt exist.')
+			return
+		print('learning for:', stmt, 'for db:', db_name)
+		self.__rule_mgr.test_rule(self, stmt, l_results, idb)
+
 
 	def learn_rule(self, stmt, l_results, phase_data, db_name):
 		idb = self.__d_db_names.get(db_name, -1)
