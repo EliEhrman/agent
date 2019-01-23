@@ -7,6 +7,7 @@ import copy
 import collections
 import random
 import re
+import numpy as np
 from bitvecdb import bitvecdb
 
 import utils
@@ -27,7 +28,9 @@ class cl_ext_rules(object):
 	def __init__(self, fn):
 		self.__l_rules = []
 		self.__l_categories = []
+		self.__d_rcats = dict()
 		self.__l_names = []
+		self.__d_rnames = dict()
 		self.__lll_vars = [] # ll_vars for each rule
 		self.__lll_phrase_data = []
 		self.__lll_el_data = []
@@ -86,6 +89,10 @@ class cl_ext_rules(object):
 		for rule_name, category, srule in l_rules_data:
 			rule, ll_phrase_data, ll_el_data, ll_vars, ll_el_cds = self.extract_rec_from_str(srule)
 
+			l_cats = self.__d_rcats.get(category, [])
+			self.__d_rcats[category] = l_cats + [len(self.__l_rules)]
+			remove dots
+			self.__d_rnames[rule_name] = len(self.__l_rules)
 			self.__l_categories.append(category)
 			self.__l_rules.append(rule)
 			self.__l_names.append(rule_name)
@@ -261,6 +268,46 @@ class cl_ext_rules(object):
 									utils.convert_intvec_to_arr(l_hds), len(ll_vars),
 									utils.convert_intvec_to_arr([vv for var_def in ll_vars for vv in var_def]))
 		pass
+
+	def run_rule(self, mpdbs, stmt, phase_data, idb, l_rule_cats, l_rule_names=[]):
+		results, l_use_rules_ids = [], []
+		for rule_cat in l_rule_cats:
+			l_use_rules_ids += self.__d_rcats.get(rule_cat, [])
+		# l_use_rules = [self.__l_fixed_rules[ir] for ir in l_use_rules_ids]
+		for rule_name in l_rule_names:
+			rid = self.__d_rnames.get(rule_name, -1)
+			if rid == -1:
+				print('Error. Unknown rule name requested for run rule:', rule_name)
+				exit(1)
+			l_use_rules_ids.append(rid)
+
+		phrase = utils.full_split(stmt)
+		rphrase = self.__phrase_mgr.get_rphrase(phrase)
+		l_rperms = self.__phraseperms.get_perms(rphrase)
+		for rid in l_use_rules_ids:
+			for rperm in l_rperms:
+				l_eids = self.__phraseperms.get_perm_eids(rperm)
+				iclose_vars = filter(lambda l: l[2] == 0, self.__lll_vars[rid])
+				bmatch = True
+				for pos, eid in enumerate(l_eids):
+					bvar = False
+					for var in iclose_vars:
+						if var[3] == pos:
+							bvar = True
+							if eid != l_eids[var[1]]:
+								bmatch = False
+								break
+					if not bvar:
+						nd_qbitvec = np.array(self.__el_bitvec_mgr.get_el_bin(eid), dtype=np.int8)
+						nd_rbitvec = self.__el_bitvec_mgr.get_el_bin(self.__lll_phrase_data[rid][0][pos])
+						hd = np.sum(np.not_equal(nd_qbitvec, nd_rbitvec))
+						if hd > int((1. - self.__lll_el_cds[rid][0][pos])*self.__bitvec_size):
+							bmatch =  False
+							break
+				if not bmatch: continue
+				self.run_one_rule(rid, rperm, [], mpdbs, idb)
+
+
 
 	# def run_one_rule(self, irule_rec, rperm_ret):
 	# 	bext, irule = self.__l_active_rules[irule_rec]
