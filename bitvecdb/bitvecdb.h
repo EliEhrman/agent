@@ -28,6 +28,11 @@ int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int ext_thres
 int get_el_hd_recs_by_list(	void * hcapp, int * irec_arr, int * cand_arr, int num_cands, int iel, int hd, char * qrec);
 void set_b_hd_thresh(void * hcapp);
 void set_b_rules(void * hcapp);
-void set_rule_data(void * hcapp, int irec, int num_cents, int * cent_offsets, int * cent_hds, int num_var_defs, int * var_defs);
-void set_rule_el_data(void * hcapp, int irec, int num_cents, int * cent_offsets, int * el_hds, int num_var_defs, int * var_defs);
+void set_rule_data( void * hcapp, int irec, int num_cents, int * cent_offsets, int * cent_hds, int num_var_defs, 
+                    int * var_defs, int bresult, int cid, int rid);
+void set_rule_el_data(  void * hcapp, int irec, int num_cents, int * cent_offsets, int * el_hds, int num_var_defs, 
+                        int * var_defs, int bresult, int cid, int rid);
 int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms, void * hcdb, int num_srcs, int * src_rperms);
+int find_result_matching_rules( void * hcapp, int * ret_arr, int * ret_num_vars, int * ret_rperms,
+				void * hcdb, int num_srcs, int * src_rperms, int num_cats, int * cat_arr, 
+                                int num_rids, int * rid_arr);

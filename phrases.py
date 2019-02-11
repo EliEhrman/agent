@@ -58,11 +58,11 @@ class cl_phrase_mgr(object):
 		else:
 			if self.__phraseperms != None:
 				self.__phraseperms.init_from_load()
-			saved_phrases = self.load_saved_phrases()
+			saved_phrases = self.load_saved_phrases(500)
 			self.load_sample_texts(saved_phrases)
 
 
-	def load_saved_phrases(self):
+	def load_saved_phrases(self, nlimit=-1):
 		saved_phrases = []
 		fn = expanduser(self.__phrases_fnt)
 		try:
@@ -74,6 +74,8 @@ class cl_phrase_mgr(object):
 				if version != 1:
 					raise IOError
 				for irow, row in enumerate(csvr):
+					if nlimit > 0 and irow >= nlimit:
+						break
 					saved_phrases.append(row)
 
 		except IOError:

@@ -34,7 +34,7 @@ c_goal_max_level_limit = 7
 c_max_story_time_to_repeat = 250000 # ignore the fact that an action has already be done after this much time and random when less
 c_b_restart_from_glv = False
 c_b_init_data = True
-c_lrn_rule_fn = 'load' # 'load', 'learn', 'none'
+c_lrn_rule_fn = 'none' # 'load', 'learn', 'none'
 
 els_sets = []
 set_names = [lname +'s' for lname in c_set_list]

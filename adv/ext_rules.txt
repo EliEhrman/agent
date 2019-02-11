@@ -22,6 +22,8 @@ get_done_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.,c:e,
 get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.,c:e,
 											c:s,Edgar wants chair:0.,c:e,
 											c:t,Edgar has chair,mle
+gen_rule_now_has....	state_from_event	ml,c:f,c:s,Edgar:0. picked up chair:0.,c:e,
+											c:t,c:i,Edgar has chair,mle
 rules end
 
 

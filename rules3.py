@@ -28,7 +28,9 @@ class cl_ext_rules(object):
 	def __init__(self, fn):
 		self.__l_rules = []
 		self.__l_categories = []
-		self.__d_rcats = dict()
+		self.__d_rcats = dict() # keyed by cat names, returns an index into __l_irules_in_cats and __l_cat_names
+		self.__l_irules_in_cats = []
+		self.__l_cat_names = []
 		self.__l_names = []
 		self.__d_rnames = dict()
 		self.__lll_vars = [] # ll_vars for each rule
@@ -36,6 +38,7 @@ class cl_ext_rules(object):
 		self.__lll_el_data = []
 		self.__lll_vars = []
 		self.__lll_el_cds = []
+		self.__l_bresults = [] # for each rule does it have a result phrase
 		self.__el_bitvec_mgr = None
 		self.__bitvec_size = -1
 		self.__phrase_mgr = None
@@ -56,6 +59,18 @@ class cl_ext_rules(object):
 
 	def get_hcdb_rules(self):
 		return self.__hcdb_rules
+
+	def get_cid(self, rule_cat):
+		cid = self.__d_rcats.get(rule_cat, -1)
+		if cid == -1:
+			cid = len(self.__l_irules_in_cats)
+			self.__d_rcats[rule_cat] = cid
+			self.__l_irules_in_cats.append([])
+			self.__l_cat_names.append(rule_cat)
+		return cid
+
+	def get_cid_name(self, cid):
+		return self.__l_cat_names[cid]
 
 	def load_rules(self, fn):
 		l_rules_data = []
@@ -87,12 +102,19 @@ class cl_ext_rules(object):
 			raise
 
 		for rule_name, category, srule in l_rules_data:
-			rule, ll_phrase_data, ll_el_data, ll_vars, ll_el_cds = self.extract_rec_from_str(srule)
+			rule, ll_phrase_data, ll_el_data, ll_vars, ll_el_cds, bresult = self.extract_rec_from_str(srule)
 
-			l_cats = self.__d_rcats.get(category, [])
-			self.__d_rcats[category] = l_cats + [len(self.__l_rules)]
-			remove dots
-			self.__d_rnames[rule_name] = len(self.__l_rules)
+			icat = self.__d_rcats.get(category, -1)
+			irule = len(self.__l_rules)
+			if icat == -1:
+				icat = len(self.__l_irules_in_cats)
+				self.__d_rcats[category] = icat
+				self.__l_irules_in_cats.append([])
+				self.__l_cat_names.append(category)
+			self.__l_irules_in_cats[icat].append(irule)
+			# remove trailing dots
+			rule_name = rule_name.rstrip('.')
+			self.__d_rnames[rule_name] = irule
 			self.__l_categories.append(category)
 			self.__l_rules.append(rule)
 			self.__l_names.append(rule_name)
@@ -100,6 +122,7 @@ class cl_ext_rules(object):
 			self.__lll_phrase_data.append(ll_phrase_data)
 			self.__lll_vars.append(ll_vars)
 			self.__lll_el_cds.append(ll_el_cds)
+			self.__l_bresults.append(bresult)
 
 		pass
 
@@ -233,7 +256,7 @@ class cl_ext_rules(object):
 
 			rec += [el]
 
-		return rec, l_phrase_data, ll_el_data, ll_vars, ll_el_cds
+		return rec, l_phrase_data, ll_el_data, ll_vars, ll_el_cds, bgens
 
 	def set_mgrs(self, nlbitvec_mgr, phrase_mgr, phraseperms_mgr):
 		self.__el_bitvec_mgr = nlbitvec_mgr
@@ -266,13 +289,17 @@ class cl_ext_rules(object):
 		bitvecdb.set_rule_el_data(	self.__hcdb_rules, len(self.__l_active_rules), len(phrase_offsets),
 									utils.convert_intvec_to_arr(phrase_offsets),
 									utils.convert_intvec_to_arr(l_hds), len(ll_vars),
-									utils.convert_intvec_to_arr([vv for var_def in ll_vars for vv in var_def]))
+									utils.convert_intvec_to_arr([vv for var_def in ll_vars for vv in var_def]),
+									int(self.__l_bresults[irule]),
+									self.__d_rcats[self.__l_categories[irule]], self.__d_rnames[self.__l_names[irule]])
 		pass
 
 	def run_rule(self, mpdbs, stmt, phase_data, idb, l_rule_cats, l_rule_names=[]):
 		results, l_use_rules_ids = [], []
 		for rule_cat in l_rule_cats:
-			l_use_rules_ids += self.__d_rcats.get(rule_cat, [])
+			cid = self.__d_rcats.get(rule_cat, -1)
+			if cid != -1:
+				l_use_rules_ids += self.__l_irules_in_cats[cid]
 		# l_use_rules = [self.__l_fixed_rules[ir] for ir in l_use_rules_ids]
 		for rule_name in l_rule_names:
 			rid = self.__d_rnames.get(rule_name, -1)
@@ -284,6 +311,7 @@ class cl_ext_rules(object):
 		phrase = utils.full_split(stmt)
 		rphrase = self.__phrase_mgr.get_rphrase(phrase)
 		l_rperms = self.__phraseperms.get_perms(rphrase)
+		ll_result_eids, ll_result_phrases = [], []
 		for rid in l_use_rules_ids:
 			for rperm in l_rperms:
 				l_eids = self.__phraseperms.get_perm_eids(rperm)
@@ -298,14 +326,19 @@ class cl_ext_rules(object):
 								bmatch = False
 								break
 					if not bvar:
-						nd_qbitvec = np.array(self.__el_bitvec_mgr.get_el_bin(eid), dtype=np.int8)
-						nd_rbitvec = self.__el_bitvec_mgr.get_el_bin(self.__lll_phrase_data[rid][0][pos])
+						nd_qbitvec = np.array(self.__el_bitvec_mgr.get_bin_by_id(eid), dtype=np.int8)
+						nd_rbitvec = np.array(self.__el_bitvec_mgr.get_el_bin(self.__lll_phrase_data[rid][0][pos]), dtype=np.int8)
 						hd = np.sum(np.not_equal(nd_qbitvec, nd_rbitvec))
 						if hd > int((1. - self.__lll_el_cds[rid][0][pos])*self.__bitvec_size):
 							bmatch =  False
 							break
 				if not bmatch: continue
-				self.run_one_rule(rid, rperm, [], mpdbs, idb)
+				_, ll_result_eids_one_rule = self.run_one_rule(rid, rperm, [], mpdbs, idb)
+				ll_result_eids += ll_result_eids_one_rule
+				for l_result_eids in ll_result_eids_one_rule:
+					ll_result_phrases.append([self.__el_bitvec_mgr.get_el_by_eid(eid) for eid in l_result_eids])
+
+		return ll_result_eids, ll_result_phrases
 
 
 
@@ -349,10 +382,12 @@ class cl_ext_rules(object):
 			self.__test_stat_num_rules_not_found += 1
 		pass
 
+	# currently this function is used to run one external rule on one src_rperm. The first clause has already been
+	# checked. There is always a result clause.
 	def run_one_rule(self, irule, src_rperm, result_words, mpdbs, idb):
 		ll_phrase_data, ll_vars, ll_el_cds, = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_cds[irule]
 		ll_rperms_src, ll_rperms = [[src_rperm]], []
-		for i_phrase_close, (l_phrase, l_el_cds) in enumerate(zip(ll_phrase_data[1:], ll_el_cds[1:])):
+		for i_phrase_close, (l_phrase, l_el_cds) in enumerate(zip(ll_phrase_data[1:-1], ll_el_cds[1:-1])):
 			num_len_recs, irec_arr = mpdbs.get_bdb_story().get_plen_irecs(idb, len(l_phrase))
 			for rperm_combo in ll_rperms_src:
 				ll_eids = [self.__phraseperms.get_perm_eids(rperm1) for rperm1 in rperm_combo]
@@ -360,12 +395,14 @@ class cl_ext_rules(object):
 				iclose_vars = filter(lambda l: l[2] == (i_phrase_close + 1), ll_vars)
 				num_match, match_arr = num_len_recs, irec_arr
 				for iel, el_cd in enumerate(l_el_cds):
-					one_var = filter(lambda l: l[3] == iel, iclose_vars)
-					if one_var == []:
+					# There can only be one var matching a dest, so we simply take the first from the list created by the filter
+					l_one_var = filter(lambda l: l[3] == iel, iclose_vars)
+					if l_one_var == []:
 						num_match, match_arr = \
 							mpdbs.get_bdb_story().get_el_hd_recs(	iel, int((1 - el_cd)*self.__bitvec_size),
 																	l_phrase[iel], num_match, match_arr)
 					else:
+						one_var = l_one_var[0]
 						src_eid = ll_eids[one_var[0]][one_var[1]]
 						num_match, match_arr = \
 							mpdbs.get_bdb_story().get_rperms_with_eid_at(idb, src_eid, one_var[3], num_match, match_arr)
@@ -373,9 +410,46 @@ class cl_ext_rules(object):
 						break
 				for imatch in range(num_match):
 					ll_rperms.append(rperm_combo + [match_arr[imatch]])
-			if ll_rperms == []: return []
+			if ll_rperms == []: return [], []
 			ll_rperms_src = list(ll_rperms)
 			ll_rperms = []
 
-		return ll_rperms_src
+		iresult_vars = filter(lambda l: l[2] == len(ll_phrase_data)-1, ll_vars)
+		l_result_eids = [self.__el_bitvec_mgr.get_el_id(el) for el in ll_phrase_data[-1]]
+		ll_result_eids = []
+		for l_rperms in ll_rperms_src:
+			ll_eids = [self.__phraseperms.get_perm_eids(rperm1) for rperm1 in l_rperms]
+			l_result_eids_copy = list(l_result_eids)
+			for var in iresult_vars:
+				l_result_eids_copy[var[3]] = ll_eids[var[0]][var[1]]
+			ll_result_eids.append(l_result_eids_copy)
+		return ll_rperms_src, ll_result_eids
+
+	def find_rules_matching_result(self, goal_phrase, l_cat_names, l_rule_names):
+		print('find_rules_matching_result rules for', goal_phrase)
+		rphrase = self.__phrase_mgr.get_rphrase(goal_phrase)
+		l_rperms = self.__phraseperms.get_perms(rphrase)
+		num_poss_ret = len(self.__l_active_rules) * len(l_rperms)
+		irule_arr = bitvecdb.intArray(num_poss_ret); rperms_ret_arr = bitvecdb.intArray(num_poss_ret)
+		num_vars_ret_arr = bitvecdb.intArray(num_poss_ret)
+		rperms_arr = utils.convert_intvec_to_arr(l_rperms)
+		cat_arr, rid_arr, num_cats, num_rids  = 0, 0, 0, 0
+		l_rcats, l_rids = [], []
+		for cat_name in l_cat_names:
+			cid = self.__d_rcats.get(cat_name, -1)
+			if cid >= 0: l_rcats.append(cid)
+			num_cats = len(l_rcats)
+		if num_cats > 0: cat_arr = utils.convert_intvec_to_arr(l_rcats)
+		for rule_name in l_rule_names:
+			rid = self.__d_rnames.get(rule_name, -1)
+			if rid >= 0: l_rids.append(rid)
+			num_rids = len(l_rids)
+		# if num_rids > 0:
+		rid_arr = utils.convert_intvec_to_arr(l_rids)
+		num_rules_found = bitvecdb.find_result_matching_rules(	self.__hcdb_rules, irule_arr, num_vars_ret_arr,
+																rperms_ret_arr, self.__phraseperms.get_bdb_all_hcdb(),
+																len(l_rperms), rperms_arr, num_cats, cat_arr, num_rids, rid_arr)
+		print('num_rules_found', num_rules_found)
+		for ifound in range(num_rules_found):
+			print('irule', irule_arr[ifound], 'num vars ret', num_vars_ret_arr[ifound], 'for rperm', rperms_ret_arr[ifound])
 

@@ -18,6 +18,65 @@ import numpy as np
 
 from utils import profile_decor
 
+nt_vo_match_phrases = collections.namedtuple('nt_match_phrases', 'istage, b_matched, phrase')
+
+class cl_vo_match_cont(object):
+	def __init__(self, l_var_match_opt_objs, calc_level, first_parent_obj):
+		self.__l_var_match_opt_objs = l_var_match_opt_objs
+		self.__calc_level = calc_level
+		self.__l_parent_objs = [first_parent_obj]
+		for var_opt_obj in l_var_match_opt_objs:
+			var_opt_obj.set_cont(self)
+
+	def get_calc_level(self):
+		return self.__calc_level
+
+	def add_parent_obj(self, parent_obj):
+		self.__l_parent_objs.append(parent_obj)
+
+	def get_var_match_opt_objs(self):
+		return self.__l_var_match_opt_objs
+
+	def set_score_invalid(self):
+		for parent_var_obj in self.__l_parent_objs:
+			if parent_var_obj != None:
+				parent_var_obj.set_score_invalid()
+
+	def loop_check(self, test_cont):
+		for parent_var_obj in self.__l_parent_objs:
+			if parent_var_obj == None: continue
+			elif parent_var_obj.loop_check(test_cont):
+				return True
+			else: continue
+		return False
+
+class cl_vo_match(object):
+	num_apply_cache_calls = 0
+	max_obj_id = 0
+
+	def __init__(self, parent_gg, l_match_phrases, ll_match_iphrase_combos, parent_obj, calc_level):
+		self.__parent_gg = parent_gg
+		self.__l_match_phrases = l_match_phrases
+		self.__ll_match_iphrase_combos = ll_match_iphrase_combos
+		self.__l_match_phrase_scores =  [0. for _ in l_match_phrases] # l_match_phrase_scores
+		self.__l_combo_scores =  [0. for _ in ll_match_iphrase_combos]
+		# self.__ll_var_match_opts = [[] for _ in l_match_phrases]  # for each match_phrase an array of cl_var_match_opts
+		self.__l_var_match_opt_conts = [[] for _ in l_match_phrases]  # for each match_phrase an cl_var_match_opt_cont # need a list of var_match_objs for each iphrase, one for each matching rule
+		self.__best_score = 0.
+		self.__b_score_valid = False
+		# self.__parent_obj = parent_obj
+		self.__calc_level = calc_level
+		self.__cont = []
+		self.__obj_id = cl_vo_match.max_obj_id
+		cl_vo_match.max_obj_id += 1
+
+	def get_calc_level(self):
+		return self.__calc_level
+
+	def get_parent_obj(self):
+		return self.__parent_obj
+
+
 class cl_gpsnlai_mgr(object):
 	def __init__(self):
 		self.__goal_init_level_limit = -1
@@ -32,6 +91,8 @@ class cl_gpsnlai_mgr(object):
 		self.__el_bitvec_mgr = None
 		self.__rule_mgr = None
 		self.__lrule_mgr = None
+		self.__phrase_mgr = None
+		self.__phraseperms = None
 		pass
 
 	def set_constants(self, goal_init_level_limit, goal_max_level_limit, max_story_time_to_repeat):
@@ -39,11 +100,13 @@ class cl_gpsnlai_mgr(object):
 		self.__goal_max_level_limit = goal_max_level_limit
 		self.__max_story_time_to_repeat = max_story_time_to_repeat
 
-	def set_mgrs(self, mpdbs_mgr, nlbitvec_mgr, rules3_mgr):
+	def set_mgrs(self, mpdbs_mgr, nlbitvec_mgr, rules3_mgr, phrase_mgr, phraseperms):
 		self.__mpdbs_mgr = mpdbs_mgr
 		self.__el_bitvec_mgr = nlbitvec_mgr
 		self.__rule_mgr = rules3_mgr
 		# self.__lrule_mgr = lrule_mgr
+		self.__phrase_mgr = phrase_mgr
+		self.__phraseperms = phraseperms
 
 	def set_calc_level(self, min_calc_level, max_calc_level):
 		self.__min_calc_level = min_calc_level
@@ -53,8 +116,36 @@ class cl_gpsnlai_mgr(object):
 		self.__player_goal_arg_cache = dict()
 
 	def make_decision_by_goal(self, player_name, phase_data, rule_stats):
-		goal_stmt = self.__mpdbs_mgr.run_rule(['I', 'am', player_name], phase_data,
-									   player_name, [], ['get_goal_phrase'])[1][0]
+		_, ll_done_els = self.__mpdbs_mgr.run_rule(['I', 'am', player_name], phase_data,
+									   player_name, [], ['get_done_phrase'])
+		if ll_done_els != [] and ll_done_els[0] == [player_name, 'is', 'done']:
+			return [], 'done'
+		ll_result_rels, ll_result_els = self.__mpdbs_mgr.run_rule(	['I', 'am', player_name], phase_data,
+									   								player_name, [], ['get_goal_phrase'])
+		goal_stmt = ll_result_els[0]
+
+		db_name = player_name
+		l_var_opt_objs = []
+		var_match_opt_cont = self.set_player_goal(	player_name, goal_stmt, db_name, phase_data,
+													var_obj_parent=None, calc_level=0,
+													calc_level_limit=self.__goal_init_level_limit)
+
 
 	def get_decision_by_goal(self, player_name, phase_data, rule_stats):
-		l_var_opt_objs, action_selected = self.make_decision_by_goal(player_name, phase_data, rule_stats)
+		# l_var_opt_objs, action_selected = \
+		self.make_decision_by_goal(player_name, phase_data, rule_stats)
+
+	def set_player_goal(self, player_name, goal_phrase, db_name, phase_data, var_obj_parent,
+						calc_level, calc_level_limit):
+		if goal_phrase != []:
+			self.__phrase_mgr.add_phrase(goal_phrase)
+			l_action_stmts = self.__mpdbs_mgr.run_rule(	goal_phrase, phase_data,
+														player_name, ['get_player_action'])[1]
+			if l_action_stmts != []:
+				assert len(l_action_stmts) == 1, 'Error. get_player_action should not produce more than one result.'
+				var_phrase = nt_vo_match_phrases(istage=0, b_matched=True, phrase=l_action_stmts[0])
+				l_var_opt_objs = [cl_vo_match(None, [var_phrase], [[0]], var_obj_parent, calc_level+1)]
+				return cl_vo_match_cont(l_var_opt_objs, calc_level, var_obj_parent)
+
+		self.__rule_mgr.find_rules_matching_result(goal_phrase, ['state_from_event'], [])
+

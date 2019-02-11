@@ -185,7 +185,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				one_decide, ruleid = \
 					d_mod_fns['get_decision_for_player'](story_player_name,
 														(i_one_story, i_story_step, story_loop_stage,
-														 event_step_id[0]), rule_stats)
+														event_step_id[0]), rule_stats)
 				if one_decide == []:
 					story_loop_stage = e_story_loop_stage.decision_init
 				else:
@@ -249,7 +249,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				if mod.c_b_learn_full_rules_nl and mod.c_lrn_rule_fn == 'learn':
 					mpdbs_mgr.learn_rule(	one_decide, event_as_decided,
 											(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
-											story_names[i_story_player]) # 'main') #
+											story_names[i_story_player], 'event_from_decide') # 'main') #
 				# if mod.c_lrn_rule_fn == 'load':
 				# 	mpdbs_mgr.test_rule(	one_decide, event_as_decided,
 				# 							(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
@@ -424,7 +424,7 @@ def main():
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
 	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	gpsnlai_mgr = gpsnlai.cl_gpsnlai_mgr()
-	gpsnlai_mgr.set_mgrs(mpdbs_mgr, nlbitvec_mgr, ext_rule_mgr)
+	gpsnlai_mgr.set_mgrs(mpdbs_mgr, nlbitvec_mgr, ext_rule_mgr, phrases_mgr, phraseperms_mgr)
 	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
 	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2)

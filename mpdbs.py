@@ -219,9 +219,9 @@ class cl_mpdbs_mgr(object):
 		idb = self.__d_db_names.get(db_name, -1)
 		if idb == -1:
 			print('Warning. mpdb requested to learn rule on db', db_name, 'which doesnt exist.')
-			return
+			return None, None
 		print('run rule for:', stmt, 'for db:', db_name, 'rule cats:', l_rule_cats, 'and rule name', l_rule_names)
-		self.__rule_mgr.run_rule(self, stmt, phase_data, idb, l_rule_cats, l_rule_names)
+		return self.__rule_mgr.run_rule(self, stmt, phase_data, idb, l_rule_cats, l_rule_names)
 
 	def test_rule(self, stmt, l_results, phase_data, db_name):
 		idb = self.__d_db_names.get(db_name, -1)
@@ -232,13 +232,13 @@ class cl_mpdbs_mgr(object):
 		self.__rule_mgr.test_rule(self, stmt, l_results, idb)
 
 
-	def learn_rule(self, stmt, l_results, phase_data, db_name):
+	def learn_rule(self, stmt, l_results, phase_data, db_name, cat_name):
 		idb = self.__d_db_names.get(db_name, -1)
 		if idb == -1:
 			print('Warning. mpdb requested to learn rule on db', db_name, 'which doesnt exist.')
 			return
 		print('learning for:', stmt, 'for db:', db_name)
-		self.__lrule_mgr.learn_rule(self, stmt, l_results, phase_data, idb)
+		self.__lrule_mgr.learn_rule(self, stmt, l_results, phase_data, idb, cat_name)
 		# rphrase = self.__phrase_mgr.get_rphrase(stmt)
 		# # return self.__bdb_story.get_matching_irecs(idb, rphrase)
 		# l_rcents = self.__phraseperms.get_cluster(rphrase)

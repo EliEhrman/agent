@@ -253,8 +253,8 @@ class cl_bitvec_db(object):
 		return s_rphrases_close
 
 	def get_rperms_with_eid_at(self, idb, eid, pos, num_cands, cands_arr):
-		bufsize = len(self.__l_rperms)
-		irec_arr = bitvecdb.intArray(bufsize)
+		# bufsize = len(self.__l_rperms)
+		irec_arr = bitvecdb.intArray(num_cands)
 		el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
 		num_ret = bitvecdb.get_irecs_with_eid_by_list(	self.__hcbdb, irec_arr, idb, pos, cands_arr, num_cands,
 														self.convert_charvec_to_arr(el_bitvec, bitvec_size))
