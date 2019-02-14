@@ -363,13 +363,9 @@ def set_b_rules(hcapp):
     return _bitvecdb.set_b_rules(hcapp)
 set_b_rules = _bitvecdb.set_b_rules
 
-def set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid):
-    return _bitvecdb.set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid)
+def set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el):
+    return _bitvecdb.set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el)
 set_rule_data = _bitvecdb.set_rule_data
-
-def set_rule_el_data(hcapp, irec, num_cents, cent_offsets, el_hds, num_var_defs, var_defs, bresult, cid, rid):
-    return _bitvecdb.set_rule_el_data(hcapp, irec, num_cents, cent_offsets, el_hds, num_var_defs, var_defs, bresult, cid, rid)
-set_rule_el_data = _bitvecdb.set_rule_el_data
 
 def find_matching_rules(hcapp, ret_arr, ret_rperms, hcdb, num_srcs, src_rperms):
     return _bitvecdb.find_matching_rules(hcapp, ret_arr, ret_rperms, hcdb, num_srcs, src_rperms)
@@ -378,6 +374,14 @@ find_matching_rules = _bitvecdb.find_matching_rules
 def find_result_matching_rules(hcapp, ret_arr, ret_num_vars, ret_rperms, hcdb, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr):
     return _bitvecdb.find_result_matching_rules(hcapp, ret_arr, ret_num_vars, ret_rperms, hcdb, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr)
 find_result_matching_rules = _bitvecdb.find_result_matching_rules
+
+def result_matching_rule_get_opt(hcapp, hcdb, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets):
+    return _bitvecdb.result_matching_rule_get_opt(hcapp, hcdb, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets)
+result_matching_rule_get_opt = _bitvecdb.result_matching_rule_get_opt
+
+def do_vo(hcapp):
+    return _bitvecdb.do_vo(hcapp)
+do_vo = _bitvecdb.do_vo
 # This file is compatible with both classic and new-style classes.
 
 

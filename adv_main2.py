@@ -15,10 +15,11 @@ import importlib
 import numpy as np
 import timeit
 
+import bitvec
 import utils
 from utils import profile_decor
 from rules2 import conn_type
-import bitvec
+# import bitvec
 import rules2
 import mpdb
 import gpsai

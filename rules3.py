@@ -286,12 +286,13 @@ class cl_ext_rules(object):
 			phrase_offsets.append(phrase_offset)
 			phrase_offset += len(phrase)
 		bitvecdb.add_rec(self.__hcdb_rules, plen, convert_charvec_to_arr(phrase_bitvec))
-		bitvecdb.set_rule_el_data(	self.__hcdb_rules, len(self.__l_active_rules), len(phrase_offsets),
+		bitvecdb.set_rule_data(	self.__hcdb_rules, len(self.__l_active_rules), len(phrase_offsets),
 									utils.convert_intvec_to_arr(phrase_offsets),
 									utils.convert_intvec_to_arr(l_hds), len(ll_vars),
 									utils.convert_intvec_to_arr([vv for var_def in ll_vars for vv in var_def]),
 									int(self.__l_bresults[irule]),
-									self.__d_rcats[self.__l_categories[irule]], self.__d_rnames[self.__l_names[irule]])
+									self.__d_rcats[self.__l_categories[irule]], self.__d_rnames[self.__l_names[irule]],
+									True)
 		pass
 
 	def run_rule(self, mpdbs, stmt, phase_data, idb, l_rule_cats, l_rule_names=[]):
@@ -452,4 +453,13 @@ class cl_ext_rules(object):
 		print('num_rules_found', num_rules_found)
 		for ifound in range(num_rules_found):
 			print('irule', irule_arr[ifound], 'num vars ret', num_vars_ret_arr[ifound], 'for rperm', rperms_ret_arr[ifound])
+			num_var_opts = num_vars_ret_arr[ifound]
+			iel_ret = bitvecdb.intArray(num_var_opts); ivar_ret = bitvecdb.intArray(num_var_opts)
+			src_iphrase_ret = bitvecdb.intArray(num_var_opts); src_iel_ret = bitvecdb.intArray(num_var_opts)
+			bitvecdb.result_matching_rule_get_opt(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
+													irule_arr[ifound], rperms_ret_arr[ifound], iel_ret, ivar_ret,
+													src_iphrase_ret, src_iel_ret, num_var_opts )
+			for ivar in range(num_var_opts):
+				print(	'iel', iel_ret[ivar], 'ivar', ivar_ret[ivar], 'src iphrase', src_iphrase_ret[ivar],
+						'src iel', src_iel_ret[ivar])
 

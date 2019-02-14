@@ -5654,6 +5654,7 @@ SWIGINTERN PyObject *_wrap_set_rule_data(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int arg8 ;
   int arg9 ;
   int arg10 ;
+  int arg11 ;
   int res1 ;
   int val2 ;
   int ecode2 = 0 ;
@@ -5673,6 +5674,8 @@ SWIGINTERN PyObject *_wrap_set_rule_data(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int ecode9 = 0 ;
   int val10 ;
   int ecode10 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -5683,8 +5686,9 @@ SWIGINTERN PyObject *_wrap_set_rule_data(PyObject *SWIGUNUSEDPARM(self), PyObjec
   PyObject * obj7 = 0 ;
   PyObject * obj8 = 0 ;
   PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOO:set_rule_data",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOO:set_rule_data",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "set_rule_data" "', argument " "1"" of type '" "void *""'"); 
@@ -5734,107 +5738,12 @@ SWIGINTERN PyObject *_wrap_set_rule_data(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "set_rule_data" "', argument " "10"" of type '" "int""'");
   } 
   arg10 = (int)(val10);
-  set_rule_data(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_set_rule_el_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  void *arg1 = (void *) 0 ;
-  int arg2 ;
-  int arg3 ;
-  int *arg4 = (int *) 0 ;
-  int *arg5 = (int *) 0 ;
-  int arg6 ;
-  int *arg7 = (int *) 0 ;
-  int arg8 ;
-  int arg9 ;
-  int arg10 ;
-  int res1 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  int val3 ;
-  int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  int val6 ;
-  int ecode6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  int val8 ;
-  int ecode8 = 0 ;
-  int val9 ;
-  int ecode9 = 0 ;
-  int val10 ;
-  int ecode10 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
-  PyObject * obj5 = 0 ;
-  PyObject * obj6 = 0 ;
-  PyObject * obj7 = 0 ;
-  PyObject * obj8 = 0 ;
-  PyObject * obj9 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOO:set_rule_el_data",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "set_rule_el_data" "', argument " "1"" of type '" "void *""'"); 
-  }
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "set_rule_el_data" "', argument " "2"" of type '" "int""'");
+  ecode11 = SWIG_AsVal_int(obj10, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "set_rule_data" "', argument " "11"" of type '" "int""'");
   } 
-  arg2 = (int)(val2);
-  ecode3 = SWIG_AsVal_int(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "set_rule_el_data" "', argument " "3"" of type '" "int""'");
-  } 
-  arg3 = (int)(val3);
-  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_int, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "set_rule_el_data" "', argument " "4"" of type '" "int *""'"); 
-  }
-  arg4 = (int *)(argp4);
-  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_int, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "set_rule_el_data" "', argument " "5"" of type '" "int *""'"); 
-  }
-  arg5 = (int *)(argp5);
-  ecode6 = SWIG_AsVal_int(obj5, &val6);
-  if (!SWIG_IsOK(ecode6)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "set_rule_el_data" "', argument " "6"" of type '" "int""'");
-  } 
-  arg6 = (int)(val6);
-  res7 = SWIG_ConvertPtr(obj6, &argp7,SWIGTYPE_p_int, 0 |  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "set_rule_el_data" "', argument " "7"" of type '" "int *""'"); 
-  }
-  arg7 = (int *)(argp7);
-  ecode8 = SWIG_AsVal_int(obj7, &val8);
-  if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "set_rule_el_data" "', argument " "8"" of type '" "int""'");
-  } 
-  arg8 = (int)(val8);
-  ecode9 = SWIG_AsVal_int(obj8, &val9);
-  if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "set_rule_el_data" "', argument " "9"" of type '" "int""'");
-  } 
-  arg9 = (int)(val9);
-  ecode10 = SWIG_AsVal_int(obj9, &val10);
-  if (!SWIG_IsOK(ecode10)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "set_rule_el_data" "', argument " "10"" of type '" "int""'");
-  } 
-  arg10 = (int)(val10);
-  set_rule_el_data(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
+  arg11 = (int)(val11);
+  set_rule_data(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -6013,6 +5922,114 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_result_matching_rule_get_opt(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  void *arg1 = (void *) 0 ;
+  void *arg2 = (void *) 0 ;
+  int arg3 ;
+  int arg4 ;
+  int *arg5 = (int *) 0 ;
+  int *arg6 = (int *) 0 ;
+  int *arg7 = (int *) 0 ;
+  int *arg8 = (int *) 0 ;
+  int arg9 ;
+  int res1 ;
+  int res2 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  void *argp6 = 0 ;
+  int res6 = 0 ;
+  void *argp7 = 0 ;
+  int res7 = 0 ;
+  void *argp8 = 0 ;
+  int res8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:result_matching_rule_get_opt",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "result_matching_rule_get_opt" "', argument " "1"" of type '" "void *""'"); 
+  }
+  res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "result_matching_rule_get_opt" "', argument " "2"" of type '" "void *""'"); 
+  }
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "result_matching_rule_get_opt" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "result_matching_rule_get_opt" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "result_matching_rule_get_opt" "', argument " "5"" of type '" "int *""'"); 
+  }
+  arg5 = (int *)(argp5);
+  res6 = SWIG_ConvertPtr(obj5, &argp6,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "result_matching_rule_get_opt" "', argument " "6"" of type '" "int *""'"); 
+  }
+  arg6 = (int *)(argp6);
+  res7 = SWIG_ConvertPtr(obj6, &argp7,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res7)) {
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "result_matching_rule_get_opt" "', argument " "7"" of type '" "int *""'"); 
+  }
+  arg7 = (int *)(argp7);
+  res8 = SWIG_ConvertPtr(obj7, &argp8,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "result_matching_rule_get_opt" "', argument " "8"" of type '" "int *""'"); 
+  }
+  arg8 = (int *)(argp8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "result_matching_rule_get_opt" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
+  result_matching_rule_get_opt(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_do_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  void *arg1 = (void *) 0 ;
+  int res1 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:do_vo",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "do_vo" "', argument " "1"" of type '" "void *""'"); 
+  }
+  do_vo(arg1);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"SWIG_PyInstanceMethod_New", (PyCFunction)SWIG_PyInstanceMethod_New, METH_O, NULL},
 	 { (char *)"SVec_x_set", _wrap_SVec_x_set, METH_VARARGS, NULL},
@@ -6077,9 +6094,10 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"set_b_hd_thresh", _wrap_set_b_hd_thresh, METH_VARARGS, NULL},
 	 { (char *)"set_b_rules", _wrap_set_b_rules, METH_VARARGS, NULL},
 	 { (char *)"set_rule_data", _wrap_set_rule_data, METH_VARARGS, NULL},
-	 { (char *)"set_rule_el_data", _wrap_set_rule_el_data, METH_VARARGS, NULL},
 	 { (char *)"find_matching_rules", _wrap_find_matching_rules, METH_VARARGS, NULL},
 	 { (char *)"find_result_matching_rules", _wrap_find_result_matching_rules, METH_VARARGS, NULL},
+	 { (char *)"result_matching_rule_get_opt", _wrap_result_matching_rule_get_opt, METH_VARARGS, NULL},
+	 { (char *)"do_vo", _wrap_do_vo, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 

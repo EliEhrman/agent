@@ -7,11 +7,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60b20013-eebf-4dd4-a709-0b01b1d10aab" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/bitvecdb/bdb.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bitvecdb/vo.c" afterDir="false" />
+      <change beforePath="/devlink2/dev/myfaiss/glove_kmeans.py" beforeDir="false" afterPath="/devlink2/dev/myfaiss/glove_kmeans.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/adv/ext_rules.txt" beforeDir="false" afterPath="$PROJECT_DIR$/adv/ext_rules.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/adv2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/adv_main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv_main2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bdb.py" beforeDir="false" afterPath="$PROJECT_DIR$/bdb.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvecdb/_bitvecdb.so" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/_bitvecdb.so" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvecdb/bitvecdb.c" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/bitvecdb.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvecdb/bitvecdb.h" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/bitvecdb.h" afterDir="false" />
@@ -19,11 +19,13 @@
       <change beforePath="$PROJECT_DIR$/bitvecdb/bitvecdb_wrap.c" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/bitvecdb_wrap.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/bitvecdb.o" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/bitvecdb.o" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/bitvecdb_wrap.o" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/bitvecdb_wrap.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gpsnlai.py" beforeDir="false" afterPath="$PROJECT_DIR$/gpsnlai.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mpdbs.py" beforeDir="false" afterPath="$PROJECT_DIR$/mpdbs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/phrases.py" beforeDir="false" afterPath="$PROJECT_DIR$/phrases.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rule_learn.py" beforeDir="false" afterPath="$PROJECT_DIR$/rule_learn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitvecdb/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/setup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rules3.py" beforeDir="false" afterPath="$PROJECT_DIR$/rules3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/varopts/_varopts.so" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/_varopts.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/varopts/build/temp.linux-x86_64-2.7/varopts.o" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/build/temp.linux-x86_64-2.7/varopts.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/varopts/build/temp.linux-x86_64-2.7/varopts_wrap.o" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/build/temp.linux-x86_64-2.7/varopts_wrap.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/varopts/varopts.py" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/varopts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/varopts/varopts_wrap.c" beforeDir="false" afterPath="$PROJECT_DIR$/varopts/varopts_wrap.c" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -36,70 +38,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/adv_main2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="188">
-              <caret line="187" selection-start-line="187" selection-end-line="187" />
+            <state relative-caret-position="191">
+              <caret line="188" selection-start-line="188" selection-end-line="188" />
               <folding>
                 <element signature="e#320#357#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/phrases.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="428">
-              <caret line="58" selection-start-line="58" selection-end-line="58" />
-              <folding>
-                <element signature="e#310#320#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mpdbs.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3740">
-              <caret line="223" selection-start-line="223" selection-end-line="223" />
-              <folding>
-                <element signature="e#463#500#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/gpsnlai.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="428">
-              <caret line="149" selection-start-line="149" selection-end-line="149" />
-              <folding>
-                <element signature="e#568#605#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/gpsai.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="812">
-              <caret line="77" column="4" selection-start-line="77" selection-start-column="4" selection-end-line="77" selection-end-column="4" />
-              <folding>
-                <element signature="e#430#467#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/adv2.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4250">
-              <caret line="256" selection-start-line="256" selection-end-line="256" />
-              <folding>
-                <element signature="e#0#10#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -108,8 +50,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rules3.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="207">
-              <caret line="438" column="49" lean-forward="true" selection-start-line="438" selection-start-column="49" selection-end-line="438" selection-end-column="49" />
+            <state relative-caret-position="988">
+              <caret line="461" selection-start-line="461" selection-end-line="461" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -120,8 +62,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1105">
-              <caret line="67" selection-start-line="67" selection-end-line="67" />
+            <state relative-caret-position="532">
+              <caret line="65" selection-start-line="65" selection-end-line="65" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -130,22 +72,70 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/adv/ext_rules.txt">
+        <entry file="file://$PROJECT_DIR$/bitvec.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="408">
-              <caret line="24" column="40" selection-start-line="24" selection-start-column="24" selection-end-line="24" selection-end-column="40" />
+            <state relative-caret-position="273">
+              <caret line="23" selection-start-line="23" selection-end-line="23" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/rules2.py">
+        <entry file="file://$PROJECT_DIR$/bitvecdb/bitvecdb.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="459">
-              <caret line="35" selection-start-line="35" selection-end-line="35" />
+            <state relative-caret-position="748">
+              <caret line="387" selection-start-line="387" selection-end-line="387" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/phrases.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="562">
+              <caret line="60" selection-start-line="60" selection-end-line="60" />
+              <folding>
+                <element signature="e#310#320#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gg.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="264">
+              <caret line="11" selection-start-line="11" selection-end-line="11" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/adv/ext_rules.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="165">
+              <caret line="7" column="71" selection-start-line="7" selection-start-column="71" selection-end-line="7" selection-end-column="71" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/bitvecdb/setup.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="280">
+              <caret line="10" column="75" selection-start-line="10" selection-start-column="75" selection-end-line="10" selection-end-column="75" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gpsnlai.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="727">
+              <caret line="149" selection-start-line="149" selection-end-line="149" />
             </state>
           </provider>
         </entry>
@@ -161,16 +151,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>gpsai</find>
-      <find>l_phrase</find>
-      <find>__l_categories</find>
-      <find>rule_name</find>
-      <find>eid</find>
-      <find>get_rperms_with_eid_at</find>
-      <find>saved_phrases.txt</find>
-      <find>import varopts</find>
-      <find>find_var_opts</find>
-      <find>varopts</find>
       <find>nt_match_phrases</find>
       <find>cl_var_match_opt_cont</find>
       <find>cl_</find>
@@ -191,6 +171,16 @@
       <find>__l_irules_in_cats</find>
       <find>set_player_goal</find>
       <find>def set_player_goal</find>
+      <find>varopts</find>
+      <find>find_var_opts</find>
+      <find>set_mgrs</find>
+      <find>__ai_mgr</find>
+      <find>__hcdb_rules</find>
+      <find>set_rule_el_data</find>
+      <find>__lll_phrase_data</find>
+      <find>bitvecdb</find>
+      <find>import varopts</find>
+      <find>from varopts import varopts</find>
     </findStrings>
     <replaceStrings>
       <replace>self.bitvec_size</replace>
@@ -224,29 +214,29 @@
         <option value="$PROJECT_DIR$/varopts/setup.py" />
         <option value="$PROJECT_DIR$/adv/countries.txt" />
         <option value="$PROJECT_DIR$/embed.py" />
-        <option value="$PROJECT_DIR$/bitvecdb/setup.py" />
         <option value="$PROJECT_DIR$/bitvecdb/bitvecdb.i" />
         <option value="$PROJECT_DIR$/mpdb.py" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_2.txt" />
         <option value="$PROJECT_DIR$/phraseperms.py" />
         <option value="$PROJECT_DIR$/bitvecdb/bitvecdb.h" />
         <option value="$PROJECT_DIR$/cluster.py" />
-        <option value="$PROJECT_DIR$/bitvec.py" />
         <option value="$PROJECT_DIR$/gpsai.py" />
-        <option value="$PROJECT_DIR$/gg.py" />
         <option value="$PROJECT_DIR$/rules2.py" />
         <option value="$PROJECT_DIR$/notebook.txt" />
         <option value="$PROJECT_DIR$/nlbitvec.py" />
-        <option value="$PROJECT_DIR$/utils.py" />
         <option value="$PROJECT_DIR$/bdb.py" />
         <option value="$PROJECT_DIR$/phrases.py" />
         <option value="$PROJECT_DIR$/adv/ext_rules.txt" />
         <option value="$PROJECT_DIR$/adv2.py" />
         <option value="$PROJECT_DIR$/gpsnlai.py" />
-        <option value="$PROJECT_DIR$/adv_main2.py" />
         <option value="$PROJECT_DIR$/mpdbs.py" />
         <option value="$PROJECT_DIR$/rule_learn.py" />
         <option value="$PROJECT_DIR$/rules3.py" />
+        <option value="$PROJECT_DIR$/gg.py" />
+        <option value="$PROJECT_DIR$/adv_main2.py" />
+        <option value="$PROJECT_DIR$/bitvec.py" />
+        <option value="$PROJECT_DIR$/utils.py" />
+        <option value="$PROJECT_DIR$/bitvecdb/setup.py" />
       </list>
     </option>
   </component>
@@ -262,6 +252,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -271,13 +262,22 @@
             </path>
             <path>
               <item name="agent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="testswig" type="462c0819:PsiDirectoryNode" />
+              <item name="agent" type="462c0819:PsiDirectoryNode" />
+              <item name="adv" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="agent" type="b2602c69:ProjectViewProjectNode" />
+              <item name="agent" type="462c0819:PsiDirectoryNode" />
+              <item name="bitvecdb" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="agent" type="b2602c69:ProjectViewProjectNode" />
+              <item name="myfaiss" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -631,20 +631,19 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
-    <editor active="true" />
+    <frame x="134" y="35" width="3066" height="1765" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.17431694" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.15718068" />
       <window_info id="Structure" order="1" sideWeight="0.50053704" weight="0.19289617" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32736045" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.32741398" />
-      <window_info anchor="bottom" id="Debug" order="3" visible="true" weight="0.31298557" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.31288767" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.4996691" weight="0.3107658" />
+      <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.4996691" weight="0.31013095" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.5003309" side_tool="true" weight="0.31357685" />
       <window_info anchor="bottom" id="Terminal" order="9" weight="0.32963374" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.32736045" />
@@ -940,7 +939,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv_main2.py</url>
-          <line>159</line>
+          <line>160</line>
           <option name="timeStamp" value="791" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -951,12 +950,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv_main2.py</url>
-          <line>353</line>
+          <line>354</line>
           <option name="timeStamp" value="900" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv_main2.py</url>
-          <line>358</line>
+          <line>359</line>
           <option name="timeStamp" value="901" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1231,7 +1230,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv_main2.py</url>
-          <line>187</line>
+          <line>188</line>
           <option name="timeStamp" value="1546" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1276,22 +1275,22 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>354</line>
+          <line>355</line>
           <option name="timeStamp" value="1603" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/adv_main2.py</url>
-          <line>248</line>
+          <line>249</line>
           <option name="timeStamp" value="1604" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>369</line>
+          <line>370</line>
           <option name="timeStamp" value="1605" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>367</line>
+          <line>368</line>
           <option name="timeStamp" value="1608" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1301,17 +1300,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>428</line>
+          <line>429</line>
           <option name="timeStamp" value="1638" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>451</line>
+          <line>452</line>
           <option name="timeStamp" value="1639" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>434</line>
+          <line>435</line>
           <option name="timeStamp" value="1640" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1326,13 +1325,28 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>450</line>
-          <option name="timeStamp" value="1670" />
+          <line>461</line>
+          <option name="timeStamp" value="1672" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/gpsai.py</url>
+          <line>155</line>
+          <option name="timeStamp" value="1673" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/utils.py</url>
+          <line>57</line>
+          <option name="timeStamp" value="1681" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>447</line>
-          <option name="timeStamp" value="1671" />
+          <line>451</line>
+          <option name="timeStamp" value="1690" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>460</line>
+          <option name="timeStamp" value="1691" />
         </line-breakpoint>
         <breakpoint enabled="true" type="python-exception">
           <properties notifyOnTerminate="true" exception="runpy._Error">
@@ -1475,6 +1489,11 @@
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
+        <expression-string>[vv for var_def in ll_vars for vv in var_def]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
         <expression-string>num_vars_ret_arr[0]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
@@ -1514,17 +1533,9 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>irec_arr</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/varopts/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/../testswig/swigcode/__init__.py" />
     <entry file="file://$PROJECT_DIR$/../testswig/main.py" />
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.txt" />
@@ -1630,13 +1641,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bitvecdb/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="168">
-          <caret line="7" selection-start-line="7" selection-end-line="7" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/adv/rule_groups.txt">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -1679,64 +1683,10 @@
     <entry file="file://$PROJECT_DIR$/adv/names.txt">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="469">
-          <caret line="1740" selection-start-line="1740" selection-end-line="1740" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/bitvec.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11271">
-          <caret line="686" column="74" selection-start-line="686" selection-start-column="44" selection-end-line="686" selection-end-column="74" />
-          <folding>
-            <element signature="e#193#230#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/nlbitvec.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="86">
-          <caret line="186" column="17" selection-start-line="186" selection-start-column="8" selection-end-line="186" selection-end-column="17" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/bitvecdb/bitvecdb.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="196">
-          <caret line="183" selection-start-line="183" selection-end-line="183" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gg.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="178">
-          <caret line="518" column="21" selection-start-line="518" selection-start-column="8" selection-end-line="518" selection-end-column="21" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/bdb.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="544">
           <caret line="243" selection-start-line="240" selection-end-line="243" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rule_learn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11339">
-          <caret line="675" column="37" selection-start-line="675" selection-start-column="37" selection-end-line="675" selection-end-column="37" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
@@ -1750,63 +1700,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cluster.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1224">
-          <caret line="82" column="8" selection-start-line="82" selection-start-column="8" selection-end-line="82" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv/rules.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1717">
-          <caret line="101" column="41" selection-start-line="101" selection-start-column="24" selection-end-line="101" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mpdbs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3740">
-          <caret line="223" selection-start-line="223" selection-end-line="223" />
-          <folding>
-            <element signature="e#463#500#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4250">
-          <caret line="256" selection-start-line="256" selection-end-line="256" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1105">
-          <caret line="67" selection-start-line="67" selection-end-line="67" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv/ext_rules.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="408">
-          <caret line="24" column="40" selection-start-line="24" selection-start-column="24" selection-end-line="24" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rules2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
+        <state relative-caret-position="648">
           <caret line="35" selection-start-line="35" selection-end-line="35" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
@@ -1814,20 +1710,122 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/adv2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6000">
+          <caret line="256" selection-start-line="256" selection-end-line="256" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rule_learn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11448">
+          <caret line="485" selection-start-line="485" selection-end-line="485" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mpdbs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5304">
+          <caret line="224" selection-start-line="224" selection-end-line="224" />
+          <folding>
+            <element signature="e#463#500#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv/rules.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2424">
+          <caret line="101" column="41" selection-start-line="101" selection-start-column="24" selection-end-line="101" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/gpsai.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="812">
-          <caret line="77" column="4" selection-start-line="77" selection-start-column="4" selection-end-line="77" selection-end-column="4" />
+        <state relative-caret-position="3576">
+          <caret line="155" selection-start-line="155" selection-end-line="155" />
           <folding>
             <element signature="e#430#467#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/nlbitvec.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4944">
+          <caret line="218" selection-start-line="218" selection-end-line="218" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cluster.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="10" selection-start-line="10" selection-end-line="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bitvecdb/bitvecdb.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="748">
+          <caret line="387" selection-start-line="387" selection-end-line="387" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.local/lib/python2.7/site-packages/six.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="313">
+          <caret line="184" column="42" selection-start-line="184" selection-start-column="42" selection-end-line="184" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="739">
+          <caret line="1741" selection-start-line="1741" selection-end-line="1741" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bitvec.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="273">
+          <caret line="23" selection-start-line="23" selection-end-line="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gg.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="264">
+          <caret line="11" selection-start-line="11" selection-end-line="11" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="532">
+          <caret line="65" selection-start-line="65" selection-end-line="65" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/phrases.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="428">
-          <caret line="58" selection-start-line="58" selection-end-line="58" />
+        <state relative-caret-position="562">
+          <caret line="60" selection-start-line="60" selection-end-line="60" />
           <folding>
             <element signature="e#310#320#0" expanded="true" />
           </folding>
@@ -1836,8 +1834,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/adv_main2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="188">
-          <caret line="187" selection-start-line="187" selection-end-line="187" />
+        <state relative-caret-position="191">
+          <caret line="188" selection-start-line="188" selection-end-line="188" />
           <folding>
             <element signature="e#320#357#0" expanded="true" />
           </folding>
@@ -1846,18 +1844,29 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gpsnlai.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="428">
+        <state relative-caret-position="727">
           <caret line="149" selection-start-line="149" selection-end-line="149" />
-          <folding>
-            <element signature="e#568#605#0" expanded="true" />
-          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv/ext_rules.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="7" column="71" selection-start-line="7" selection-start-column="71" selection-end-line="7" selection-end-column="71" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bitvecdb/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="10" column="75" selection-start-line="10" selection-start-column="75" selection-end-line="10" selection-end-column="75" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/rules3.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="207">
-          <caret line="438" column="49" lean-forward="true" selection-start-line="438" selection-start-column="49" selection-end-line="438" selection-end-column="49" />
+        <state relative-caret-position="988">
+          <caret line="461" selection-start-line="461" selection-end-line="461" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
