@@ -17,6 +17,8 @@ import collections
 import numpy as np
 
 from utils import profile_decor
+from utils import conn_type
+from utils import rec_def_type
 
 nt_vo_match_phrases = collections.namedtuple('nt_match_phrases', 'istage, b_matched, phrase')
 
@@ -108,6 +110,9 @@ class cl_gpsnlai_mgr(object):
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms
 
+	def get_mpdbs_mgr(self):
+		return self.__mpdbs_mgr
+
 	def set_calc_level(self, min_calc_level, max_calc_level):
 		self.__min_calc_level = min_calc_level
 		self.__max_calc_level = max_calc_level
@@ -126,6 +131,8 @@ class cl_gpsnlai_mgr(object):
 
 		db_name = player_name
 		l_var_opt_objs = []
+
+		# goal_stmt = [[rec_def_type.obj, w] for w in goal_wlist]
 		var_match_opt_cont = self.set_player_goal(	player_name, goal_stmt, db_name, phase_data,
 													var_obj_parent=None, calc_level=0,
 													calc_level_limit=self.__goal_init_level_limit)
@@ -137,6 +144,14 @@ class cl_gpsnlai_mgr(object):
 
 	def set_player_goal(self, player_name, goal_phrase, db_name, phase_data, var_obj_parent,
 						calc_level, calc_level_limit):
+		idb = self.__mpdbs_mgr.get_idb_from_db_name(db_name)
+		# b_pure_wlist = True; goal_wlist = []
+		# for el in goal_phrase:
+		# 	if el[0] != rec_def_type.obj:
+		# 		b_pure_wlist = False
+		# 		break
+		# 	goal_wlist.append(el[1])
+
 		if goal_phrase != []:
 			self.__phrase_mgr.add_phrase(goal_phrase)
 			l_action_stmts = self.__mpdbs_mgr.run_rule(	goal_phrase, phase_data,
@@ -147,5 +162,20 @@ class cl_gpsnlai_mgr(object):
 				l_var_opt_objs = [cl_vo_match(None, [var_phrase], [[0]], var_obj_parent, calc_level+1)]
 				return cl_vo_match_cont(l_var_opt_objs, calc_level, var_obj_parent)
 
-		self.__rule_mgr.find_rules_matching_result(goal_phrase, ['state_from_event'], [])
+		l_var_opt_objs = self.__rule_mgr.find_rules_matching_result(goal_phrase, ['state_from_event', 'event_from_decide'], [], idb,
+																	var_obj_parent, calc_level)
+		for var_opt_obj in l_var_opt_objs:
+			for iphrase, match_phrase_data in enumerate(var_opt_obj.get_l_match_phrases()):
+				# if iphrase != dbg_sel_iphrase: continue
+				if var_opt_obj.get_b_rule_has_result() and iphrase == len(var_opt_obj.get_l_match_phrases()) - 1: continue
+				if not match_phrase_data.b_matched:
+					var_match_opt_cont_child = \
+						self.set_player_goal(	player_name,
+												match_phrase_data.phrase, db_name,
+												phase_data, var_opt_obj, var_opt_obj.get_calc_level(),
+												calc_level_limit)
+					# max_child_score = max(l_var_opt_objs_child, key=lambda x: x.get_best_score()).get_best_score()
+					# var_opt_obj.set_match_phrase_score(iphrase, max_child_score)
+					var_opt_obj.set_var_match_opts(iphrase, var_match_opt_cont_child)
+		return l_var_opt_objs
 

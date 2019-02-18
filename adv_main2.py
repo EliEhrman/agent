@@ -429,6 +429,7 @@ def main():
 	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
 	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2)
+	ext_rule_mgr.init_vo(mpdbs_mgr)
 
 
 	event_step_id = -1

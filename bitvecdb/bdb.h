@@ -41,7 +41,7 @@ typedef struct SVarData {
     int locs_alloc;
     int num_locs;
     int hd_thresh;
-    char * default_src_pat;
+    int src_pat_el;
 } tSVarData;
 
 typedef struct SRuleRec {
@@ -72,10 +72,14 @@ typedef struct SDistRec {
     int idx;
 } tSDistRec;
 
-typedef struct SBDBApp {
+struct SBDBApp;
+typedef struct SBDBApp tSBDBApp;
+
+struct SBDBApp {
     int bitvec_size;
     char * name;
     char * db;
+    tSBDBApp * pdbels;
     int num_db_els;
     int num_db_els_alloc;
     int * rec_ptrs; // array of indices into the db for each rec. A rec may be variable length. The index must be multiplied by bitvec size
@@ -100,7 +104,19 @@ typedef struct SBDBApp {
     bool b_rules;
     char * rec_buf; // buffer for holding a bitvec record for queries etc
     int rec_buf_alloc;
-} tSBDBApp;
+    bool b_names; // if true, allocated mem for a name for each record
+    char ** rec_names; // num_rec_ptrs long
+    int rec_names_alloc;
+} ;
+
 
 int get_rec_len(tSBDBApp * pdb, int irec);
 char * get_rec(tSBDBApp * pdb, int irec);
+void clear_pair_dict(tSPairDict * ppd);
+int pair_dict_get(tSPairDict * ppd, int r, int c);
+void pair_dict_set(tSPairDict * ppd, int r, int c, int val);
+void pair_dict_print(tSPairDict * ppd);
+char * get_name_exact(tSBDBApp * papp, int qlen, char * qbits) ;
+int get_next_irec(tSBDBApp * papp, int istart, int iagent, int qlen, char ** match_pat, int * match_hd);
+char * get_el_in_rec(tSBDBApp * papp, int irec, int iel);
+int get_irec_exact(tSBDBApp * papp, int qlen, char * qbits);

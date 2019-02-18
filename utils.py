@@ -1,9 +1,12 @@
 import timeit
 import collections
+from enum import Enum
 from bitvecdb import bitvecdb
 
 nt_prof = collections.namedtuple('nt_prof', 'name, total_time, num_calls, b_in_time, start_time')
 d_profs = dict()
+conn_type = Enum('conn_type', 'single AND OR start end Insert Remove Modify IF THEN Broadcast replace_with_next, Unique')
+rec_def_type = Enum('rec_def_type', 'obj conn var error set like err')
 
 def profile_decor(fn):
 	def wr(*args, **kwargs):

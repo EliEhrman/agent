@@ -2774,7 +2774,7 @@ CIW:
 
 Rule testing works on one rule.
 
-Thursday 17th January 2017
+Thursday 17th January 2019
 
 Really important requirement. Must be noted somewhere.
 
@@ -2783,3 +2783,19 @@ is an unknown word.
 
 Therefore, before rules can be input, there must be a body of sample sentences. They must include some sample usages
 of any word needed with CD in the rules.
+
+Monday 18th February 2019
+
+Long time no log
+
+I'm in the throes of making a version of the gpsai for nl (gpsnlai) work.
+Just got a new version of c code varopts working with the bitvecdb c code. However, this does not yet filter up
+the ai to select an action.
+Also, for now natural language is limited to taking in phrases one word at a time and learning new words. Multi-word
+phrases have been disabled.
+I'm also not using rules that have been learned. Disabled them too for now - just so that I can get the ai up
+When that's working I enable the other modules a bit a time until all three are working together
+
+CIW:
+
+new nl varopts working with no multi word nl or learned rules and not filtering up the ai yet

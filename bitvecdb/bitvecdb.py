@@ -363,6 +363,14 @@ def set_b_rules(hcapp):
     return _bitvecdb.set_b_rules(hcapp)
 set_b_rules = _bitvecdb.set_b_rules
 
+def set_b_rec_names(happ):
+    return _bitvecdb.set_b_rec_names(happ)
+set_b_rec_names = _bitvecdb.set_b_rec_names
+
+def set_rec_name(happ, name, irec):
+    return _bitvecdb.set_rec_name(happ, name, irec)
+set_rec_name = _bitvecdb.set_rec_name
+
 def set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el):
     return _bitvecdb.set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el)
 set_rule_data = _bitvecdb.set_rule_data
@@ -371,17 +379,77 @@ def find_matching_rules(hcapp, ret_arr, ret_rperms, hcdb, num_srcs, src_rperms):
     return _bitvecdb.find_matching_rules(hcapp, ret_arr, ret_rperms, hcdb, num_srcs, src_rperms)
 find_matching_rules = _bitvecdb.find_matching_rules
 
-def find_result_matching_rules(hcapp, ret_arr, ret_num_vars, ret_rperms, hcdb, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr):
-    return _bitvecdb.find_result_matching_rules(hcapp, ret_arr, ret_num_vars, ret_rperms, hcdb, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr)
+def find_result_matching_rules(hcapp, hcdb, hcdbels, ret_arr, ret_num_vars, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr):
+    return _bitvecdb.find_result_matching_rules(hcapp, hcdb, hcdbels, ret_arr, ret_num_vars, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr)
 find_result_matching_rules = _bitvecdb.find_result_matching_rules
 
-def result_matching_rule_get_opt(hcapp, hcdb, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets):
-    return _bitvecdb.result_matching_rule_get_opt(hcapp, hcdb, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets)
+def result_matching_rule_get_opt(hcapp, hcdb, hcdbels, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets):
+    return _bitvecdb.result_matching_rule_get_opt(hcapp, hcdb, hcdbels, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets)
 result_matching_rule_get_opt = _bitvecdb.result_matching_rule_get_opt
+
+def create_vo(hcdb_rules, hcdb_all, hcdb_story, hcdb_els):
+    return _bitvecdb.create_vo(hcdb_rules, hcdb_all, hcdb_story, hcdb_els)
+create_vo = _bitvecdb.create_vo
+
+def init_vo(hvos, irule_rec, idb, call_num, rperm):
+    return _bitvecdb.init_vo(hvos, irule_rec, idb, call_num, rperm)
+init_vo = _bitvecdb.init_vo
+
+def add_ext_var(hvos, ivar, b_bound, b_must_bind, iel, hd, iext_var):
+    return _bitvecdb.add_ext_var(hvos, ivar, b_bound, b_must_bind, iel, hd, iext_var)
+add_ext_var = _bitvecdb.add_ext_var
 
 def do_vo(hcapp):
     return _bitvecdb.do_vo(hcapp)
 do_vo = _bitvecdb.do_vo
+
+def get_num_match_phrases(hvos):
+    return _bitvecdb.get_num_match_phrases(hvos)
+get_num_match_phrases = _bitvecdb.get_num_match_phrases
+
+def get_match_phrase_istage(hvos, imatch):
+    return _bitvecdb.get_match_phrase_istage(hvos, imatch)
+get_match_phrase_istage = _bitvecdb.get_match_phrase_istage
+
+def get_match_phrase_b_matched(hvos, imatch):
+    return _bitvecdb.get_match_phrase_b_matched(hvos, imatch)
+get_match_phrase_b_matched = _bitvecdb.get_match_phrase_b_matched
+
+def get_num_phrase_els(hvos, imatch):
+    return _bitvecdb.get_num_phrase_els(hvos, imatch)
+get_num_phrase_els = _bitvecdb.get_num_phrase_els
+
+def get_phrase_el_def_type(hvos, imatch, iel):
+    return _bitvecdb.get_phrase_el_def_type(hvos, imatch, iel)
+get_phrase_el_def_type = _bitvecdb.get_phrase_el_def_type
+
+def get_phrase_el_hd(hvos, imatch, iel):
+    return _bitvecdb.get_phrase_el_hd(hvos, imatch, iel)
+get_phrase_el_hd = _bitvecdb.get_phrase_el_hd
+
+def get_phrase_el_val(hvos, imatch, iel):
+    return _bitvecdb.get_phrase_el_val(hvos, imatch, iel)
+get_phrase_el_val = _bitvecdb.get_phrase_el_val
+
+def get_num_combos(hvos):
+    return _bitvecdb.get_num_combos(hvos)
+get_num_combos = _bitvecdb.get_num_combos
+
+def get_combo_len(hvos):
+    return _bitvecdb.get_combo_len(hvos)
+get_combo_len = _bitvecdb.get_combo_len
+
+def get_combo_val(hvos, icombo, ival):
+    return _bitvecdb.get_combo_val(hvos, icombo, ival)
+get_combo_val = _bitvecdb.get_combo_val
+
+def print_db_recs(happ, hcdbels):
+    return _bitvecdb.print_db_recs(happ, hcdbels)
+print_db_recs = _bitvecdb.print_db_recs
+
+def set_pdbels(happ, hcdbels):
+    return _bitvecdb.set_pdbels(happ, hcdbels)
+set_pdbels = _bitvecdb.set_pdbels
 # This file is compatible with both classic and new-style classes.
 
 

@@ -24,7 +24,7 @@ class cl_phrase_mgr(object):
 	def set_phraseperms(self, phraseperms):
 		self.__phraseperms = phraseperms
 
-	def add_phrase(self, phrase_src, creating_rule_name=''):
+	def add_phrase(self, phrase_src, creating_rule_name='', bsample=False):
 		phrase = [w for lw in [el.split() for el in phrase_src] for w in lw]
 		rphrase = self.__map_phrase_to_rphrase.get(tuple(phrase), -1)
 		if rphrase == -1:
@@ -32,6 +32,9 @@ class cl_phrase_mgr(object):
 			self.__l_phrases.append(phrase)
 			self.__map_phrase_to_rphrase[tuple(phrase)] = rphrase
 			self.__phraseperms.add_new_phrase(rphrase)
+			if bsample:
+				for el in phrase:
+					self.__phraseperms.get_nlb_mgr().set_word_from_sample(el)
 		if creating_rule_name != '':
 			grow = 1 + rphrase - len(self.__l_rule_name)
 			if grow > 0:
@@ -85,7 +88,7 @@ class cl_phrase_mgr(object):
 
 	def load_sample_texts(self, saved_phrases):
 		for phrase_data in saved_phrases:
-			self.add_phrase(phrase_data[1].split(), phrase_data[0])
+			self.add_phrase(phrase_data[1].split(), phrase_data[0], bsample=True)
 
 	def get_num_phrases(self):
 		return len(self.__l_phrases)

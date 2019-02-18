@@ -37,7 +37,7 @@ def load_word_dict():
 		vec = [float(val) for val in row[1:]]
 		l_vecs.append(vec)
 		word_dict[word] = irow
-		if irow > c_num_gloves:
+		if irow >= c_num_gloves-1:
 			break
 		# print(row)
 

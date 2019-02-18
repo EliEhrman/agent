@@ -47,6 +47,9 @@ class cl_mpdbs_mgr(object):
 	def get_bdb_story(self):
 		return self.__bdb_story
 
+	def get_hcdb_story(self):
+		return self.__bdb_story.get_hcbdb()
+
 	def add_db(self, db_name):
 		idb = self.__d_db_names.get(db_name, -1)
 		if idb != -1:

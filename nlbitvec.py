@@ -11,6 +11,9 @@ import collections
 import copy
 
 import cluster
+from bitvecdb import bitvecdb
+# import bdb
+import utils
 
 c_phrase_fnt = '~/tmp/adv_phrases.txt'
 
@@ -36,6 +39,152 @@ divider = np.array(
 	np.float32)
 divider_sum = np.sum(1. / divider)
 
+class cl_immutable_list(list):
+	def __init__(self, lst):
+		self.__list = lst
+
+	def __getitem__(self, key):
+		return self.__list[key]
+
+	def __setitem__(self, key, el):
+		assert False, 'list is immutable. set not allowed'
+
+	def __delitem__(self, key):
+		assert False, 'list is immutable. del not allowed'
+
+	def insert(self, i, v):
+		assert False, 'list is immutable. insert not allowed'
+
+	def get_vals(self):
+		return self.__list
+
+
+class cl_el_stats(object):
+	def __init__(self, el='???', bglove=False, bassigned=False, avg_hd=-1.0, num_hits=0, l_iphrases=None,
+				 l_idelayed=None, bitvals=[], bitvec=np.zeros(c_bitvec_size, dtype=np.uint8)):
+		self.__el = el
+		self.__bglove = bglove
+		self.__bassigned = bassigned
+		self.__avg_hd = avg_hd
+		self.__num_hits = num_hits
+		self.__l_iphrases = l_iphrases
+		self.__l_idelayed = l_idelayed
+		lbitvals = bitvals.tolist() if type(bitvals) is np.ndarray else bitvals
+		self.__bitvals = cl_immutable_list(lbitvals)
+		lbitvec = bitvec.tolist() if type(bitvec) is np.ndarray else bitvec
+		self.__bitvec = cl_immutable_list(lbitvec)
+		self.__lid = -1 # idx of list in parent
+		self.__mgr = None
+		self.__b_in_samples = False
+
+	def set_b_in_samples(self): # direct set because no harm to cdb. Don't do this for other propeties without thinking
+		self.__b_in_samples = True
+
+	def get_b_in_samples(self):
+		return self.__b_in_samples
+
+	def get_el(self):
+		return self.__el
+
+	def get_bglove(self):
+		return self.__bglove
+
+	def get_bassigned(self):
+		return self.__bassigned
+
+	def get_avg_hd(self):
+		return self.__avg_hd
+
+	def get_num_hits(self):
+		return self.__num_hits
+
+	def get_l_iphrases(self):
+		assert False, 'cl_el_stats: Forbidden function'
+		return self.__l_iphrases
+
+	def is_l_iphrases_none(self):
+		return self.__l_iphrases is None
+
+	def is_l_iphrases_empty(self):
+		return self.__l_iphrases == []
+
+	def set_l_iphrases_empty(self):
+		self.__l_iphrases = []
+
+	def is_phrase_in_l_iphrases(self, iphrase):
+		return (iphrase in self.__l_iphrases)
+
+	def append_to_l_iphrase(self, iphrase):
+		self.__l_iphrases.append(iphrase)
+
+	def get_l_idelayed(self):
+		assert False, 'cl_el_stats: Forbidden function'
+		return self.__l_idelayed
+
+	def get_num_l_iphrases(self):
+		return len(self.__l_iphrases)
+
+	def get_i_phrase(self, i):
+		return self.__l_iphrases[i]
+
+	def is_phrase_in_l_idelayed(self, iphrase):
+		return (iphrase in self.__l_idelayed)
+
+	def append_to_l_idelayed(self, iphrase):
+		self.__l_idelayed.append(iphrase)
+
+	def get_num_l_idelayed(self):
+		return len(self.__l_idelayed)
+
+	def get_i_delayed(self, i):
+		return self.__l_idelayed[i]
+
+	def is_l_idelayed_empty(self):
+		return self.__l_idelayed == []
+
+	def set_l_idelayed_empty(self):
+		self.__l_idelayed = []
+
+	def get_l_idelayed_vals(self): # dangerous. Not a reference, changing items will have no effect resulting in silent fail
+		return list(self.__l_idelayed)
+
+	def get_bitvals(self):
+		# assert False, 'cl_el_stats: Forbidden function'
+		return self.__bitvals
+
+	def get_bitvec(self):
+		# assert False, 'cl_el_stats: Forbidden function'
+		return self.__bitvec
+
+	def set_lid(self, mgr, lid, badd=True):
+		self.__mgr = mgr
+		self.__lid = lid
+		if badd:
+			self.__mgr.alert_changed_el_stats(self.__lid, self.__bitvec.get_vals(), self.__el)
+
+	def get_lid(self):
+		return self.__lid
+
+	def replace(self, el=None, bglove=None, bassigned=None, avg_hd=None, num_hits=None, l_iphrases=None,
+				 l_idelayed=None, bitvals=None, bitvec=None):
+		self.__el = el if el is not None else self.__el
+		self.__bglove = bglove if bglove is not None else self.__bglove
+		self.__bassigned = bassigned if bassigned is not None else self.__bassigned
+		self.__avg_hd = avg_hd if avg_hd is not None else self.__avg_hd
+		self.__num_hits = num_hits if num_hits is not None else self.__num_hits
+		self.__l_iphrases = l_iphrases if l_iphrases is not None else self.__l_iphrases
+		self.__l_idelayed = l_idelayed if l_idelayed is not None else self.__l_idelayed
+		if bitvals is not None:
+			lbitvals = bitvals.tolist() if type(bitvals) is np.ndarray else bitvals
+			self.__bitvals = cl_immutable_list(lbitvals)
+		if bitvec is not None:
+			lbitvec = bitvec.tolist() if type(bitvec) is np.ndarray else bitvec
+			self.__bitvec = cl_immutable_list(lbitvec)
+			if self.__mgr != None:
+				self.__mgr.alert_changed_el_stats(self.__lid, lbitvec, self.__el)
+		return self
+
+
 class cl_nlb_mgr_notific(object):
 	def __init__(self):
 		self.__d_iels = dict()
@@ -54,6 +203,60 @@ class cl_nlb_mgr_notific(object):
 	def reset(self):
 		self.__d_iels = dict()
 
+class cl_els_list(list):
+	def __init__(self, mgr, lst):
+		self.__b_called_well = False
+		self.__list = []
+		self.__mgr = mgr
+		for el in lst:
+			self.check(el)
+			mgr.alert_add_el_stats(len(self.__list), el.get_bitvec().get_vals(), el.get_el())
+			el.set_lid(mgr, len(self.__list), badd=False)
+			self.__list.append(el)
+
+	def check(self, v):
+		assert type(v) == cl_el_stats, 'Only cl_el_stats can be added to cl_els_list'
+		# self.__list.append(v)
+
+	def get_len(self):
+		return len(self.__list)
+
+	def __getitem__(self, key):
+		return self.__list[key]
+
+	def __setitem__(self, key, el):
+		self.check(el)
+		el.set_lid(self.__mgr, key)
+		self.__list[key] = el
+
+	def __delitem__(self, key):
+		assert False, 'cl_els_list: Not implemented yet'
+		del self.__list[key]
+
+	def insert(self, i, v):
+		assert False, 'cl_els_list: Not implemented yet. Will require renumbering'
+		self.check(v)
+		v.set_lid(self.__mgr, i)
+		self.__list.insert(i, v)
+
+	def append(self, el):
+		self.check(el)
+		self.__mgr.alert_add_el_stats(len(self.__list), el.get_bitvec().get_vals(), el.get_el())
+		el.set_lid(self.__mgr, len(self.__list), badd=False)
+		self.__list.append(el)
+# def el_append(self, el):
+	# 	self.__b_called_well = True
+	# 	self.append(el)
+	# 	self.__b_called_well = False
+	#
+	#
+	# def append(self, el):
+	# 	if self.__b_called_well:
+	# 		super().append(el)
+	# 	else:
+	# 		print('Code error. cl_els_list')
+
+
 class cl_nlb_mgr(object):
 	def __init__(	self, b_restart_from_glv, phrase_mgr, phraseperms_mgr, bdb_all,
 					bitvec_dict_glv_fnt, rule_grp_fnt, saved_phrases_fnt,
@@ -61,6 +264,10 @@ class cl_nlb_mgr(object):
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms_mgr
 		self.__bdb_all = bdb_all # Holds a c db of all perms, indexed by the rperm of phraseperms. Each rec is the bitcev od each el in the phrase
+		self.__hcbdb = bitvecdb.init_capp()
+		bitvecdb.set_el_bitvec_size(self.__hcbdb, c_bitvec_size)
+		bitvecdb.set_name(self.__hcbdb, 'els')
+		bitvecdb.set_b_rec_names(self.__hcbdb)
 		bitvec_dict_fnt = bitvec_dict_glv_fnt if b_restart_from_glv else bitvec_dict_output_fnt
 		self.__cluster_fnt = cluster_fnt
 		self.__d_words = dict()
@@ -112,6 +319,9 @@ class cl_nlb_mgr(object):
 	# 		l_nd_centroids, ll_cent_hd_thresh = cluster.load_clusters(self.__cluster_fnt, c_bitvec_size)
 	# 	self.__l_nd_centroids = l_nd_centroids
 	# 	self.__ll_cent_hd_thresh = ll_cent_hd_thresh
+	def get_hcbdb(self):
+		return self.__hcbdb
+
 	def get_bitvec_size(self):
 		return c_bitvec_size
 
@@ -120,6 +330,14 @@ class cl_nlb_mgr(object):
 
 	def get_bdb_all_hcdb(self):
 		return self.__bdb_all.get_hcbdb()
+
+	def alert_add_el_stats(self, lid, lbitvec, el_name):
+		bitvecdb.add_rec(self.get_hcbdb(), 1, utils.convert_charvec_to_arr(lbitvec))
+		bitvecdb.set_rec_name(self.get_hcbdb(), el_name, lid)
+
+	def alert_changed_el_stats(self, lid, lbitvec, el_name):
+		bitvecdb.change_rec(self.get_hcbdb(), 1, utils.convert_charvec_to_arr(lbitvec), lid)
+		bitvecdb.set_rec_name(self.get_hcbdb(), el_name, lid)
 
 	def load_word_db(self, bitvec_dict_fnt):
 		fn = expanduser(bitvec_dict_fnt)
@@ -135,10 +353,11 @@ class cl_nlb_mgr(object):
 					raise IOError
 				d_words, s_word_bit_db, nd_bit_db = dict(), set(), np.zeros((num_els, c_bitvec_size), dtype=np.uint8)
 				l_els = ['' for _ in xrange(num_els)]
-				l_els_stats = [nt_el_stats(bglove=True, bassigned=True) for _ in xrange(num_els)]
+				l_els_stats = cl_els_list(self, [cl_el_stats(bglove=True, bassigned=True) for _ in xrange(num_els)])
+				iel = 0
 				for irow in range(num_els):
 					row = next(csvr)
-					word, iel, sbits = row[0], row[1], row[2:]
+					word, _, sbits = row[0], row[1], row[2:]
 					rowdata = next(csvr)
 					bglove, bassigned, avg_hd = rowdata[0]=='True', rowdata[1]=='True', float(rowdata[2])
 					num_hits, bitvals = int(rowdata[3]), rowdata[4:]
@@ -148,13 +367,14 @@ class cl_nlb_mgr(object):
 						bitvals = np.array(map(float, bitvals), dtype=float)
 					bits = map(int, sbits)
 					ndbits = np.array(bits, dtype=np.uint8)
-					d_words[word] = int(iel)
-					l_els[int(iel)] = word
-					l_els_stats[int(iel)] = nt_el_stats(el=word, bglove=bglove, bassigned=bassigned,
+					d_words[word] = iel
+					l_els[iel] = word
+					l_els_stats[iel] = cl_el_stats(el=word, bglove=bglove, bassigned=bassigned,
 														avg_hd=avg_hd, num_hits=num_hits, bitvals=bitvals, bitvec=ndbits,
 														l_idelayed=[], l_iphrases=[])
-					nd_bit_db[int(iel)] = ndbits
+					nd_bit_db[iel] = ndbits
 					s_word_bit_db.add(tuple(bits))  # if asserts here check bitvec.bitvec_size
+					iel += 1
 
 		except IOError:
 			raise ValueError('Cannot open or read ', fn)
@@ -163,6 +383,12 @@ class cl_nlb_mgr(object):
 
 	def save_word_db(self):
 		# d_words, nd_bit_db, fnt_dict):
+		num_to_write = 0
+		nwords = self.__l_els_stats.get_len()
+		for i_el_stat in range(nwords):
+			el_stat = self.__l_els_stats[i_el_stat]
+			if el_stat.get_b_in_samples(): num_to_write += 1
+
 		fn = expanduser(self.__bitvec_dict_output_fnt)
 
 		if os.path.isfile(fn):
@@ -170,17 +396,19 @@ class cl_nlb_mgr(object):
 		fh = open(fn, 'wb')
 		csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
 		csvw.writerow(['Glv Dict', 'Version', '2'])
-		csvw.writerow(['Num Els:', len(self.__d_words)])
+		# csvw.writerow(['Num Els:', len(self.__d_words)])
+		csvw.writerow(['Num Els:', num_to_write])
 		csvw.writerow(['el', 'eid', 'bitvec'])
 		csvw.writerow(['bglove', 'bassigned', 'avg_hd', 'num_hits', 'bitvals'])
 		for kword, virow in self.__d_words.iteritems():
 			els_stats = self.__l_els_stats[virow]
-			assert kword==els_stats.el.lower(), 'save_word_db: dict mismatch'
-			csvw.writerow([kword, virow] + els_stats.bitvec.tolist())
+			assert kword==els_stats.get_el().lower(), 'save_word_db: dict mismatch'
+			if not els_stats.get_b_in_samples(): continue
+			csvw.writerow([kword, virow] + els_stats.get_bitvec().get_vals())
 			lbitvals = ['[]']
-			if els_stats.bitvals != []:
-				lbitvals = els_stats.bitvals.tolist()
-			csvw.writerow([els_stats.bglove, els_stats.bassigned, els_stats.avg_hd, els_stats.num_hits] + lbitvals)
+			if els_stats.get_bitvals().get_vals() != []:
+				lbitvals = els_stats.get_bitvals().get_vals()
+			csvw.writerow([els_stats.get_bglove(), els_stats.get_bassigned(), els_stats.get_avg_hd(), els_stats.get_num_hits()] + lbitvals)
 
 		fh.close()
 
@@ -197,8 +425,15 @@ class cl_nlb_mgr(object):
 			return []
 		return self.__nd_word_bin[iel].tolist()
 
+	def set_word_from_sample(self, word):
+		iel = self.get_el_id(word)
+		if iel == -1:
+			print('Error! set_word_from_sample called for unknown word')
+			exit(1)
+		self.__l_els_stats[iel].set_b_in_samples()
+
 	def get_el_by_eid(self, eid):
-		return self.__l_els_stats[eid].el
+		return self.__l_els_stats[eid].get_el()
 
 	def add_unique_bits(self, new_bits):
 		self.__s_word_bit_db.add(tuple(new_bits))
@@ -267,9 +502,9 @@ class cl_nlb_mgr(object):
 		for iword, word in enumerate(phrase):
 			iel = self.__d_words.get(word.lower(), -1)
 			if iel == -1:
-				iel = len(self.__l_els_stats)
+				iel = self.__l_els_stats.get_len()
 				self.__d_words[word.lower()] = iel
-				el_stats = nt_el_stats(el=word, l_iphrases=[i_all_phrases], l_idelayed=[])
+				el_stats = cl_el_stats(el=word, l_iphrases=[i_all_phrases], l_idelayed=[])
 				self.__l_els_stats.append(el_stats)
 				self.__l_els_here.append(word)
 				b_add_now = False
@@ -294,11 +529,11 @@ class cl_nlb_mgr(object):
 				del nd_wbits # , glv_wid
 			else:  # if word already seen
 				el_stats = self.__l_els_stats[iel]  # ._replace()
-				if el_stats.l_iphrases == None: el_stats = el_stats._replace(l_iphrases = [])
-				if i_all_phrases not in el_stats.l_iphrases:
-					el_stats.l_iphrases.append(i_all_phrases)
-				if el_stats.bassigned:
-					nd_phrase[iword, :] = el_stats.bitvec
+				if el_stats.is_l_iphrases_none(): el_stats = el_stats._replace(l_iphrases = [])
+				if not el_stats.is_phrase_in_l_iphrases(i_all_phrases): #  not in el_stats.get_l_iphrases():
+					el_stats.append_to_l_iphrase(i_all_phrases)
+				if el_stats.get_bassigned():
+					nd_phrase[iword, :] = np.array(el_stats.get_bitvec().get_vals(), dtype=np.int8)
 				else:
 					b_add_now = False
 					num_unassigned += 1
@@ -331,7 +566,7 @@ class cl_nlb_mgr(object):
 			for iword, word in enumerate(phrase):
 				iel = self.__d_words.get(word.lower(), -1)
 				el_stats = self.__l_els_stats[iel]
-				if not el_stats.bglove:
+				if not el_stats.get_bglove():
 					self.assign_word_from_closest(phrase, iel, word, iword, nd_phrase)
 				del iel, el_stats
 
@@ -353,9 +588,9 @@ class cl_nlb_mgr(object):
 			for iword, word in enumerate(phrase):
 				iel = self.__d_words.get(word.lower(), -1)
 				el_stats = self.__l_els_stats[iel]
-				if not el_stats.bassigned:
-					if i_all_phrases not in el_stats.l_idelayed:
-						el_stats.l_idelayed.append(i_all_phrases)
+				if not el_stats.get_bassigned():
+					if not el_stats.is_phrase_in_l_idelayed(i_all_phrases):
+						el_stats.append_to_l_idelayed(i_all_phrases)
 				del iel, el_stats
 			del iword, word
 
@@ -363,8 +598,10 @@ class cl_nlb_mgr(object):
 			word = phrase[i_just_assigned]
 			iel = self.__d_words.get(word.lower(), -1)
 			el_stats = self.__l_els_stats[iel]
-			l_undelay = copy.deepcopy(el_stats.l_idelayed)
-			el_stats.l_idelayed[:] = []
+			# l_undelay = copy.deepcopy(el_stats.l_idelayed)
+			l_undelay = el_stats.get_l_idelayed_vals()
+			# n_delayed = el_stats.get_num_l_idelayed()
+			el_stats.set_l_idelayed_empty()
 			for idelayed in l_undelay:
 				# if idelayed == i_all_phrases:
 				# 	el_stats.l_idelayed.remove(i_all_phrases)
@@ -508,17 +745,17 @@ class cl_nlb_mgr(object):
 			obits = slice_iword[hd_idx_sorted]
 			new_vals = np.sum(obits.transpose() / divider_local, axis=1) / divider_sum_local
 		# dev = np.average(np.not_equal(new_bits, obits))
-		if els_stats.bassigned:
+		if els_stats.get_bassigned():
 			# prev_new_el = l_new_els[inewel]
-			self.remove_unique_bits(els_stats.bitvec)
-			new_num_hits = els_stats.num_hits + 1
-			old_cd = (c_bitvec_size - els_stats.avg_hd) / c_bitvec_size
+			self.remove_unique_bits(els_stats.get_bitvec().get_vals())
+			new_num_hits = els_stats.get_num_hits() + 1
+			old_cd = (c_bitvec_size - els_stats.get_avg_hd()) / c_bitvec_size
 			new_cd = (c_bitvec_size - avg_hd) / c_bitvec_size
-			wold = old_cd * els_stats.num_hits
-			avg_hd = ((avg_hd*new_cd) + (els_stats.avg_hd*wold))/(new_cd+wold)
+			wold = old_cd * els_stats.get_num_hits()
+			avg_hd = ((avg_hd*new_cd) + (els_stats.get_avg_hd()*wold))/(new_cd+wold)
 			# avg_hd = (avg_hd + (els_stats.avg_hd * els_stats.num_hits)) / new_num_hits
 			# new_devi = (devi + (els_stats.devi * els_stats.num_hits)) / new_num_hits
-			new_vals = ((new_vals*new_cd) + (els_stats.bitvals * wold)) / (new_cd+wold)
+			new_vals = ((new_vals*new_cd) + (np.array(els_stats.get_bitvals().get_vals()) * wold)) / (new_cd+wold)
 			# new_vals = (new_vals + (els_stats.bitvals * els_stats.num_hits)) / new_num_hits
 		else:
 			new_num_hits = 1
@@ -533,11 +770,14 @@ class cl_nlb_mgr(object):
 
 		del phrase
 
-		self.__l_els_stats[iel] = els_stats._replace(	bassigned=True, avg_hd=avg_hd, num_hits=new_num_hits,
+		self.__l_els_stats[iel] = els_stats.replace(	bassigned=True, avg_hd=avg_hd, num_hits=new_num_hits,
 														bitvals=new_vals, bitvec=new_bits)
 
 		# now you have to apply binary changes to all phrases that this word appears in
-		for iphrase in els_stats.l_iphrases:
+		n_iphrases = els_stats.get_num_l_iphrases()
+
+		for iiphrase in range(n_iphrases):
+			iphrase = els_stats.get_i_phrase(iiphrase)
 			by_len_idx = self.__phrase_by_len_idx[iphrase]
 			if by_len_idx == -1: continue
 			phrase = self.__phrase_mgr.get_phrase(iphrase)
@@ -548,10 +788,10 @@ class cl_nlb_mgr(object):
 			for iword, word in enumerate(phrase):
 				iel = self.__d_words.get(word.lower(), -1)
 				els_stats2 = self.__l_els_stats[iel]
-				if not els_stats2.bassigned:
+				if not els_stats2.get_bassigned():
 					bfix = False # can't happen
 					break
-				nd_phrase2[iword, :] = els_stats2.bitvec
+				nd_phrase2[iword, :] = np.array(els_stats2.get_bitvec().get_vals(), dtype=np.int8)
 
 			if bfix:
 				self.__ndbits_by_len[plen][by_len_idx, :, :] = nd_phrase2
