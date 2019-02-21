@@ -371,6 +371,10 @@ def set_rec_name(happ, name, irec):
     return _bitvecdb.set_rec_name(happ, name, irec)
 set_rec_name = _bitvecdb.set_rec_name
 
+def test_rec_name(happ, name, irec):
+    return _bitvecdb.test_rec_name(happ, name, irec)
+test_rec_name = _bitvecdb.test_rec_name
+
 def set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el):
     return _bitvecdb.set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el)
 set_rule_data = _bitvecdb.set_rule_data
@@ -442,6 +446,10 @@ get_combo_len = _bitvecdb.get_combo_len
 def get_combo_val(hvos, icombo, ival):
     return _bitvecdb.get_combo_val(hvos, icombo, ival)
 get_combo_val = _bitvecdb.get_combo_val
+
+def get_rule_num_phrases(hvos):
+    return _bitvecdb.get_rule_num_phrases(hvos)
+get_rule_num_phrases = _bitvecdb.get_rule_num_phrases
 
 def print_db_recs(happ, hcdbels):
     return _bitvecdb.print_db_recs(happ, hcdbels)

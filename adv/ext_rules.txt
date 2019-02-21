@@ -3,6 +3,10 @@ rules start
 gen_rule_went_from..	state_from_event	ml,c:f,c:a,c:s,Gordon:0. went to Moldova:0.,c:e,
 											c:s,Gordon is located in Belgium:0.,c:e,c:e,
 											c:t,c:d,Gordon::r was::r located::r in::r Belgium::r,mle
+gen_rule_went_to....	state_from_event	ml,c:f,c:s,Gordon:0. went to Moldova:0.,c:e,
+											c:t,c:i,Gordon is located in Moldova,mle
+gen_rule_now_has....	state_from_event	ml,c:f,c:s,Gordon:0. picked up chair:0.,c:e,
+											c:t,c:i,Gordon has chair,mle
 player_action_goto..	get_player_action	ml,c:f,c:a,c:s,Gordon:0. decided to go to Moldova:0.,c:e,
 											c:s,I am Gordon,c:e,c:e,
 											c:t,Gordon decided to go to Moldova,mle
@@ -22,12 +26,17 @@ get_done_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Gordon:0.,c:e,
 get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Gordon:0.,c:e,
 											c:s,Gordon wants chair:0.,c:e,
 											c:t,Gordon has chair,mle
-gen_rule_now_has....	state_from_event	ml,c:f,c:s,Gordon:0. picked up chair:0.,c:e,
-											c:t,c:i,Gordon has chair,mle
 pickup_decide.......	event_from_decide	ml,c:f,c:a,c:s,Gordon:0. decided to pick up chair:0.,c:e,
 											c:s,chair is free in Belgium:0.,c:e,
 											c:s,Gordon is located in Belgium,c:e,c:e,
 											c:t,c:i,Gordon picked up chair,mle
+goto_decide.........	event_from_decide	ml,c:f,c:a,c:s,Gordon:0. decided to go to Moldova:0.,c:e,
+											c:s,Gordon is located in Belgium:0.,c:e,c:e,
+											c:t,c:i,Gordon went to Moldova,mle
+foolme_obj_free.....	foolme_fact_test	ml,c:f,c:a,c:s,chair:0. is free in Moldova:0.,c:e,
+											c:s,I am Gordon:0.,c:e,
+											c:s,Gordon is located in Belgium:0.,c:e,c:e,
+											c:t,chair is free in Moldova,mle
 rules end
 
 

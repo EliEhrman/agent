@@ -2799,3 +2799,21 @@ When that's working I enable the other modules a bit a time until all three are 
 CIW:
 
 new nl varopts working with no multi word nl or learned rules and not filtering up the ai yet
+
+Thursday 21st February 2019
+
+varopts has been integrated with the ai. The problem for now is that the genrated actions are word-separated and the
+old rule engine (which has all the rules and is running the sim) doesn't do word-separated. Eventually I
+want to swap outthe old non-nl components. The right way to do that is to write throway code that will convert the
+old format rules to new. For now I might just create a table lookup to convert pairs of words.
+
+I still have in place a depracated remove_text function in case the false assumption insertion does not help in generating
+an action
+
+The testing is minimal because only one action based on one false statement insertion has been done. Still disabled
+learned rules and multi-word phrases. However, it's something so I'll check in.
+
+CIW:
+
+gpsnlai minimally working with new varopts
+

@@ -33,7 +33,7 @@ class cl_bitvec_db(object):
 		self.clear_db() # Also initializes
 		self.__max_perm_len = -1
 		self.__phraseperms = phraseperms_mgr
-		self.__el_bitvec_mgr = None
+		self.__el_nlb_mgr = None
 		self.__phrase_perms_notifier = cl_phrase_perms_notifier(self)
 		self.__phraseperms.register_notific(self.__phrase_perms_notifier)
 		self.__nlb_mgr_notifier = cl_nlb_mgr_notifier(self)
@@ -43,8 +43,8 @@ class cl_bitvec_db(object):
 		# cluster.init_clusters(bitvec_size)
 
 	def set_nlb_mgr(self, el_bitvec_mgr):
-		self.__el_bitvec_mgr = el_bitvec_mgr
-		self.__el_bitvec_mgr.register_notific(self.__nlb_mgr_notifier)
+		self.__el_nlb_mgr = el_bitvec_mgr
+		self.__el_nlb_mgr.register_notific(self.__nlb_mgr_notifier)
 
 	def clear_db(self):
 		self.__d_rphrase_to_iphrase = dict() # type: Dict[int, int]  # map of global ref of phrase to index in local list
@@ -62,6 +62,9 @@ class cl_bitvec_db(object):
 
 	def get_max_plen(self):
 		return self.__max_perm_len
+
+	def get_db_name(self):
+		return self.__name
 
 	def get_hcbdb(self):
 		return self.__hcbdb
@@ -147,7 +150,7 @@ class cl_bitvec_db(object):
 			self.__max_perm_len = perm_len
 		phrase_bitvec = []
 		for iel in l_perm_eids:
-			phrase_bitvec += self.__el_bitvec_mgr.get_bin_by_id(iel).tolist()
+			phrase_bitvec += self.__el_nlb_mgr.get_bin_by_id(iel)
 			s_iperms = self.__d_iel_to_l_iperm.get(iel, set())
 			s_iperms.add(iperm_new)
 			self.__d_iel_to_l_iperm[iel] = s_iperms
@@ -180,7 +183,7 @@ class cl_bitvec_db(object):
 			l_perm_eids = self.__phraseperms.get_perm_eids(rperm)
 			phrase_bitvec = []
 			for iel in l_perm_eids:
-				phrase_bitvec += self.__el_bitvec_mgr.get_bin_by_id(iel).tolist()
+				phrase_bitvec += self.__el_nlb_mgr.get_bin_by_id(iel)
 			bitvecdb.change_rec(self.__hcbdb, len(l_perm_eids),
 								self.convert_charvec_to_arr(phrase_bitvec), iperm)
 
@@ -190,7 +193,7 @@ class cl_bitvec_db(object):
 		ret_arr, hds_arr, obits_arr = bitvecdb.intArray(k), bitvecdb.intArray(k), bitvecdb.charArray(k*bitvec_size)
 		qdata = []
 		for iel in phrase_eids:
-			qdata += self.__el_bitvec_mgr.get_bin_by_id(iel).tolist()
+			qdata += self.__el_nlb_mgr.get_bin_by_id(iel)
 		num_ret = bitvecdb.get_closest_recs(self.__hcbdb, k, ret_arr, hds_arr, obits_arr, len(phrase_eids),
 											self.convert_charvec_to_arr(qdata), iskip, shrink)
 		l_idexs_ret, l_hds_arr = [ret_arr[ir] for ir in range(num_ret) ], [hds_arr[ir] for ir in range(num_ret) ]
@@ -240,7 +243,7 @@ class cl_bitvec_db(object):
 	def get_irecs_with_eid(self, idb, eid, rphrase_src, l_rphrase_excl):
 		bufsize = len(self.__l_rperms)
 		irec_arr = bitvecdb.intArray(bufsize)
-		el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
+		el_bitvec = self.__el_nlb_mgr.get_bin_by_id(eid).tolist()
 		num_ret = bitvecdb.get_irecs_with_eid(self.__hcbdb, irec_arr, idb, -1,
 							self.convert_charvec_to_arr(el_bitvec, bitvec_size))
 		s_rphrases_close = set()
@@ -252,10 +255,13 @@ class cl_bitvec_db(object):
 			s_rphrases_close.add(rphrase)
 		return s_rphrases_close
 
+	def print_db(self, hcdbels):
+		bitvecdb.print_db_recs(self.__hcbdb, hcdbels)
+
 	def get_rperms_with_eid_at(self, idb, eid, pos, num_cands, cands_arr):
 		# bufsize = len(self.__l_rperms)
 		irec_arr = bitvecdb.intArray(num_cands)
-		el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
+		el_bitvec = self.__el_nlb_mgr.get_bin_by_id(eid)
 		num_ret = bitvecdb.get_irecs_with_eid_by_list(	self.__hcbdb, irec_arr, idb, pos, cands_arr, num_cands,
 														self.convert_charvec_to_arr(el_bitvec, bitvec_size))
 		return num_ret, irec_arr
@@ -279,7 +285,7 @@ class cl_bitvec_db(object):
 	def get_el_hd_recs(self, pos, hd, el, num_cands, cands_arr):
 		irec_arr = bitvecdb.intArray(num_cands)
 		# el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
-		el_bitvec = self.__el_bitvec_mgr.get_el_bin(el)
+		el_bitvec = self.__el_nlb_mgr.get_el_bin(el)
 		num_ret = bitvecdb.get_el_hd_recs_by_list(	self.__hcbdb, irec_arr, cands_arr, num_cands, pos, hd,
 													self.convert_charvec_to_arr(el_bitvec))
 		return num_ret, irec_arr
@@ -292,3 +298,7 @@ class cl_bitvec_db(object):
 	def init_num_left_buf(self, plen):
 		num_left = bitvecdb.init_num_left_buf(self.__hcbdb, plen)
 		return num_left
+
+	def get_rperm_from_iperm(self, iperm):
+		# iperm is the local index to the perm. It is also the record number in the cdb for the bdb
+		return self.__l_rperms[iperm]

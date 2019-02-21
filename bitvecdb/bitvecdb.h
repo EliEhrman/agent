@@ -30,6 +30,7 @@ void set_b_hd_thresh(void * hcapp);
 void set_b_rules(void * hcapp);
 void set_b_rec_names(void * happ);
 void set_rec_name(void * happ, char * name, int irec);
+int test_rec_name(void * happ, char * name, int irec);
 void set_rule_data( void * hcapp, int irec, int num_cents, int * cent_offsets, int * cent_hds, int num_var_defs, 
                     int * var_defs, int bresult, int cid, int rid, int b_hd_per_el);
 //void set_rule_el_data(  void * hcapp, int irec, int num_cents, int * cent_offsets, int * el_hds, int num_var_defs, 
@@ -55,5 +56,6 @@ int get_phrase_el_val(void * hvos, int imatch, int iel) ;
 int get_num_combos(void * hvos);
 int get_combo_len(void * hvos);
 int get_combo_val(void * hvos, int icombo, int ival);
+int get_rule_num_phrases(void * hvos); // doesn't really belong here because it relates to the rule itself rather than the vo search
 void print_db_recs(void * happ, void * hcdbels);
 void set_pdbels(void * happ, void * hcdbels);

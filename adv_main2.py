@@ -83,7 +83,8 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 
 		# l_story_db_event_refs = []
 		# story_db = []
-		l_db_names, l_story_phrases, l_poss_stmts, l_init_rule_names = d_mod_fns['create_initial_db']()
+		l_db_names, l_story_phrases, l_init_rule_names = d_mod_fns['create_initial_db']()
+		l_poss_stmts = d_mod_fns['create_poss_db']()
 		for db_name, story_phrase, init_rule_name in zip(l_db_names, l_story_phrases, l_init_rule_names):
 			ilen, iphrase = bitvec_mgr.add_phrase(story_phrase,
 												  (i_one_story, -1, e_story_loop_stage.story_init,
@@ -108,7 +109,10 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 				mpdb_mgr.ext_insert([db_name], (ilen, iphrase), inlphrase)
 				mpdbs_mgr.ext_insert([db_name], inlphrase)
 
-		mpdb_mgr.set_poss_db(l_poss_stmts)
+		if mod.c_b_nl:
+			mpdbs_mgr.set_poss_db(l_poss_stmts)
+		else:
+			mpdb_mgr.set_poss_db(l_poss_stmts)
 
 		localtime = time.asctime(time.localtime(time.time()))
 
@@ -425,7 +429,7 @@ def main():
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
 	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	gpsnlai_mgr = gpsnlai.cl_gpsnlai_mgr()
-	gpsnlai_mgr.set_mgrs(mpdbs_mgr, nlbitvec_mgr, ext_rule_mgr, phrases_mgr, phraseperms_mgr)
+	gpsnlai_mgr.set_mgrs(mpdbs_mgr, nlbitvec_mgr, ext_rule_mgr, phrases_mgr, phraseperms_mgr, rules3)
 	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
 	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2)

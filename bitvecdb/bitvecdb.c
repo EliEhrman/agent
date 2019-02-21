@@ -378,9 +378,24 @@ void set_rec_name(void * happ, char * name, int irec) {
 	papp->rec_names[irec] = name;
 }
 
+int test_rec_name(void * happ, char * name, int irec) {
+	tSBDBApp * papp = (tSBDBApp *) happ;
+	if (!papp->b_names) {
+		printf("Code error! This db has not been set for record names.\n");
+		return 0 ;
+	}
+	if (strcmp(papp->rec_names[irec], name) != 0) {
+		printf("Code error! Name check fails for name %s on rec %d.\n", name, irec );
+		return 0;
+	}
+	return 1;
+	
+}
+
 void print_db_recs(void * happ, void * hcdbels) {
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	tSBDBApp * pdbels = (tSBDBApp *) hcdbels;
+	printf("db has %d recs and els db has %d recs.\n", papp->num_rec_ptrs, pdbels->num_rec_ptrs);
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 		printf("irec %d: ", irec);
 		for (int iel = 0; iel < papp->rec_lens[irec]; iel++) {
@@ -401,6 +416,7 @@ char * get_name_exact(tSBDBApp * papp, int qlen, char * qbits) {
 		if (memcmp(qbits, &(papp->db[papp->rec_ptrs[irec]*papp->bitvec_size]), qlen*papp->bitvec_size) == 0) {
 			printf(" (get_name_exact %d  %s) ", irec, papp->rec_names[irec]);
 			irec_found = irec;
+			break;
 		}
 	}
 	if (irec_found != -1) {

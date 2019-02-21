@@ -151,6 +151,7 @@ class cl_mpdbs_mgr(object):
 		return self.__l_dbs[idb]
 
 	def add_phrase_text(self, db_name, phrase):
+		assert False, 'Im deprecating this function'
 		idb = self.__d_db_names.get(db_name, -1)
 		if idb == -1: raise ValueError('add_phrase_text should only be called when the db_name has already been added')
 		rphrase = self.__phrase_mgr.add_phrase(phrase)
@@ -158,7 +159,7 @@ class cl_mpdbs_mgr(object):
 		self.ext_insert([db_name], rphrase, bdelay=False)
 
 	def remove_phrase_text(self, db_name, phrase, phase_data):
-		idb = self.__d_db_names.get(db_name, -1)
+		assert False, 'Im deprecating this function'; idb = self.__d_db_names.get(db_name, -1)
 		if idb == -1: raise ValueError('remove_phrase_text should only be called when the db_name has already been added')
 		rphrase = self.__phrase_mgr.get_rphrase(phrase)
 		self.remove_phrase([db_name], rphrase)

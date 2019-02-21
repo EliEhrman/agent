@@ -5701,6 +5701,47 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_test_rec_name(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  void *arg1 = (void *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  int res1 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:test_rec_name",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "test_rec_name" "', argument " "1"" of type '" "void *""'"); 
+  }
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "test_rec_name" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = (char *)(buf2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "test_rec_name" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  result = (int)test_rec_name(arg1,arg2,arg3);
+  resultobj = SWIG_From_int((int)(result));
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_set_rule_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   void *arg1 = (void *) 0 ;
@@ -6571,6 +6612,26 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_get_rule_num_phrases(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  void *arg1 = (void *) 0 ;
+  int res1 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:get_rule_num_phrases",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "get_rule_num_phrases" "', argument " "1"" of type '" "void *""'"); 
+  }
+  result = (int)get_rule_num_phrases(arg1);
+  resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_print_db_recs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   void *arg1 = (void *) 0 ;
@@ -6688,6 +6749,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"set_b_rules", _wrap_set_b_rules, METH_VARARGS, NULL},
 	 { (char *)"set_b_rec_names", _wrap_set_b_rec_names, METH_VARARGS, NULL},
 	 { (char *)"set_rec_name", _wrap_set_rec_name, METH_VARARGS, NULL},
+	 { (char *)"test_rec_name", _wrap_test_rec_name, METH_VARARGS, NULL},
 	 { (char *)"set_rule_data", _wrap_set_rule_data, METH_VARARGS, NULL},
 	 { (char *)"find_matching_rules", _wrap_find_matching_rules, METH_VARARGS, NULL},
 	 { (char *)"find_result_matching_rules", _wrap_find_result_matching_rules, METH_VARARGS, NULL},
@@ -6706,6 +6768,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"get_num_combos", _wrap_get_num_combos, METH_VARARGS, NULL},
 	 { (char *)"get_combo_len", _wrap_get_combo_len, METH_VARARGS, NULL},
 	 { (char *)"get_combo_val", _wrap_get_combo_val, METH_VARARGS, NULL},
+	 { (char *)"get_rule_num_phrases", _wrap_get_rule_num_phrases, METH_VARARGS, NULL},
 	 { (char *)"print_db_recs", _wrap_print_db_recs, METH_VARARGS, NULL},
 	 { (char *)"set_pdbels", _wrap_set_pdbels, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }

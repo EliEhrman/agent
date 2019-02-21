@@ -9,13 +9,14 @@ import random
 import re
 import numpy as np
 from bitvecdb import bitvecdb
+import nlbitvec
 
 import utils
 # import rules2
 from utils import conn_type
 from utils import rec_def_type
 
-nt_match_phrases = collections.namedtuple('nt_match_phrases', 'istage, b_matched, phrase')
+nt_match_phrases = collections.namedtuple('nt_match_phrases', 'istage, b_matched, phrase, b_result')
 
 def_type_table = []
 def_type_table.append(rec_def_type.err)
@@ -29,6 +30,15 @@ def convert_charvec_to_arr(bin, size=-1):
 	bin_arr = bitvecdb.charArray(size)
 	for ib in range(size): bin_arr[ib] = chr(bin[ib])
 	return bin_arr
+
+class cl_nlb_mgr_notifier(nlbitvec.cl_nlb_mgr_notific):
+	def __init__(self, client):
+		self.__client = client
+		nlbitvec.cl_nlb_mgr_notific.__init__(self)
+
+
+	def iel_bitvec_changed_alert(self, iel, bitvec):
+		self.__client.iel_bitvec_changed(iel)
 
 
 class cl_ext_rules(object):
@@ -48,6 +58,7 @@ class cl_ext_rules(object):
 		self.__l_bresults = [] # for each rule does it have a result phrase
 		self.__el_bitvec_mgr = None
 		self.__bitvec_size = -1
+		self.__nlb_mgr_notifier = cl_nlb_mgr_notifier(self)
 		self.__phrase_mgr = None
 		self.__l_active_rules = [] # A list of pairs, first a bool for ext rule, second an index into either l_rules or rule_learn.py's write_recs array
 		self.__hcdb_rules = None
@@ -55,6 +66,10 @@ class cl_ext_rules(object):
 		self.__mpdbs_mgr = None
 		self.__test_stat_num_rules_found = 0
 		self.__test_stat_num_rules_not_found = 0
+		self.__d_iel_to_l_irules = dict()
+		self.__d_irule_to_iactive = dict()
+		self.__d_arg_cache = dict()
+		self.__d_db_arg_cache = dict()
 		self.load_rules(fn)
 
 	def register_lrule(self, ilrule):
@@ -67,6 +82,9 @@ class cl_ext_rules(object):
 
 	def get_hcdb_rules(self):
 		return self.__hcdb_rules
+
+	def clr_db_arg_cache(self):
+		self.__d_db_arg_cache = dict()
 
 	def get_cid(self, rule_cat):
 		cid = self.__d_rcats.get(rule_cat, -1)
@@ -268,6 +286,7 @@ class cl_ext_rules(object):
 
 	def set_mgrs(self, nlbitvec_mgr, phrase_mgr, phraseperms_mgr):
 		self.__el_bitvec_mgr = nlbitvec_mgr
+		self.__el_bitvec_mgr.register_notific(self.__nlb_mgr_notifier)
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms_mgr
 		self.__bitvec_size = nlbitvec_mgr.get_bitvec_size()
@@ -287,20 +306,37 @@ class cl_ext_rules(object):
 		self.__hvos = bitvecdb.create_vo(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
 											mpdbs_mgr.get_hcdb_story(), self.__el_bitvec_mgr.get_hcbdb())
 
-	def write_crec(self, irule):
+	def iel_bitvec_changed(self, iel):
+		s_irules = self.__d_iel_to_l_irules.get(iel, set())
+		for irule in s_irules:
+			self.write_crec(irule, b_change_not_add=True)
+
+	def write_crec(self, irule, b_change_not_add = False):
 		phrase_data, ll_vars, ll_el_cds = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_cds[irule]
 		phrase_bitvec = []; plen = 0; phrase_offsets = []; l_hds = []; phrase_offset = 0
 		for iphrase, (phrase, l_el_cds) in enumerate(zip(phrase_data, ll_el_cds)):
 			self.__phrase_mgr.add_phrase(phrase)
 			for iel, (el, cd) in enumerate(zip(phrase, l_el_cds)):
-				el_bitvec = self.__el_bitvec_mgr.get_el_bin(el)
+				rel = self.__el_bitvec_mgr.get_el_id(el)
+				assert rel != -1, 'Error! External rules at this point should have registered all their names.'
+				if not b_change_not_add:
+					s_irules = self.__d_iel_to_l_irules.get(rel, set())
+					s_irules.add(irule)
+					self.__d_iel_to_l_irules[rel] = s_irules
+					self.__nlb_mgr_notifier.notify_on_iel(rel)
+				el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(rel)
 				assert el_bitvec.count(1) > 0, 'Any external rule may only use one word not found in samples in a rule'
 				phrase_bitvec += el_bitvec
 				plen += 1
 				l_hds.append(int(((1.0 - cd)*self.__bitvec_size)))
 			phrase_offsets.append(phrase_offset)
 			phrase_offset += len(phrase)
+		if b_change_not_add:
+			bitvecdb.change_rec(self.__hcdb_rules, plen, convert_charvec_to_arr(phrase_bitvec),
+								self.__d_irule_to_iactive[irule])
+			return
 		bitvecdb.add_rec(self.__hcdb_rules, plen, convert_charvec_to_arr(phrase_bitvec))
+		self.__d_irule_to_iactive[irule] = len(self.__l_active_rules)
 		bitvecdb.set_rule_data(	self.__hcdb_rules, len(self.__l_active_rules), len(phrase_offsets),
 									utils.convert_intvec_to_arr(phrase_offsets),
 									utils.convert_intvec_to_arr(l_hds), len(ll_vars),
@@ -403,6 +439,7 @@ class cl_ext_rules(object):
 	def run_one_rule(self, irule, src_rperm, result_words, mpdbs, idb):
 		ll_phrase_data, ll_vars, ll_el_cds, = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_cds[irule]
 		ll_rperms_src, ll_rperms = [[src_rperm]], []
+		print('run one rule:\n', mpdbs.get_bdb_story().print_db(self.__el_bitvec_mgr.get_hcbdb()))
 		for i_phrase_close, (l_phrase, l_el_cds) in enumerate(zip(ll_phrase_data[1:-1], ll_el_cds[1:-1])):
 			num_len_recs, irec_arr = mpdbs.get_bdb_story().get_plen_irecs(idb, len(l_phrase))
 			for rperm_combo in ll_rperms_src:
@@ -425,7 +462,7 @@ class cl_ext_rules(object):
 					if num_match == 0:
 						break
 				for imatch in range(num_match):
-					ll_rperms.append(rperm_combo + [match_arr[imatch]])
+					ll_rperms.append(rperm_combo + [mpdbs.get_bdb_story().get_rperm_from_iperm(match_arr[imatch])])
 			if ll_rperms == []: return [], []
 			ll_rperms_src = list(ll_rperms)
 			ll_rperms = []
@@ -461,11 +498,13 @@ class cl_ext_rules(object):
 		bitvecdb.do_vo(self.__hvos)
 		c_l_match_phrases = [];  l_map_to_obj_only = []
 		num_c_match_phrases = bitvecdb.get_num_match_phrases(self.__hvos)
+		num_rule_stages = bitvecdb.get_rule_num_phrases(self.__hvos)
+		l_open_phrases = []
 		for imatch in range(num_c_match_phrases):
 			istage = bitvecdb.get_match_phrase_istage(self.__hvos, imatch)
 			b_matched = bool(bitvecdb.get_match_phrase_b_matched(self.__hvos, imatch))
 			num_phrase_els = bitvecdb.get_num_phrase_els(self.__hvos, imatch)
-			match_phrase = []; b_all_obj = True
+			match_phrase = []; b_all_obj = True; open_phrase = []
 			for iel in range(num_phrase_els):
 				i_def_type = bitvecdb.get_phrase_el_def_type(self.__hvos, imatch, iel)
 				def_type = def_type_table[i_def_type]
@@ -474,14 +513,21 @@ class cl_ext_rules(object):
 				phrase_hd = bitvecdb.get_phrase_el_hd(self.__hvos, imatch, iel)
 				# match_phrase.append([def_type, phrase_val])
 				match_phrase.append(phrase_val)
-				if def_type != rec_def_type.obj:
-					# match_phrase[-1].append(phrase_hd)
+				if def_type == rec_def_type.obj:
+					open_phrase.append([rec_def_type.obj, phrase_val])
+				elif def_type == rec_def_type.like:
+					open_phrase.append([rec_def_type.like, phrase_val, phrase_hd])
 					b_all_obj = False
+				else:
+					assert False, 'only rec_def_type obj and like should be possible in find_var_opts()'
+
 			if b_all_obj:
 				l_map_to_obj_only.append(len(c_l_match_phrases))
-				c_l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=b_matched, phrase=match_phrase))
+				c_l_match_phrases.append(nt_match_phrases(istage=istage, b_matched=b_matched, phrase=match_phrase,
+														  b_result=self.__l_bresults[irule] and (istage==(num_rule_stages-1))))
 			else:
 				l_map_to_obj_only.append(-1)
+				l_open_phrases.append(open_phrase)
 		c_l_match_iphrase_combos = []
 		num_c_combos = bitvecdb.get_num_combos(self.__hvos)
 		c_combo_len = bitvecdb.get_combo_len(self.__hvos)
@@ -495,10 +541,11 @@ class cl_ext_rules(object):
 				one_combo.append(i_true_combo_val)
 			if b_all_obj:
 				c_l_match_iphrase_combos.append(one_combo)
-		return cl_var_match_opts(self, c_l_match_phrases, c_l_match_iphrase_combos,
-										var_obj_parent, calc_level + 1, self.__l_bresults[irule])
+		return cl_var_match_opts(	irule, c_l_match_phrases, c_l_match_iphrase_combos,
+									var_obj_parent, calc_level + 1, self.__l_bresults[irule],
+									l_open_phrases)
 
-	def find_rules_matching_result(self, goal_phrase, l_cat_names, l_rule_names, idb, var_obj_parent, calc_level):
+	def find_var_opts_for_rules(self, goal_phrase, l_cat_names, l_rule_names, idb, var_obj_parent, calc_level):
 		print('find_rules_matching_result rules for', goal_phrase)
 		rphrase = self.__phrase_mgr.get_rphrase(goal_phrase)
 		l_rperms = self.__phraseperms.get_perms(rphrase)
@@ -519,6 +566,7 @@ class cl_ext_rules(object):
 			num_rids = len(l_rids)
 		# if num_rids > 0:
 		rid_arr = utils.convert_intvec_to_arr(l_rids)
+		# bitvecdb.print_db_recs(self.__hcdb_rules, self.__el_bitvec_mgr.get_hcbdb())
 		num_rules_found = bitvecdb.find_result_matching_rules(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
 																self.__el_bitvec_mgr.get_hcbdb(), irule_arr,
 																num_vars_ret_arr, rperms_ret_arr, len(l_rperms),
@@ -535,8 +583,8 @@ class cl_var_match_opts(object):
 	num_apply_cache_calls = 0
 	max_obj_id = 0
 
-	def __init__(self, parent_gg, l_match_phrases, ll_match_iphrase_combos, parent_obj, calc_level, b_rule_has_result):
-		self.__parent_gg = parent_gg
+	def __init__(self, irule, l_match_phrases, ll_match_iphrase_combos, parent_obj, calc_level, b_rule_has_result, l_open_phrases):
+		self.__irule = irule
 		self.__l_match_phrases = l_match_phrases
 		self.__ll_match_iphrase_combos = ll_match_iphrase_combos
 		self.__l_match_phrase_scores =  [0. for _ in l_match_phrases] # l_match_phrase_scores
@@ -550,6 +598,7 @@ class cl_var_match_opts(object):
 		self.__cont = []
 		self.__obj_id = cl_var_match_opts.max_obj_id
 		self.__b_rule_has_result = b_rule_has_result
+		self.__l_open_phrases = l_open_phrases
 		cl_var_match_opts.max_obj_id += 1
 
 	def get_calc_level(self):
@@ -558,8 +607,11 @@ class cl_var_match_opts(object):
 	def get_parent_obj(self):
 		return self.__parent_obj
 
-	def get_parent_gg(self):
-		return self.__parent_gg
+	def get_irule(self):
+		return self.__irule
+
+	def get_l_open_phrases(self):
+		return self.__l_open_phrases
 
 	def get_l_match_phrases(self):
 		return self.__l_match_phrases
@@ -651,7 +703,8 @@ class cl_var_match_opts(object):
 		self.__b_score_valid = True
 
 		for iphrase, match_phrase in enumerate(self.__l_match_phrases):
-			if match_phrase.b_matched:
+			if match_phrase.b_result: continue
+			if match_phrase.b_matched: # deal with result phrase
 				self.__l_match_phrase_scores[iphrase] = 1.
 			elif self.__l_var_match_opt_conts[iphrase] == []:
 				self.__l_match_phrase_scores[iphrase] = 0.
@@ -663,7 +716,12 @@ class cl_var_match_opts(object):
 		l_match_phrase_scores = []
 		best_score = 0.
 		for icombo, l_match_iphrase_combo in enumerate(self.__ll_match_iphrase_combos):
-			score, frac = 0., 1. / len(l_match_iphrase_combo)
+			if self.get_b_rule_has_result():
+				assert len(l_match_iphrase_combo) > 1, 'combo for rule with result must have length of at least 2'
+				frac_denom = len(l_match_iphrase_combo) - 1
+			else:
+				frac_denom = len(l_match_iphrase_combo)
+			score, frac = 0., 1. / frac_denom
 			for iphrase in l_match_iphrase_combo:
 				score += self.__l_match_phrase_scores[iphrase] * frac
 			if score > best_score: best_score = score
@@ -686,13 +744,43 @@ class cl_var_match_opts(object):
 	def get_b_rule_has_result(self):
 		return self.__b_rule_has_result
 
-	# def get_sorted_ll_opts(self):
-	# 	if not self.__b_score_valid:
-	# 		self.calc_best_score()
-	# 	return [match_phrase_with_opt for _,match_phrase_with_opt in
-	# 			sorted(zip([r * (1. - (random.random()/5.)) for r in self.__l_match_phrase_scores],
-	# 					   zip(self.__l_match_phrases, self.__ll_var_match_opts)), key=lambda pair: pair[0], reverse=True)]
+# def get_sorted_ll_opts(self):
+# 	if not self.__b_score_valid:
+# 		self.calc_best_score()
+# 	return [match_phrase_with_opt for _,match_phrase_with_opt in
+# 			sorted(zip([r * (1. - (random.random()/5.)) for r in self.__l_match_phrase_scores],
+# 					   zip(self.__l_match_phrases, self.__ll_var_match_opts)), key=lambda pair: pair[0], reverse=True)]
 
 
 
+
+class cl_var_match_opt_cont(object):
+	def __init__(self, l_var_match_opt_objs, calc_level, first_parent_obj):
+		self.__l_var_match_opt_objs = l_var_match_opt_objs
+		self.__calc_level = calc_level
+		self.__l_parent_objs = [first_parent_obj]
+		for var_opt_obj in l_var_match_opt_objs:
+			var_opt_obj.set_cont(self)
+
+	def get_calc_level(self):
+		return self.__calc_level
+
+	def add_parent_obj(self, parent_obj):
+		self.__l_parent_objs.append(parent_obj)
+
+	def get_var_match_opt_objs(self):
+		return self.__l_var_match_opt_objs
+
+	def set_score_invalid(self):
+		for parent_var_obj in self.__l_parent_objs:
+			if parent_var_obj != None:
+				parent_var_obj.set_score_invalid()
+
+	def loop_check(self, test_cont):
+		for parent_var_obj in self.__l_parent_objs:
+			if parent_var_obj == None: continue
+			elif parent_var_obj.loop_check(test_cont):
+				return True
+			else: continue
+		return False
 

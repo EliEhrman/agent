@@ -5,6 +5,7 @@ import timeit
 import numpy as np
 
 from utils import profile_decor
+import utils
 
 c_set_list = ['name', 'object', 'countrie']
 c_rules_fn = 'adv/rules.txt'
@@ -13,6 +14,7 @@ c_dummy_init_fn = 'adv/dummy_init.txt'
 c_dummy_events_fn = 'adv/dummy_events.txt'
 c_phrase_freq_fnt = '~/tmp/adv_phrase_freq.txt'
 c_b_nl = True # nat lang processing. Learn phrases. Initial load from glove. For now, switch bitvec.c_bitvec_size to 16 as well
+c_b_one_word_objs = True # if True limits sample country names, people and objects to one word
 # if c_b_nl:
 # 	c_phrase_bitvec_dict_fnt = '~/tmp/glv_bin_dict.txt'
 # else:
@@ -65,6 +67,9 @@ l_dummy_ruleid = []
 g_dummy_idx = -1
 c_b_gpsai = True
 c_b_save_phrases = False # Create a file of phrases with the rule that generated them
+country_prdm = 'Moldova'
+object_prdm = 'chair'
+name_prdm = 'Daniel'
 
 e_player_decide = Enum('e_player_decide', 'goto pickup ask_where tell_where ask_give give')
 
@@ -74,7 +79,10 @@ def mod_init():
 	for ifname, fname in enumerate(c_set_list):
 		fh_names = open('adv/' + fname + 's.txt', 'rb')
 		fr_names = csv.reader(fh_names, delimiter=',')
-		all_names = [lname[0] for lname in fr_names]
+		if c_b_one_word_objs:
+			all_names = [lname[0] for lname in fr_names if lname[0].count(' ') == 0]
+		else:
+			all_names = [lname[0] for lname in fr_names]
 		els_sets.append(all_names)
 
 	l_agents = els_sets[set_names.index('names')]
@@ -89,7 +97,7 @@ def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
 	t = {'rules':__rules_mgr, 'mpdb': __mpdb_mgr, 'ai':__ai_mgr, 'bitvec':__bitvec_mgr}
 	for k, v in t.iteritems():
 		__d_mgrs[k] = v
-	__rec_def_type = rules_mod.rec_def_type
+	__rec_def_type = utils.rec_def_type
 
 	__ai_mgr.set_constants(c_goal_init_level_limit, c_goal_max_level_limit, c_max_story_time_to_repeat)
 
@@ -127,7 +135,8 @@ def init_functions():
 				# 'get_mpdb_mgr':get_mpdb_mgr,
 				# 'get_ai_mgr':get_ai_mgr,
 				'create_initial_db':create_initial_db_dummy if c_b_dummy else create_initial_db,
-				 'get_num_decision_rules':get_num_decision_rules,
+				'create_poss_db': create_poss_db_nl if c_b_nl else create_poss_db,
+				'get_num_decision_rules':get_num_decision_rules,
 				'init_per_story_sets':init_per_story_sets,
 				# 'set_player_goal':set_player_goal,
 				'get_decision_for_player':get_decision_for_player_dummy if c_b_dummy
@@ -150,22 +159,6 @@ def create_initial_db():
 	l_db_rule_names += ['init_am' for _ in l_names]
 	l_db_names += l_names
 
-	l_db_poss += [	[	[__rec_def_type.obj, name],
-						[__rec_def_type.obj, 'is located in'],
-						[__rec_def_type.like, l_countries[0], 0.]
-					] for name in l_names ]
-	l_db_poss += [	[	[__rec_def_type.like, l_names[0], 0.],
-						[__rec_def_type.obj, 'is located in'],
-						[__rec_def_type.obj, place]
-					] for place in l_countries ]
-	l_db_poss += [	[	[__rec_def_type.obj, o],
-						[__rec_def_type.obj, 'is free in'],
-						[__rec_def_type.like, l_countries[0], 0.]
-					] for o in l_objects ]
-	l_db_poss += [	[	[__rec_def_type.like, l_objects[0], 0.],
-						[__rec_def_type.obj, 'is free in'],
-						[__rec_def_type.obj, place]
-					] for place in l_countries ]
 	# l_db_poss += [[name, 'is located in', place] for place in l_countries for name in l_names ]
 	# l_db_poss += [[o, 'is free in', place] for place in l_countries for o in l_objects ]
 	# l_db_poss += [[o, 'is held in', place] for place in l_countries for o in l_objects ]
@@ -176,7 +169,58 @@ def create_initial_db():
 	# l_db += l_db_poss
 
 	assert len(l_db) == len(l_db_rule_names), 'init. db and rule names must have the same length'
-	return l_db_names, l_db, l_db_poss, l_db_rule_names
+	return l_db_names, l_db, l_db_rule_names
+
+def create_poss_db():
+	l_db_poss = []
+
+	l_db_poss += [[[__rec_def_type.obj, name],
+				   [__rec_def_type.obj, 'is located in'],
+				   [__rec_def_type.like, country_prdm, 0.]
+				   ] for name in l_names]
+	l_db_poss += [[[__rec_def_type.like, name_prdm, 0.],
+				   [__rec_def_type.obj, 'is located in'],
+				   [__rec_def_type.obj, place]
+				   ] for place in l_countries]
+	l_db_poss += [[[__rec_def_type.obj, o],
+				   [__rec_def_type.obj, 'is free in'],
+				   [__rec_def_type.like, country_prdm, 0.]
+				   ] for o in l_objects]
+	l_db_poss += [[[__rec_def_type.like, object_prdm, 0.],
+				   [__rec_def_type.obj, 'is free in'],
+				   [__rec_def_type.obj, place]
+				   ] for place in l_countries]
+	return l_db_poss
+
+def create_poss_db_nl():
+	l_db_poss = []
+
+	l_db_poss += [[[__rec_def_type.obj, name],
+				   [__rec_def_type.obj, 'is'],
+				   [__rec_def_type.obj, 'located'],
+				   [__rec_def_type.obj, 'in'],
+				   [__rec_def_type.like, country_prdm, 50]
+				   ] for name in l_names]
+	l_db_poss += [[[__rec_def_type.like, name_prdm, 50],
+				   [__rec_def_type.obj, 'is'],
+				   [__rec_def_type.obj, 'located'],
+				   [__rec_def_type.obj, 'in'],
+				   [__rec_def_type.obj, place]
+				   ] for place in l_countries]
+	l_db_poss += [[[__rec_def_type.obj, o],
+				   [__rec_def_type.obj, 'is'],
+				   [__rec_def_type.obj, 'free'],
+				   [__rec_def_type.obj, 'in'],
+				   [__rec_def_type.like, country_prdm, 50]
+				   ] for o in l_objects]
+	l_db_poss += [[[__rec_def_type.like, object_prdm, 50],
+				   [__rec_def_type.obj, 'is'],
+				   [__rec_def_type.obj, 'free'],
+				   [__rec_def_type.obj, 'in'],
+				   [__rec_def_type.obj, place]
+				   ] for place in l_countries]
+	return l_db_poss
+
 
 def create_initial_db_dummy():
 	global l_dummy_types, l_dummy_events, l_dummy_ruleid, g_dummy_idx

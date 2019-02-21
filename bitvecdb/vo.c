@@ -495,6 +495,11 @@ int get_num_combos(void * hvos) {
 	return pvos->num_combos;
 }
 
+int get_rule_num_phrases(void * hvos) {
+	tSVOState * pvos = (tSVOState *)hvos;
+	return pvos->prule->num_phrases;
+}
+
 int get_combo_len(void * hvos) {
 	tSVOState * pvos = (tSVOState *)hvos;
 	return pvos->prule->num_phrases;
