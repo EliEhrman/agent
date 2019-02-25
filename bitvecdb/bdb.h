@@ -89,6 +89,12 @@ struct SBDBApp {
     int rec_lens_alloc;
     tSDistRec * hd_buf;
     int hd_buf_alloc;
+    int * hd_el_buf; // values of hd for each el in the rec. length max_rec_len * num_rec_ptrs
+    int hd_el_buf_alloc;
+    int num_hd_buckets;
+    int * hd_buckets;
+    int hd_buckets_alloc;
+    int max_rec_len;
     char ** agent_mrks;
     int num_agents;
     int num_agents_alloc;
@@ -96,9 +102,10 @@ struct SBDBApp {
     int agent_num_allocs_alloc;
     bool * num_left_buf; // length num_rec_ptrs
     int num_left_buf_alloc;
-    int * hd_thresh; // array of hd thresh, one for each record, for matches where the query must come within hd of the rec to match
+    int * hd_thresh; // array of hd thresh, plen ints for each record, for matches where the query must come within hd of the rec to match
     int hd_thresh_alloc;
     bool b_hd_thresh;
+    int cluster_min; // minimum number of recs for a cluster
     tSRuleRec * rule_data;
     int rule_data_alloc;
     bool b_rules;

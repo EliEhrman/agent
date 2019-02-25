@@ -15,6 +15,8 @@
 int My_variable = 3;
 double density = 4.1;
 
+#define CLUSTER_BY_EL true
+
 
 int num_mallocs = 0;
 int num_frees = 0;
@@ -174,6 +176,7 @@ void* bdballoc(void * ptr, int * palloc_size, size_t elsize, size_t num_els) {
 
 
 void * init_capp(void) {
+//	return NULL;
 	tSBDBApp * papp = (tSBDBApp *) bdbmalloc(sizeof (tSBDBApp));
 	papp->name = NULL;
 	papp->db = NULL;
@@ -186,6 +189,8 @@ void * init_capp(void) {
 	papp->num_rec_ptrs_alloc = 0;
 	papp->hd_buf = NULL;
 	papp->hd_buf_alloc = 0;
+	papp->hd_el_buf = NULL;
+	papp->hd_el_buf_alloc = 0;
 	papp->agent_mrks = NULL;
 	papp->num_agents = 1;
 	papp->num_agents_alloc = 0;
@@ -260,12 +265,14 @@ void pair_dict_print(tSPairDict * ppd) {
 
 
 void set_el_bitvec_size(void * happ, int size) {
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	papp->bitvec_size = size;
 	//	printf("bitvec size set at %d\n", papp->bitvec_size);
 }
 
 void set_name(void * happ, char * name) {
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	size_t len = strlen(name);
 	papp->name = (char *) bdbmalloc2(len + 1, sizeof (char));
@@ -273,26 +280,47 @@ void set_name(void * happ, char * name) {
 }
 
 void set_pdbels(void * happ, void * hcdbels) {
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	papp->pdbels = (tSBDBApp *)hcdbels;
 }
 
 void set_b_hd_thresh(void * happ) {
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	papp->b_hd_thresh = true;
 }
 
 void set_b_rules(void * happ) {
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	papp->b_rules = true;
 }
 
 void set_b_rec_names(void * happ) {
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	papp->b_names = true;
 }
 
+void set_hd_buckets(void * happ, int num_buckets, int * hd_buckets) {
+//	return;
+	if (happ == NULL) return;
+	tSBDBApp * papp = (tSBDBApp *) happ;
+	papp->num_hd_buckets = num_buckets;
+	papp->hd_buckets = (int*)bdballoc(papp->hd_buckets, &(papp->hd_buckets_alloc), sizeof(int), papp->num_hd_buckets);
+	memcpy(papp->hd_buckets, hd_buckets, sizeof(int)*papp->num_hd_buckets);
+}
+
+void set_cluster_min(void * happ, int cluster_min) {
+	if (happ == NULL) return;
+	tSBDBApp * papp = (tSBDBApp *) happ;
+	papp->cluster_min = cluster_min;
+}
+
 void clear_db(void * happ) {
+//	return;
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	papp->num_db_els = 0;
 	papp->num_rec_ptrs = 0;
@@ -300,20 +328,26 @@ void clear_db(void * happ) {
 }
 
 void add_rec(void * happ, int num_els, char * data) {
+//	return;
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
+//	printf("add_rec called for %d els. Total %d\n", num_els, papp->num_db_els);
+	if (num_els > papp->max_rec_len) {
+		papp->max_rec_len = num_els;
+		printf("max rec len set to %d for db %s.\n", papp->max_rec_len, papp->name);
+	}
 	int old_num_els = papp->num_db_els;
 	papp->num_db_els += num_els;
 	papp->db = (char *) bdballoc(papp->db, &(papp->num_db_els_alloc), sizeof (char)*papp->bitvec_size, papp->num_db_els);
 	memcpy(&(papp->db[old_num_els * papp->bitvec_size]), data, num_els * sizeof (char)*papp->bitvec_size);
 	papp->rec_ptrs = (int *) bdballoc(papp->rec_ptrs, &(papp->num_rec_ptrs_alloc), sizeof (int), papp->num_rec_ptrs + 1);
-	papp->rec_ptrs[papp->num_rec_ptrs] = old_num_els;
-	papp->hd_buf = (tSDistRec*) bdballoc(papp->hd_buf, &(papp->hd_buf_alloc), sizeof (tSDistRec), papp->num_rec_ptrs + 1);
-	papp->hd_buf[papp->num_rec_ptrs].idx = papp->num_rec_ptrs;
 	papp->rec_lens = (int*) bdballoc(papp->rec_lens, &(papp->rec_lens_alloc), sizeof (int), papp->num_rec_ptrs + 1);
 	papp->rec_lens[papp->num_rec_ptrs] = num_els;
+	papp->rec_ptrs[papp->num_rec_ptrs] = old_num_els;
 	if (papp->b_hd_thresh) {
-		papp->hd_thresh = (int*) bdballoc(papp->hd_thresh, &(papp->hd_thresh_alloc), sizeof (int), papp->num_rec_ptrs + 1);
-		papp->hd_thresh[papp->num_rec_ptrs] = -1;
+		papp->hd_thresh = (int*) bdballoc(	papp->hd_thresh, &(papp->hd_thresh_alloc), sizeof (int), 
+											papp->max_rec_len * (papp->num_rec_ptrs + 1));
+//		papp->hd_thresh[papp->num_rec_ptrs] = -1;
 	}
 	if (papp->b_rules) {
 		papp->rule_data = (tSRuleRec*) bdballoc(papp->rule_data, &(papp->rule_data_alloc), sizeof (tSRuleRec), papp->num_rec_ptrs + 1);
@@ -336,7 +370,11 @@ void add_rec(void * happ, int num_els, char * data) {
 		// otherwise, the default is 0
 		papp->agent_mrks[iagent][papp->num_rec_ptrs] = ((papp->num_agents == 1) ? 1 : 0);
 	}
+	papp->hd_buf = (tSDistRec*) bdballoc(papp->hd_buf, &(papp->hd_buf_alloc), sizeof (tSDistRec), papp->num_rec_ptrs+1);
+	papp->hd_buf[papp->num_rec_ptrs].idx = papp->num_rec_ptrs;
+	papp->hd_el_buf = (int *)bdballoc(papp->hd_el_buf, &(papp->hd_el_buf_alloc), sizeof(int), papp->max_rec_len * (papp->num_rec_ptrs+1));
 	papp->num_rec_ptrs++;
+	
 	//	printf("%s bitvecdb add_rec. Added %d els. db now %d long.\n", papp->name, num_els, papp->num_db_els);
 	//	for (int irec=0; irec<papp->num_rec_ptrs; irec++) {
 	//		for (int ii = 0; ii<papp->rec_lens[irec]; ii++) {
@@ -351,6 +389,8 @@ void add_rec(void * happ, int num_els, char * data) {
 }
 
 void change_rec(void * happ, int num_els, char * data, int irec) {
+//	return;
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	if (papp->rec_lens[irec] != num_els) {
 		printf("Error! bitvecdb change_rec called for irec %d of length %d with new length %d. NO change made!\n",
@@ -369,6 +409,8 @@ void change_rec(void * happ, int num_els, char * data, int irec) {
 }
 
 void set_rec_name(void * happ, char * name, int irec) {
+//	return;
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	if (!papp->b_names) {
 		printf("Code error! This db has not been set for record names.\n");
@@ -393,6 +435,7 @@ int test_rec_name(void * happ, char * name, int irec) {
 }
 
 void print_db_recs(void * happ, void * hcdbels) {
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	tSBDBApp * pdbels = (tSBDBApp *) hcdbels;
 	printf("db has %d recs and els db has %d recs.\n", papp->num_rec_ptrs, pdbels->num_rec_ptrs);
@@ -444,6 +487,7 @@ int get_irec_exact(tSBDBApp * papp, int qlen, char * qbits) {
 
 
 void del_rec(void * happ, int num_els, int irec) {
+//	return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 
 	int remove_pos = papp->rec_ptrs[irec];
@@ -503,6 +547,8 @@ int add_agent(void * happ) {
 }
 
 void agent_change_rec(void * happ, int iagent, int irec, int badd) {
+//	return;
+	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
 	papp->agent_mrks[iagent][irec] = (badd == 1);
 	//	printf("%s bitvecdb agent_change_rec. Changed rec %d for iagent %d to %s.\n",
@@ -591,7 +637,20 @@ int init_num_left_buf(void * hcapp, int plen) {
 	return num_left;
 }
 
+int calc_hd_bucket(tSBDBApp * papp, int hd) {
+//	printf("calc_hd_bucket for hd %d ", hd);
+	for (int ibucket=0; ibucket<papp->num_hd_buckets; ibucket++) {
+		if (hd <= papp->hd_buckets[ibucket]) {
+//			printf(".. is %d.\n", ibucket);
+			return ibucket;
+		}
+	}
+//	printf(".. Unexpected is %d.\n", papp->num_hd_buckets);
+	return papp->num_hd_buckets;
+}
+
 void fill_hd_buf(tSBDBApp * papp, int iseed, int plen) {
+//	printf("fill_hd_buf called for seed %d. \n", iseed);
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 		if (papp->rec_lens[irec] == plen)
 			papp->hd_buf[irec].dist = 0;
@@ -600,10 +659,12 @@ void fill_hd_buf(tSBDBApp * papp, int iseed, int plen) {
 	}
 
 	for (int qpos = 0; qpos < plen; qpos++) { // qpos == pos in query phrase
+		char * qrec = &(papp->db[(papp->rec_ptrs[iseed] + qpos) * papp->bitvec_size]);
+//		printf("fill_hd_buf calculating for pos %d. word %s\n", qpos,  get_name_exact(papp->pdbels, 1, qrec));
 		for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 			if (papp->rec_lens[irec] != plen) continue;
 			char * prec = &(papp->db[(papp->rec_ptrs[irec] + qpos) * papp->bitvec_size]);
-			char * qrec = &(papp->db[(papp->rec_ptrs[iseed] + qpos) * papp->bitvec_size]);
+//			printf("fill_hd_buf calculating for irec %d. word %s\n", irec, get_name_exact(papp->pdbels, 1, prec));
 			//			printf("qpos: %d iel: %d irec %d: ptr %d. ", qpos, iel, irec, papp->rec_ptrs[irec]);
 			int hd = 0;
 			for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
@@ -612,71 +673,232 @@ void fill_hd_buf(tSBDBApp * papp, int iseed, int plen) {
 					hd++;
 				}
 			}
+			papp->hd_el_buf[(irec*papp->max_rec_len) + qpos] = calc_hd_bucket(papp, hd);
 			//			printf("\n");
 			papp->hd_buf[irec].dist += (float) hd;
 		}
 	}
 }
 
-int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int * hd_thresh_ret, int plen, int hd_thresh) {
-	tSBDBApp * papp = (tSBDBApp *) hcapp;
+int get_pick_map_recs(tSBDBApp * papp, int plen, int * pick_map, int * pdist_sum) {
+	*pdist_sum = 0;
+	int num_found = 0;
+	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+		if (papp->rec_lens[irec] != plen) continue;
+		bool bfound = true;
+//		printf("irec %d: ", irec);
+		int dist = 0;
+		for (int ip2=0; ip2<plen; ip2++) {
+//			printf("%d: el buf %d vs. pick map %d. ", ip2, papp->hd_el_buf[(irec*papp->max_rec_len) + ip2], pick_map[ip2]);
+			int el_dist = papp->hd_el_buf[(irec*papp->max_rec_len) + ip2];
+			if (el_dist > pick_map[ip2]) {
+				bfound = false;
+				break;
+			}
+			if (!bfound) break;
+			dist += el_dist;
+		}
+		if (bfound) {
+			if (!papp->num_left_buf[irec]) {
+//				printf("\nget_pick_map_recs: Error! collision with num_lef_buf. \n");
+				break;
+			}
+			else {
+				papp->num_left_buf[irec] = false;
+				num_found++;
+				*pdist_sum += dist;
+//						printf("... valid record. \n");
+			}
+		}
+	}
+	return num_found;
+}
 
+int pick_thresh_map(tSBDBApp * papp, int plen, int max_picks, int * pick_map, int * num_picks_ret) {
+	bool pick_map_avoid[plen];
+	for (int ip=0; ip<plen; ip++) {
+		pick_map[ip] = 0;
+	}
+//	{
+//		*num_picks_ret = max_picks;
+//		return 11;
+//	}
+//	for (int ibucket=0; ibucket<papp->num_hd_buckets; ibucket++) {
+//		printf("pick_thresh_map: bucket %d is %d.\n", ibucket, papp->hd_buckets[ibucket]);
+//	}
+	int max_num_found = 0;
+	for (int ipick = 0; ipick < max_picks; ipick++) {
+//		printf("pick_thresh_map: pick num %d of %d. \n", ipick, max_picks);
+		int ip_max = -1;
+		int num_to_avoid = 0;
+		for (int ip=0; ip<plen; ip++) {
+//			printf("pick_thresh_map: Incrementing pick map %d. \n", ip);
+			pick_map_avoid[ip] = false;
+			pick_map[ip]++;
+			int num_found = 0;
+			for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+				if (papp->rec_lens[irec] != plen) continue;
+				bool bfound = true;
+//				printf("irec %d: ", irec);
+				for (int ip2=0; ip2<plen; ip2++) {
+//					printf("%d: el buf %d vs. pick map %d. ", ip2, papp->hd_el_buf[(irec*papp->max_rec_len) + ip2], pick_map[ip2]);
+					if (papp->hd_el_buf[(irec*papp->max_rec_len) + ip2] > pick_map[ip2]) {
+						bfound = false;
+						break;
+					}
+					if (!bfound) break;
+				}
+				if (bfound) {
+					if (!papp->num_left_buf[irec]) {
+//						printf("collision with num_lef_buf. \n");
+						pick_map_avoid[ip] = true;
+						num_to_avoid++;
+						break;
+					}
+					else {
+						num_found++;
+//						printf("... valid record. \n");
+					}
+				}
+				else {
+//					printf("... record invalid!\n");
+				}
+			}
+			pick_map[ip]--;
+			if (num_found > max_num_found) {
+				ip_max = ip;
+				max_num_found = num_found;
+			}
+		} // loop over els (plen)
+		if (ip_max == -1) {
+			if (num_to_avoid == plen) {
+				printf("pick_thresh_map: No further pick progress possible without hitting non available.\n");
+				*num_picks_ret = ipick;
+				return max_num_found;
+			}
+			while (true) {
+				ip_max = rand() % plen;
+				if (!pick_map_avoid[ip_max]) {
+					break;
+				}
+				printf("selected pick %d through random process.\n", ip_max);
+			}
+		}
+		pick_map[ip_max]++;
+//		printf(	"pick_thresh_map: pick num %d, ip_max %d raising pick to %d to include %d recs.\n", 
+//				ipick, ip_max, pick_map[ip_max], max_num_found);
+	} // loop over picks till max_pick
+	*num_picks_ret = max_picks;
+	return max_num_found;
+}
+
+int get_cluster_seed(	void * hcapp, char * cent_ret, float * hd_avg_ret, 
+						int * hd_thresh_ret, int plen, int hd_thresh) { // if CLUSTER_BY_EL hd_thresh_ret must be allocated plen ints
+	tSBDBApp * papp = (tSBDBApp *) hcapp;
+	printf("papp->cluster_min = %d\n", papp->cluster_min);
 	float best_score = 0;
 	int ibest_score = -1;
 	int best_thresh = -1;
+	int best_pick_map[plen];
 	for (int iseed = 0; iseed < papp->num_rec_ptrs; iseed++) {
+//		printf("get_cluster_seed: testing iseed %d len %d, left %s.\n", iseed, papp->rec_lens[iseed], (papp->num_left_buf[iseed]? "True" : "False"));
 		if (papp->rec_lens[iseed] != plen || !papp->num_left_buf[iseed]) continue;
 		fill_hd_buf(papp, iseed, plen);
-		bool b_seed_scored = false;
-		for (int thresh = hd_thresh * plen; thresh >= 0; thresh -= plen) {
-			bool b_overlap = false;
-			int dist_sum = 0;
-			int num_hit = 0;
-			for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
-				int dist = papp->hd_buf[irec].dist;
-				if (dist >= 0 && dist <= thresh) {
-					if (!papp->num_left_buf[irec]) {
-						//						printf("for thresh %d, iseed %d overlapped rec at %d\n", thresh, iseed, irec);
-						b_overlap = true;
-						break;
-					}
-					dist_sum += dist;
-					num_hit++;
-				}
-			}
-			if (b_overlap) continue;
-			if (num_hit > 0) {
-				float avg_dist = (float) dist_sum / (plen * num_hit);
-				float seed_score = ((papp->bitvec_size - avg_dist) / papp->bitvec_size) * num_hit;
-				//				printf(	"for thresh %d, iseed %d achieved num_hit %d with dist_sum %d, seed_score %f\n", 
-				//						thresh, iseed, num_hit, dist_sum, seed_score);
-				if (seed_score > best_score) {
-					best_score = seed_score;
+		if (CLUSTER_BY_EL) {
+			for (int thresh = 0; thresh <= hd_thresh; thresh++) {
+//				printf("get_cluster_seed: thresh at %d.\n", thresh);
+				int pick_map[plen];
+				memset(pick_map, 0, sizeof(int)*plen);
+				int num_picks;
+				int num_found = pick_thresh_map(papp, plen, thresh, pick_map, &num_picks);
+				if (num_found < papp->cluster_min || num_picks < 1) continue;
+				float score = (float)num_found / num_picks;
+				if (score > best_score) {
+					best_score = score;
 					ibest_score = iseed;
-					best_thresh = thresh;
-					//					printf("iseed %d best so far.\n", iseed);
-				}
-				b_seed_scored = true;
-			}
-			if (b_seed_scored) break;
+					best_thresh = num_picks;
+					memcpy(best_pick_map, pick_map, sizeof(int)*plen);
+					printf("get_cluster_seed. best so far at score %f.\n", score);
+				}			
+			} // loop over different values of thresh
 		}
-	}
+		/*
+		else {
+			bool b_seed_scored = false;
+			for (int thresh = hd_thresh * plen; thresh >= 0; thresh -= plen) {
+				bool b_overlap = false;
+				int dist_sum = 0;
+				int num_hit = 0;
+				for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+					int dist = papp->hd_buf[irec].dist;
+					if (dist >= 0 && dist <= thresh) {
+						if (!papp->num_left_buf[irec]) {
+							//						printf("for thresh %d, iseed %d overlapped rec at %d\n", thresh, iseed, irec);
+							b_overlap = true;
+							break;
+						}
+						dist_sum += dist;
+						num_hit++;
+					}
+				}
+				if (b_overlap) continue;
+				if (num_hit > 0) {
+					float avg_dist = (float) dist_sum / (plen * num_hit);
+					float seed_score = ((papp->bitvec_size - avg_dist) / papp->bitvec_size) * num_hit;
+					//				printf(	"for thresh %d, iseed %d achieved num_hit %d with dist_sum %d, seed_score %f\n", 
+					//						thresh, iseed, num_hit, dist_sum, seed_score);
+					if (seed_score > best_score) {
+						best_score = seed_score;
+						ibest_score = iseed;
+						best_thresh = thresh;
+						//					printf("iseed %d best so far.\n", iseed);
+					}
+					b_seed_scored = true;
+				}
+				if (b_seed_scored) break;
+			} // loop over different threshes
+		} // end else CLUSTER_BY_EL
+		 */
+	} // end loop over recs (iseed)
+
+//	{ // dummy ret
+//		for (int iel = 0; iel < plen; iel++) {
+//			for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
+//				cent_ret[(iel * papp->bitvec_size) + ibit] = 0;
+//			}
+//		}
+//		*hd_avg_ret = 0.0;
+//		return 0;
+//	}
 
 	*hd_avg_ret = 0.0;
 	if (ibest_score != -1) {
 		int num_hit = 0;
 		int dist_sum = 0;
 		fill_hd_buf(papp, ibest_score, plen);
-
-		for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
-			int dist = papp->hd_buf[irec].dist;
-			if (dist >= 0 && dist <= best_thresh) {
-				if (!papp->num_left_buf[irec]) {
-					printf("Error! Unexpected overlap with rec %d for seed %d that was declared the winner\n", irec, ibest_score);
+		if (CLUSTER_BY_EL) {
+			num_hit =  get_pick_map_recs(papp, plen, best_pick_map, &dist_sum);
+			*hd_avg_ret = (float) dist_sum / num_hit;
+			for (int iel = 0; iel < plen; iel++) {
+				hd_thresh_ret[iel] = papp->hd_buckets[best_pick_map[iel]];
+			}
+		}
+		else {
+			for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
+				int dist = papp->hd_buf[irec].dist;
+				if (dist >= 0 && dist <= best_thresh) {
+					if (!papp->num_left_buf[irec]) {
+						printf("Error! Unexpected overlap with rec %d for seed %d that was declared the winner\n", irec, ibest_score);
+					}
+					papp->num_left_buf[irec] = false;
+					dist_sum += dist;
+					num_hit++;
 				}
-				papp->num_left_buf[irec] = false;
-				dist_sum += dist;
-				num_hit++;
+			}
+			*hd_avg_ret = (float) dist_sum / (plen * num_hit);
+			*hd_thresh_ret = best_thresh;
+			for (int iel = 1; iel < plen; iel++) {
+				hd_thresh_ret[iel] = 0;
 			}
 		}
 
@@ -687,8 +909,6 @@ int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int * hd
 			}
 		}
 
-		*hd_avg_ret = (float) dist_sum / (plen * num_hit);
-		*hd_thresh_ret = best_thresh;
 	}
 
 	int num_left = 0;
@@ -724,16 +944,18 @@ int get_plen_irecs(void * hcapp, int* ret_arr, int plen, int iagent) {
 }
 
 int get_cluster(void * hcapp, int * members_ret, int num_ret, char * cent,
-		int plen, int hd_thresh) {
+		int plen, int * hd_thresh) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 
-	//	printf("get_cluster: num_ret: %d, plen: %d, hd_thresh %d. num recs: %d. db size %d\n", 
-	//			num_ret, plen, hd_thresh, papp->num_rec_ptrs, papp->num_db_els);
+	printf("get_cluster: num_ret: %d, plen: %d, hd_thresh0 %d. num recs: %d. db size %d\n", 
+			num_ret, plen, hd_thresh[0], papp->num_rec_ptrs, papp->num_db_els);
 	int num_found = 0;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 		if (papp->rec_lens[irec] != plen) continue;
-		int hd = 0;
+		int hd_tot = 0;
+		bool bfound = true;
 		for (int iel = 0; iel < plen; iel++) { // qpos == pos ind query phrase
+			int hd = 0;
 			char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel) * papp->bitvec_size]);
 			//			char * qrec = &(papp->db[(papp->rec_ptrs[iseed] + qpos)*papp->bitvec_size]);
 			//			printf("iel: %d irec %d: ptr %d. \n", iel, irec, papp->rec_ptrs[irec]);
@@ -743,15 +965,24 @@ int get_cluster(void * hcapp, int * members_ret, int num_ret, char * cent,
 					hd++;
 				}
 			}
+			hd_tot += hd;
+			if (CLUSTER_BY_EL) {
+				printf("irec: %d iel %d el hd: %d vs el thresh %d.\n", irec, iel, hd, hd_thresh[iel]);
+				if (hd > hd_thresh[iel]) {
+					bfound = false;
+					break;
+				}
+			}
 			//			printf("\n");
 			//			papp->hd_buf[irec].dist += (float)hd;
 		}
-		if (hd <= hd_thresh) {
+		if ((CLUSTER_BY_EL && bfound) || hd_tot <= hd_thresh[0]) {
 			//			printf("Found cluster member %d at %d.\n", num_found, irec);
 			members_ret[num_found] = irec;
 			num_found++;
 		}
 	}
+	printf("%d recs found.\n", num_found);
 	return num_found;
 }
 
@@ -824,42 +1055,60 @@ int get_irecs_with_eid_by_list(void* hcapp, int * ret_arr, int iagent, int iel_a
 	return num_found;
 }
 
-void set_hd_thresh(void * hcapp, int irec, int hd_thresh) {
+// The assumption is that papp->max_rec_len has already been set at the highest it will reach
+void set_hd_thresh(void * hcapp, int irec, int * hd_thresh, int plen) { // set plen to 1 for bperel regardless of real plen
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
-	papp->hd_thresh[irec] = hd_thresh;
+	memcpy(&(papp->hd_thresh[irec*papp->max_rec_len]), hd_thresh, sizeof(int)*plen);
 }
 
-bool test_for_thresh(tSBDBApp * papp, int plen, int ext_thresh, int irec, char * qrec) {
-	int hd = 0;
+bool test_for_thresh(tSBDBApp * papp, int plen, int * ext_thresh, int irec, char * qrec, bool bext, bool bperel) {
+	int hd_tot = 0;
 	if (papp->rec_lens[irec] != plen) return false;
+	bool bfound = true;
 	for (int iel = 0; iel < papp->rec_lens[irec]; iel++) { // qpos == pos ind query phrase
 		char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel) * papp->bitvec_size]);
 		char * qel = &(qrec[iel * papp->bitvec_size]);
 		//			printf("iel %d db vs. q:", iel);
+		int hd = 0;
 		for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
 			//				printf(" %hhdvs.%hhd", prec[ibit], qel[ibit]);
 			if (prec[ibit] != qel[ibit]) hd++;
 		}
+		if (bperel) {
+			int hd_thresh;
+			if (bext) hd_thresh = ext_thresh[iel];
+			else hd_thresh = papp->hd_thresh[(irec*papp->max_rec_len)+iel];
+			if (hd > hd_thresh) {
+				bfound = false;
+				break;
+			}
+		}
+		hd_tot += hd;
 		//			printf("\n");
 	}
-	//		printf("get_thresh_recs: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->hd_thresh[irec]);
-	if (ext_thresh == -1) {
-		if (hd <= papp->hd_thresh[irec]) return true;
-	} else {
-		if (hd <= ext_thresh) return true;
+	if (!bfound) {
+		return false;
 	}
-
-	return false;
+	//		printf("get_thresh_recs: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->hd_thresh[irec]);
+	if (!bperel) {
+		if (bext) {
+			if (hd_tot > ext_thresh[0]) return false;
+		}
+		else {
+			if (hd_tot > papp->hd_thresh[irec*papp->max_rec_len]) return false;
+		}
+	}
+	return true;
 }
 
 //if ext_thresh is -1, it means the thresh, is the hd_thresh of the rec itself
 //otherwise it is the thresh of closeness to use.
 
-int get_thresh_recs(void * hcapp, int * ret_arr, int plen, int ext_thresh, char * qrec) {
+int get_thresh_recs(void * hcapp, int * ret_arr, int plen, int * ext_thresh, char * qrec, int bext, int bperel) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	int num_found = 0;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
-		if (test_for_thresh(papp, plen, ext_thresh, irec, qrec)) {
+		if (test_for_thresh(papp, plen, ext_thresh, irec, qrec, bext == 1, bperel == 1)) {
 			if (ret_arr != NULL)
 				ret_arr[num_found] = irec;
 			num_found++;
@@ -869,13 +1118,13 @@ int get_thresh_recs(void * hcapp, int * ret_arr, int plen, int ext_thresh, char 
 }
 
 // not ext_thresh is not an ext_rule. It is the outside requiring a thresh as oposed to the hd requirement of the db rec itself
-int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int ext_thresh,
+int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int * ext_thresh, int bext, int bperel,
 		int * cand_arr, int num_cands, char * qrec) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	int num_found = 0;
 	for (int icand = 0; icand < num_cands; icand++) {
 		int irec = cand_arr[icand];
-		if (test_for_thresh(papp, plen, ext_thresh, irec, qrec)) {
+		if (test_for_thresh(papp, plen, ext_thresh, irec, qrec, bext == 1, bperel == 1)) {
 			if (ret_arr != NULL)
 				ret_arr[num_found] = irec;
 			num_found++;

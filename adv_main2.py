@@ -422,6 +422,8 @@ def main():
 		cluster_mgr.set_nlb_mgr(nlbitvec_mgr)
 		if mod.c_b_init_data:
 			phrases_mgr.init_data()
+			print('exit')
+		exit(1)
 		ext_rule_mgr.set_mgrs(nlbitvec_mgr, phrases_mgr, phraseperms_mgr)
 		mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_fn, ext_rule_mgr)
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)

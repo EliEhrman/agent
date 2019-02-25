@@ -4,7 +4,8 @@ import phraseperms
 import nlbitvec
 from bitvecdb import bitvecdb
 from nlbitvec import c_bitvec_size as bitvec_size
-import cluster
+# import cluster
+import utils
 
 class cl_phrase_perms_notifier(phraseperms.cl_phrase_perms_notific):
 	def __init__(self, client):
@@ -45,6 +46,7 @@ class cl_bitvec_db(object):
 	def set_nlb_mgr(self, el_bitvec_mgr):
 		self.__el_nlb_mgr = el_bitvec_mgr
 		self.__el_nlb_mgr.register_notific(self.__nlb_mgr_notifier)
+		bitvecdb.set_pdbels(self.__hcbdb, self.__el_nlb_mgr.get_hcbdb())
 
 	def clear_db(self):
 		self.__d_rphrase_to_iphrase = dict() # type: Dict[int, int]  # map of global ref of phrase to index in local list
@@ -155,7 +157,7 @@ class cl_bitvec_db(object):
 			s_iperms.add(iperm_new)
 			self.__d_iel_to_l_iperm[iel] = s_iperms
 			self.__nlb_mgr_notifier.notify_on_iel(iel)
-		bitvecdb.add_rec(self.__hcbdb, len(l_perm_eids), self.convert_charvec_to_arr(phrase_bitvec))
+		bitvecdb.add_rec(self.__hcbdb, len(l_perm_eids), utils.convert_charvec_to_arr(phrase_bitvec))
 
 	def agent_add(self, idb):
 		num_agents = bitvecdb.add_agent(self.__hcbdb)
@@ -169,12 +171,12 @@ class cl_bitvec_db(object):
 			# rperm = self.__l_rperms[iperm]
 			bitvecdb.agent_change_rec(self.__hcbdb, idb, iperm, 1 if badd else 0)
 
-	def convert_charvec_to_arr(self, bin, size=-1):
-		if size==-1:
-			size = len(bin)
-		bin_arr = bitvecdb.charArray(size)
-		for ib in range(size): bin_arr[ib] = chr(bin[ib])
-		return bin_arr
+	# def convert_charvec_to_arr(self, bin, size=-1):
+	# 	if size==-1:
+	# 		size = len(bin)
+	# 	bin_arr = bitvecdb.charArray(size)
+	# 	for ib in range(size): bin_arr[ib] = chr(bin[ib])
+	# 	return bin_arr
 
 	def iel_bitvec_changed(self, iel, bitvec):
 		s_iperms = self.__d_iel_to_l_iperm.get(iel, set())
@@ -185,7 +187,7 @@ class cl_bitvec_db(object):
 			for iel in l_perm_eids:
 				phrase_bitvec += self.__el_nlb_mgr.get_bin_by_id(iel)
 			bitvecdb.change_rec(self.__hcbdb, len(l_perm_eids),
-								self.convert_charvec_to_arr(phrase_bitvec), iperm)
+								utils.convert_charvec_to_arr(phrase_bitvec), iperm)
 
 		pass
 
@@ -195,7 +197,7 @@ class cl_bitvec_db(object):
 		for iel in phrase_eids:
 			qdata += self.__el_nlb_mgr.get_bin_by_id(iel)
 		num_ret = bitvecdb.get_closest_recs(self.__hcbdb, k, ret_arr, hds_arr, obits_arr, len(phrase_eids),
-											self.convert_charvec_to_arr(qdata), iskip, shrink)
+											utils.convert_charvec_to_arr(qdata), iskip, shrink)
 		l_idexs_ret, l_hds_arr = [ret_arr[ir] for ir in range(num_ret) ], [hds_arr[ir] for ir in range(num_ret) ]
 		nd_obits = np.array([ord(obits_arr[ib]) for ib in range(num_ret * bitvec_size)], dtype=np.int8)
 		nd_obits = np.reshape(nd_obits, (num_ret, bitvec_size))
@@ -207,8 +209,9 @@ class cl_bitvec_db(object):
 
 	def get_rec_rule_names(self, nd_cent, hd_thresh, plen, num_recs, l_rule_names):
 		iperm_arr = bitvecdb.intArray(num_recs)
-		cent_arr = self.convert_charvec_to_arr(nd_cent.tolist())
-		num_ret = bitvecdb.get_cluster(self.__hcbdb, iperm_arr, num_recs, cent_arr, plen, hd_thresh)
+		cent_arr = utils.convert_charvec_to_arr(nd_cent.tolist())
+		hd_arr = utils.convert_intvec_to_arr(hd_thresh)
+		num_ret = bitvecdb.get_cluster(self.__hcbdb, iperm_arr, num_recs, cent_arr, plen, hd_arr)
 		l_ret = [l_rule_names[self.__l_phrase_rphrases[self.__l_perm_iphrase[iperm_arr[iperm]]]] for iperm in range(num_ret)]
 		return l_ret
 
@@ -245,7 +248,7 @@ class cl_bitvec_db(object):
 		irec_arr = bitvecdb.intArray(bufsize)
 		el_bitvec = self.__el_nlb_mgr.get_bin_by_id(eid).tolist()
 		num_ret = bitvecdb.get_irecs_with_eid(self.__hcbdb, irec_arr, idb, -1,
-							self.convert_charvec_to_arr(el_bitvec, bitvec_size))
+							utils.convert_charvec_to_arr(el_bitvec, bitvec_size))
 		s_rphrases_close = set()
 		for iret in range(num_ret):
 			rphrase =  self.__l_phrase_rphrases[self.__l_perm_iphrase[irec_arr[iret]]]
@@ -263,7 +266,7 @@ class cl_bitvec_db(object):
 		irec_arr = bitvecdb.intArray(num_cands)
 		el_bitvec = self.__el_nlb_mgr.get_bin_by_id(eid)
 		num_ret = bitvecdb.get_irecs_with_eid_by_list(	self.__hcbdb, irec_arr, idb, pos, cands_arr, num_cands,
-														self.convert_charvec_to_arr(el_bitvec, bitvec_size))
+														utils.convert_charvec_to_arr(el_bitvec, bitvec_size))
 		return num_ret, irec_arr
 
 	def get_num_plen(self, plen):
@@ -279,7 +282,7 @@ class cl_bitvec_db(object):
 		num_ret, len_arr = self.get_plen_irecs(idb, plen)
 		ret_arr = bitvecdb.intArray(num_ret)
 		num_ret = bitvecdb.get_thresh_recs_by_list(	self.__hcbdb, ret_arr, plen, hd_thresh, len_arr, num_ret,
-													self.convert_charvec_to_arr(l_qbits))
+													utils.convert_charvec_to_arr(l_qbits))
 		return num_ret, ret_arr
 
 	def get_el_hd_recs(self, pos, hd, el, num_cands, cands_arr):
@@ -287,9 +290,15 @@ class cl_bitvec_db(object):
 		# el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
 		el_bitvec = self.__el_nlb_mgr.get_el_bin(el)
 		num_ret = bitvecdb.get_el_hd_recs_by_list(	self.__hcbdb, irec_arr, cands_arr, num_cands, pos, hd,
-													self.convert_charvec_to_arr(el_bitvec))
+													utils.convert_charvec_to_arr(el_bitvec))
 		return num_ret, irec_arr
 
+	def init_db_for_cluster(self, cluster_min):
+		l_buckets = [0, bitvec_size / 5, 2 * bitvec_size / 5, bitvec_size]
+		buckets_arr = bitvecdb.intArray(len(l_buckets))
+		for ib, bhd in enumerate(l_buckets): buckets_arr[ib] = bhd
+		bitvecdb.set_hd_buckets(self.get_hcbdb(), len(l_buckets), buckets_arr)
+		bitvecdb.set_cluster_min(self.get_hcbdb(), cluster_min)
 
 	def get_cluster_seed(self, cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh):
 		num_left_now = bitvecdb.get_cluster_seed(self.__hcbdb, cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh)

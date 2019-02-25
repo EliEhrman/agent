@@ -34,6 +34,9 @@ nt_el_stats = collections.namedtuple('nt_el_stats', 'el, bglove, bassigned, avg_
 nt_el_stats.__new__.__defaults__ = ('???', False, False, -1.0, 0, None, None, [], np.zeros(c_bitvec_size, dtype=np.uint8))
 nt_mult_el = collections.namedtuple('nt_mult_el', 'el, iel, pos, len')
 
+stats_num_processed = 0
+stats_num_avoided = 0
+
 divider = np.array(
 	range(c_bitvec_neibr_divider_offset,c_num_ham_winners + c_bitvec_neibr_divider_offset),
 	np.float32)
@@ -67,6 +70,7 @@ class cl_el_stats(object):
 		self.__bassigned = bassigned
 		self.__avg_hd = avg_hd
 		self.__num_hits = num_hits
+		self.__num_hits_since_assign = 0
 		self.__l_iphrases = l_iphrases
 		self.__l_idelayed = l_idelayed
 		lbitvals = bitvals.tolist() if type(bitvals) is np.ndarray else bitvals
@@ -102,6 +106,15 @@ class cl_el_stats(object):
 
 	def get_num_hits(self):
 		return self.__num_hits
+
+	def get_num_hits_since_assign(self):
+		return self.__num_hits_since_assign
+
+	def incr_num_hits_since_assign(self):
+		self.__num_hits_since_assign += 1
+
+	def reset_num_hits_since_assign(self):
+		self.__num_hits_since_assign = 0
 
 	def get_l_iphrases(self):
 		assert False, 'cl_el_stats: Forbidden function'
@@ -575,11 +588,19 @@ class cl_nlb_mgr(object):
 		# If all the words in the phrase had already been assigned we can adjust the non-glove bitvecs
 		# of the words in the phrase based on the other words
 		if num_unassigned == 0: # this is the orig value, not updated if the single unassigned is assigned
+			global stats_num_processed
+			global stats_num_avoided
+
 			for iword, word in enumerate(phrase):
 				iel = self.__d_words.get(word.lower(), -1)
 				el_stats = self.__l_els_stats[iel]
 				if not el_stats.get_bglove():
-					self.assign_word_from_closest(phrase, iel, word, iword, nd_phrase)
+					if el_stats.get_num_hits_since_assign() >= (el_stats.get_num_hits() * 3 / 4):
+						self.assign_word_from_closest(phrase, iel, word, iword, nd_phrase)
+						stats_num_processed += 1
+					else:
+						el_stats.incr_num_hits_since_assign()
+						stats_num_avoided += 1
 				del iel, el_stats
 
 		if b_add_now:
@@ -782,6 +803,7 @@ class cl_nlb_mgr(object):
 
 		del phrase
 
+		els_stats.reset_num_hits_since_assign()
 		self.__l_els_stats[iel] = els_stats.replace(	bassigned=True, avg_hd=avg_hd, num_hits=new_num_hits,
 														bitvals=new_vals, bitvec=new_bits)
 

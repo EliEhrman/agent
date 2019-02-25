@@ -339,16 +339,16 @@ def get_irecs_with_eid_by_list(hcapp, ret_arr, iagent, iel_at, cand_arr, num_can
     return _bitvecdb.get_irecs_with_eid_by_list(hcapp, ret_arr, iagent, iel_at, cand_arr, num_cands, qbits)
 get_irecs_with_eid_by_list = _bitvecdb.get_irecs_with_eid_by_list
 
-def set_hd_thresh(hcapp, irec, hd_thresh):
-    return _bitvecdb.set_hd_thresh(hcapp, irec, hd_thresh)
+def set_hd_thresh(hcapp, irec, hd_thresh, plen):
+    return _bitvecdb.set_hd_thresh(hcapp, irec, hd_thresh, plen)
 set_hd_thresh = _bitvecdb.set_hd_thresh
 
-def get_thresh_recs(hcapp, ret_arr, plen, ext_thresh, qrec):
-    return _bitvecdb.get_thresh_recs(hcapp, ret_arr, plen, ext_thresh, qrec)
+def get_thresh_recs(hcapp, ret_arr, plen, ext_thresh, qrec, bext, bperel):
+    return _bitvecdb.get_thresh_recs(hcapp, ret_arr, plen, ext_thresh, qrec, bext, bperel)
 get_thresh_recs = _bitvecdb.get_thresh_recs
 
-def get_thresh_recs_by_list(hcapp, ret_arr, plen, ext_thresh, cand_arr, num_cands, qrec):
-    return _bitvecdb.get_thresh_recs_by_list(hcapp, ret_arr, plen, ext_thresh, cand_arr, num_cands, qrec)
+def get_thresh_recs_by_list(hcapp, ret_arr, plen, ext_thresh, bext, bperel, cand_arr, num_cands, qrec):
+    return _bitvecdb.get_thresh_recs_by_list(hcapp, ret_arr, plen, ext_thresh, bext, bperel, cand_arr, num_cands, qrec)
 get_thresh_recs_by_list = _bitvecdb.get_thresh_recs_by_list
 
 def get_el_hd_recs_by_list(hcapp, irec_arr, cand_arr, num_cands, iel, hd, qrec):
@@ -458,6 +458,14 @@ print_db_recs = _bitvecdb.print_db_recs
 def set_pdbels(happ, hcdbels):
     return _bitvecdb.set_pdbels(happ, hcdbels)
 set_pdbels = _bitvecdb.set_pdbels
+
+def set_hd_buckets(happ, num_buckets, hd_buckets):
+    return _bitvecdb.set_hd_buckets(happ, num_buckets, hd_buckets)
+set_hd_buckets = _bitvecdb.set_hd_buckets
+
+def set_cluster_min(happ, cluster_min):
+    return _bitvecdb.set_cluster_min(happ, cluster_min)
+set_cluster_min = _bitvecdb.set_cluster_min
 # This file is compatible with both classic and new-style classes.
 
 

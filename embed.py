@@ -13,13 +13,13 @@ from shutil import copyfile
 import numpy as np
 import copy
 
-c_num_gloves = 10000 # 400000
+c_num_gloves = 1000 # 10000 # 400000
 c_max_deps = 4
 c_dep_vec_factor = 0.1
 c_max_samples = 5000
 
 glove_fn = '/devlink2/data/glove/glove.6B.50d.txt'
-c_fnt_dict = '~/tmp/glv_bin_dict.txt'
+c_fnt_dict = '~/tmp/glv_bin_dict_small.txt'
 c_phrase_freq_fnt = '~/tmp/adv_phrase_freq.txt'
 c_phrase_fnt = '~/tmp/adv_phrases.txt'
 c_example_word  = 'the'

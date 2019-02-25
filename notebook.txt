@@ -2817,3 +2817,39 @@ CIW:
 
 gpsnlai minimally working with new varopts
 
+I am going to state for the record my pathetic excuse as to why I am switching over to work on the centroids when the ai is
+clearly not ready for me to move on.
+
+There is some advantage to working in parallel on all three fronts: nl, rule learn and gpsai, rather than make it all the
+way on one front and then have to rewrite everything to integrate the other two
+
+The centroids work will prepare for rule learning which is per-el based rather than per-phrase.
+
+The idea is to redefine the concept of distance as weighted in favor of bits whose final max distance within a cluster
+is smaller. i.e. Look for clusters where some words are unconditional such as picked and up in X picked up Y
+
+Stage one assign to all records a cluster just like regular kmeans
+2. Calculate maximum deviation within clusters
+2a W(i )for each pos i of the bit 1. / max_hd(i)
+3. Create a centroid based on a distance = W(i) * d(i) where d(1) is 1 if different else 0
+4. Iterate and hope to see convergence
+
+The config params now are:
+c_b_gpsai = True
+c_lrn_rule_fn = 'none' # 'load', 'learn', 'none'
+c_b_learn_full_rules = False
+c_b_learn_full_rules_nl = True
+c_b_restart_from_glv = True
+c_b_init_data = True
+c_b_save_phrases = False # Create a file of phrases with the rule that generated them
+
+above settings hold for creating clusters from a previous save_phrases file
+
+note the following line in nlbitvec __init__()
+		bitvec_dict_fnt = bitvec_dict_glv_fnt if b_restart_from_glv else bitvec_dict_output_fnt
+
+Monday 25th February 2019
+
+CIW:
+
+Centroid creation works with the nlb system.

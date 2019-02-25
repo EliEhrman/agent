@@ -17,14 +17,14 @@ int get_cluster_seed(void * hcapp, char * cent_ret, float * hd_avg_ret, int * hd
 int get_num_plen(void * hcapp, int plen);
 int get_plen_irecs(void * hcapp, int* ret_arr, int plen, int iagent);
 int get_cluster(void * hcapp, int * members_ret, int num_ret, char * cent,
-				int plen, int hd_thresh);
+				int plen, int * hd_thresh);
 int get_irecs_with_eid(void* hcapp, int * ret_arr, int iagent, int iel_at, char * qbits);
 int get_irecs_with_eid_by_list(	void* hcapp, int * ret_arr, int iagent, int iel_at, int * cand_arr,
 								int num_cands, char * qbits);
-void set_hd_thresh(void * hcapp, int irec, int hd_thresh);
-int get_thresh_recs(void * hcapp, int * ret_arr, int plen, int ext_thresh, char * qrec);
-int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int ext_thresh,
-							int * cand_arr, int num_cands, char * qrec);
+void set_hd_thresh(void * hcapp, int irec, int * hd_thresh, int plen);
+int get_thresh_recs(void * hcapp, int * ret_arr, int plen, int * ext_thresh, char * qrec, int bext, int bperel);
+int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int * ext_thresh, int bext, int bperel,
+                            int * cand_arr, int num_cands, char * qrec);
 int get_el_hd_recs_by_list(	void * hcapp, int * irec_arr, int * cand_arr, int num_cands, int iel, int hd, char * qrec);
 void set_b_hd_thresh(void * hcapp);
 void set_b_rules(void * hcapp);
@@ -59,3 +59,5 @@ int get_combo_val(void * hvos, int icombo, int ival);
 int get_rule_num_phrases(void * hvos); // doesn't really belong here because it relates to the rule itself rather than the vo search
 void print_db_recs(void * happ, void * hcdbels);
 void set_pdbels(void * happ, void * hcdbels);
+void set_hd_buckets(void * happ, int num_buckets, int * hd_buckets);
+void set_cluster_min(void * happ, int cluster_min);

@@ -63,6 +63,7 @@ class cl_phrase_mgr(object):
 				self.__phraseperms.init_from_load()
 			saved_phrases = self.load_saved_phrases(500)
 			self.load_sample_texts(saved_phrases)
+		print('phrases init_data complete')
 
 
 	def load_saved_phrases(self, nlimit=-1):
