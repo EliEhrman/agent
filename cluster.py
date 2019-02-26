@@ -278,8 +278,9 @@ class cl_phrase_cluster_mgr(object):
 		# Each cent is an array of el bitvecs, each cent is also an array of hd, one for each el
 		num_recs = len(self.__l_cent_hd)
 		ret_arr = bitvecdb.intArray(num_recs)
-		num_ret = bitvecdb.get_thresh_recs(	self.__hcdb_cent, ret_arr, plen, -1,
-											utils.convert_charvec_to_arr(l_phrase_bits))
+		null_arr = bitvecdb.intArray(0)
+		num_ret = bitvecdb.get_thresh_recs(	self.__hcdb_cent, ret_arr, plen, null_arr,
+											utils.convert_charvec_to_arr(l_phrase_bits), False, True)
 		l_rcents = [ret_arr[i] for i in range(num_ret)]
 		return l_rcents
 

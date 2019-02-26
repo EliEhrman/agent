@@ -422,8 +422,6 @@ def main():
 		cluster_mgr.set_nlb_mgr(nlbitvec_mgr)
 		if mod.c_b_init_data:
 			phrases_mgr.init_data()
-			print('exit')
-		exit(1)
 		ext_rule_mgr.set_mgrs(nlbitvec_mgr, phrases_mgr, phraseperms_mgr)
 		mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_fn, ext_rule_mgr)
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
@@ -432,9 +430,9 @@ def main():
 	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	gpsnlai_mgr = gpsnlai.cl_gpsnlai_mgr()
 	gpsnlai_mgr.set_mgrs(mpdbs_mgr, nlbitvec_mgr, ext_rule_mgr, phrases_mgr, phraseperms_mgr, rules3)
-	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
+	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2) # use for learning rules while keeping the oracle classic
 	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
-	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2)
+	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2) # use for debugging gpsnlai
 	ext_rule_mgr.init_vo(mpdbs_mgr)
 
 

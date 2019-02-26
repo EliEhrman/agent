@@ -2853,3 +2853,15 @@ Monday 25th February 2019
 CIW:
 
 Centroid creation works with the nlb system.
+
+To configure for learning:
+c_b_gpsai = False # just use the random selection of actions
+c_b_learn_full_rules = False
+c_b_learn_full_rules_nl = True
+c_b_restart_from_glv = False
+At the end of adv_main2.py:
+	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2) # use for learning rules while keeping the oracle classic
+	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
+	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2) # use for debugging gpsnlai
+
+Looks like long cents are failing at the cluster stage. Need to investigate why

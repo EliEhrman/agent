@@ -107,7 +107,7 @@ class cl_phrase_perms(object):
 			l_perm_eids = self.get_perm_eids(rperm)
 			l_phrase_bits = []
 			for eid in l_perm_eids:
-				l_phrase_bits += self.__el_bitvec_mgr.get_bin_by_id(eid).tolist()
+				l_phrase_bits += self.__el_bitvec_mgr.get_bin_by_id(eid)
 			l_rcent += self.__cluster_mgr.get_cluster(l_phrase_bits)
 		return l_rcent
 
