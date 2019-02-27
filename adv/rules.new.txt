@@ -1,0 +1,256 @@
+adv rules	version	2
+rules start
+foolme_obj_free.....	foolme_fact_test	ml,c:f,c:a,c:s,chair:0.0 is free in Finland:0.0,c:e,
+											c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,c:e,
+											c:t,chair is free in Finland,mle
+player_action_goto..	get_player_action	ml,c:f,c:a,c:s,Edgar:0.0 decided to go to Finland:0.0,c:e,
+											c:s,I am Edgar,c:e,c:e,
+											c:t,Edgar decided to go to Finland,mle
+player_action_pickup	get_player_action	ml,c:f,c:a,c:s,Edgar:0.0 decided to pick up chair:0.0,c:e,
+											c:s,I am Edgar,c:e,c:e,
+											c:t,Edgar decided to pick up chair,mle
+plyr_actn_ask_where.	get_player_action	ml,c:f,c:a,c:s,Edgar:0.0 decided to ask Roy:0.0 where is chair:0.0,c:e,
+											c:s,I am Edgar,c:e,c:e,
+											c:t,Edgar decided to ask Roy where is chair,mle
+plyr_actn_tell_where	get_player_action	ml,c:f,c:a,c:s,Edgar:0.0 decided to tell Roy:0.0 where is chair:0.0,c:e,
+											c:s,I am Edgar,c:e,c:e,
+											c:t,Edgar decided to tell Roy where is chair,mle
+answer_ask_compul...	compul_goal_actv	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar asked to tell Roy:0.0 where is chair:0.0,c:e,c:e,
+											c:t,Edgar decided to tell Roy where is chair,mle
+get_done_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar wants chair:0.0,c:e,
+											c:s,Edgar has chair,c:e,c:e,
+											c:t,Edgar is done,mle
+get_goal_phrase.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar wants chair:0.0,c:e,c:e,
+											c:t,Edgar has chair,mle
+get_location........	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,c:e,
+											c:t,Belgium,mle
+get_free_objs.......	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,chair:0.0 is free in Belgium,c:e,c:e,
+											c:t,chair,mle
+get_want_obj........	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar wants chair:0.0,c:e,c:e,
+											c:t,chair,mle
+get_want_loc........	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar wants chair:0.0,c:e,
+											c:s,chair is held in Belgium:0.0,c:e,c:e,
+											c:t,Belgium,mle
+get_want_loc2.......	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar wants chair:0.0,c:e,
+											c:s,chair is free in Belgium:0.0,c:e,c:e,
+											c:t,Belgium,mle
+get_ask_cands.......	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy:0.0 is located in Belgium,c:e,c:e,
+											c:t,Roy,mle
+get_tell_cands......	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar asked to tell Roy:0.0 where is chair:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy is located in Belgium,c:e,
+											c:s,chair is held in Finland:0.0,c:e,c:e,
+											c:t,Roy chair,mle
+get_tell_cands2.....	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar asked to tell Roy:0.0 where is chair:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy is located in Belgium,c:e,
+											c:s,chair is free in Finland:0.0,c:e,c:e,
+											c:t,Roy chair,mle
+get_ask_give_cands..	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy:0.0 is located in Belgium,c:e,
+											c:s,Edgar wants chair:0.0,c:e,
+											c:s,Roy has chair,c:e,c:e,
+											c:t,Roy,mle
+get_give_cands......	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar asked to give Roy:0.0 chair:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy is located in Belgium,c:e,
+											c:s,Edgar has chair,c:e,c:e,
+											c:t,Roy chair,mle
+has_want_obj........	oracle_get_lists	ml,c:f,c:a,c:s,I am Edgar:0.0,c:e,
+											c:s,Edgar wants chair:0.0,c:e,
+											c:s,Edgar has chair,c:e,c:e,
+											c:t,yes,mle
+goto_decide.........	event_from_decide	ml,c:f,c:a,c:s,Edgar:0.0 decided to go to Finland:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,c:e,
+											c:t,c:i,Edgar went to Finland,mle
+pickup_decide.......	event_from_decide	ml,c:f,c:a,c:s,Edgar:0.0 decided to pick up chair:0.0,c:e,
+											c:s,chair is free in Belgium:0.0,c:e,
+											c:s,Edgar is located in Belgium,c:e,c:e,
+											c:t,c:i,Edgar picked up chair,mle
+ask_where_decide....	event_from_decide	ml,c:f,c:a,c:s,Edgar:0.0 decided to ask Roy:0.0 where is chair:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy is located in Belgium,c:e,c:e,
+											c:t,c:i,Edgar asked Roy where is chair,mle
+tell_where_decide...	event_from_decide	ml,c:f,c:a,c:s,Edgar:0.0 decided to tell Roy:0.0 where is chair:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy is located in Belgium,c:e,
+											c:s,chair is held in Finland:0.0,c:e,
+											c:s,Edgar asked to tell Roy where is chair,c:e,c:e,
+											c:t,c:i,Edgar told Roy chair is held in Finland,mle
+tell_where_decide2..	event_from_decide	ml,c:f,c:a,c:s,Edgar:0.0 decided to tell Roy:0.0 where is chair:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy is located in Belgium,c:e,
+											c:s,chair is free in Finland:0.0,c:e,
+											c:s,Edgar asked to tell Roy where is chair,c:e,c:e,
+											c:t,c:i,Edgar told Roy chair is free in Finland,mle
+ask_give_decide.....	event_from_decide	ml,c:f,c:a,c:s,Edgar:0.0 decided to ask Roy:0.0 for chair:0.0,c:e,
+											c:s,Roy has chair,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy is located in Belgium,c:e,c:e,
+											c:t,c:i,Edgar asked Roy for chair,mle
+give_decide.........	event_from_decide	ml,c:f,c:a,c:s,Edgar:0.0 decided to give Roy:0.0 chair:0.0,c:e,
+											c:s,Edgar has chair,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy is located in Belgium,c:e,
+											c:s,Edgar asked to give Roy chair,c:e,c:e,
+											c:t,c:i,Edgar gave Roy chair,mle
+gen_rule_went_from..	state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,c:e,
+											c:t,c:r,Edgar::r is::r located::r in::r Belgium::r,mle
+gen_rule_went_to....	state_from_event	ml,c:f,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:t,c:i,Edgar is located in Finland,mle
+gen_rule_now_held_in	state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 picked up chair:0.0,c:e,
+											c:s,chair is free in Belgium:0.0,c:e,c:e,
+											c:t,c:m,chair is free::r held in Belgium,mle
+gen_gave............	state_from_event_hide	ml,c:f,c:s,Edgar:0.0 gave Roy:0.0 chair:0.0,c:e,
+											c:t,c:u,Roy has::r chair::r,mle
+gen_rule_now_has....	state_from_event	ml,c:f,c:s,Edgar:0.0 picked up chair:0.0,c:e,
+											c:t,c:i,Edgar has chair,mle
+gen_has_went........	state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Edgar has chair:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,c:e,
+											c:t,c:m,chair is held in Belgium::r Finland,mle
+gen_ask_where.......	state_from_event	ml,c:f,c:s,Edgar:0.0 asked Roy:0.0 where is chair:0.0,c:e,
+											c:t,c:u,Roy::r asked::r to::r tell::r Edgar::r where::r is::r chair::r,mle
+gen_tell_where_end..	state_from_event	ml,c:f,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is held in:0.0 Belgium:0.0,c:e,
+											c:t,c:r,Edgar::r asked::r to::r tell::r Roy::r where::r is::r chair::r,mle
+gen_ask_give........	state_from_event	ml,c:f,c:s,Edgar:0.0 asked Roy:0.0 for chair:0.0,c:e,
+											c:t,c:u,Roy::r asked::r to::r give::r Edgar::r chair::r,mle
+knows_I_located.....	state_from_start	ml,c:f,c:s,Edgar:0.0 is located in Belgium:0.0,c:e,
+											c:t,c:i,Edgar is located in Belgium,mle
+knows_located.......	state_from_start	ml,c:f,c:a,c:s,Edgar:0.0 is located in Belgium:0.0,c:e,
+											c:s,Roy:0.0 is located in Belgium,c:e,c:e,
+											c:t,c:i,Edgar is located in Belgium,mle
+knows_free..........	state_from_start	ml,c:f,c:a,c:s,chair:0.0 is free in Belgium:0.0,c:e,
+											c:s,Edgar:0.0 is located in Belgium,c:e,c:e,
+											c:t,c:i,chair is free in Belgium,mle
+knows_I_want........	state_from_start	ml,c:f,c:s,Edgar:0.0 wants chair:0.0,c:e,
+											c:t,c:i,Edgar wants chair,mle
+remove_went_loc.....	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Roy:0.0 is located in Finland,c:e,c:e,
+											c:t,c:r,Roy::r is::r located::r in::r Finland::r,mle
+knows_went_loc......	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Roy:0.0 is located in Finland,c:e,c:e,
+											c:t,c:u,Roy::r is::r located::r in::r Finland,mle
+remove_went_has.....	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Roy:0.0 is located in Finland,c:e,
+											c:s,Roy has chair:0.0,c:e,c:e,
+											c:t,c:r,Roy has::r chair::r,mle
+knows_went_has......	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Roy:0.0 is located in Finland,c:e,
+											c:s,Roy has chair:0.0,c:e,c:e,
+											c:t,c:u,Roy has::r chair::r,mle
+remove_went_free_in.	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,chair:0.0 is held in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r free::r in::r Finland,mle
+remove_went_free_in2	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,chair:0.0 is free in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r free::r in::r Finland::r,mle
+remove_went_held_in.	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,chair:0.0 is free in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r held::r in::r Finland,mle
+remove_went_held_in2	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,chair:0.0 is held in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r held::r in::r Finland::r,mle
+knows_went_held_in..	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,chair:0.0 is held in Finland,c:e,c:e,
+											c:t,c:u,chair::r is::r held::r in::r Finland,mle
+knows_went_free_in..	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,chair:0.0 is free in Finland,c:e,c:e,
+											c:t,c:u,chair::r is::r free::r in::r Finland,mle
+knows_held_went_to..	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Edgar has chair:0.0,c:e,
+											c:s,Roy:0.0 is located in Finland,c:e,c:e,
+											c:t,c:u,chair::r is::r held::r in::r Finland,mle
+remove_held_went_to..	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Edgar has chair:0.0,c:e,
+											c:s,Roy:0.0 is located in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r free::r in::r Finland,mle
+knows_has_went_to...	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Edgar has chair:0.0,c:e,
+											c:s,Roy:0.0 is located in Finland,c:e,c:e,
+											c:t,c:u,Edgar has::r chair::r,mle
+know_where_told1....	br_state_from_event	ml,c:f,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is held in Belgium:0.0,c:e,
+											c:t,c:r,chair::r is::r held::r in::r Belgium,mle
+know_where_told1a...	br_state_from_event	ml,c:f,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is held in Belgium:0.0,c:e,
+											c:t,c:r,chair::r is::r free::r in::r Belgium,mle
+know_where_told2....	br_state_from_event	ml,c:f,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is held in Belgium:0.0,c:e,
+											c:t,c:i,chair is held in Belgium,mle
+know_where_told3....	br_state_from_event	ml,c:f,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is free in Belgium:0.0,c:e,
+											c:t,c:r,chair::r is::r free::r in::r Belgium,mle
+know_where_told3a...	br_state_from_event	ml,c:f,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is free in Belgium:0.0,c:e,
+											c:t,c:r,chair::r is::r held::r in::r Belgium,mle
+know_where_told4....	br_state_from_event	ml,c:f,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is free in Belgium:0.0,c:e,
+											c:t,c:i,chair is free in Belgium,mle
+know_where_told5....	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is held in Belgium:0.0,c:e,
+											c:s,Edgar is located in Finland:0.0,c:e,
+											c:s,Lee:0.0 is located in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r held::r in::r Belgium,mle
+know_where_told5b...	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is held in Belgium:0.0,c:e,
+											c:s,Edgar is located in Finland:0.0,c:e,
+											c:s,Lee:0.0 is located in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r free::r in::r Belgium,mle
+know_where_told6....	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is held in Belgium:0.0,c:e,
+											c:s,Edgar is located in Finland:0.0,c:e,
+											c:s,Lee:0.0 is located in Finland,c:e,c:e,
+											c:t,c:i,chair::r is::r held::r in::r Belgium,mle
+know_where_told7....	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is free in Belgium:0.0,c:e,
+											c:s,Edgar is located in Finland:0.0,c:e,
+											c:s,Lee:0.0 is located in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r free::r in::r Belgium,mle
+know_where_told7b...	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is free in Belgium:0.0,c:e,
+											c:s,Edgar is located in Finland:0.0,c:e,
+											c:s,Lee:0.0 is located in Finland,c:e,c:e,
+											c:t,c:r,chair::r is::r held::r in::r Belgium,mle
+know_where_told8....	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is free in Belgium:0.0,c:e,
+											c:s,Edgar is located in Finland:0.0,c:e,
+											c:s,Lee:0.0 is located in Finland,c:e,c:e,
+											c:t,c:i,chair::r is::r free::r in::r Belgium,mle
+knows_went_to.......	distr_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Roy:0.0 is located in Finland,c:e,c:e,
+											c:t,c:b,Edgar went to Finland,mle
+knows_went_from.....	distr_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy:0.0 is located in Belgium,c:e,c:e,
+											c:t,c:b,Edgar went to Finland,mle
+know_I_went.........	distr_from_event	ml,c:f,c:s,Edgar:0.0 went to Finland:0.0,c:e,
+											c:t,c:b,Edgar went to Finland,mle
+know_I_pickup.......	distr_from_event	ml,c:f,c:s,Edgar:0.0 picked up chair:0.0,c:e,
+											c:t,c:b,Edgar picked up chair,mle
+know_I_asked_where..	distr_from_event	ml,c:f,c:s,Edgar:0.0 asked Roy:0.0 where is chair:0.0,c:e,
+											c:t,c:b,Edgar asked Roy where is chair,mle
+know_asked_where....	distr_from_event	ml,c:f,c:a,c:s,Edgar:0.0 asked Roy:0.0 where is chair:0.0,c:e,
+											c:s,Edgar is located in Roy,c:e,
+											c:s,Lee:0.0 is located in Roy,c:e,c:e,
+											c:t,c:b,Edgar asked Roy where is chair,mle
+know_I_told_where...	distr_from_event	ml,c:f,c:s,Edgar:0.0 told Roy:0.0 chair:0.0 is held in:0.0 Belgium:0.0,c:e,
+											c:t,c:b,Edgar told Roy chair is held in Belgium,mle
+knows_I_asked_give..	distr_from_event	ml,c:f,c:s,Edgar:0.0 asked Roy:0.0 for chair:0.0,c:e,
+											c:t,c:b,Edgar asked Roy for chair,mle
+knows_I_gave........	distr_from_event	ml,c:f,c:s,Edgar:0.0 gave Roy:0.0 chair:0.0,c:e,
+											c:t,c:b,Edgar gave Roy chair,mle
+knows_gave..........	distr_from_event	ml,c:f,c:a,c:s,Edgar:0.0 gave Roy:0.0 chair:0.0,c:e,
+											c:s,Edgar is located in Finland:0.0,c:e,
+											c:s,Lee:0.0 is located in Finland,c:e,c:e,
+											c:t,c:b,Edgar gave Roy chair,mle
+knows_pickup........	distr_from_event	ml,c:f,c:a,c:s,Edgar:0.0 picked up chair:0.0,c:e,
+											c:s,Edgar is located in Belgium:0.0,c:e,
+											c:s,Roy:0.0 is located in Belgium,c:e,c:e,
+											c:t,c:b,Edgar picked up chair,mle
+rules end

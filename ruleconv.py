@@ -152,14 +152,73 @@ class cl_fixed_rules(object):
 		# csvw = csv.writer(fhw, quoting=csv.QUOTE_NONE, escapechar='\\')
 		for cat, rname, rule in zip(self.__l_categories, self.__l_names, self.__l_rules):
 			# csvw.writerow([rname+'\t'+cat+'\t'+'ml,\n\t\t\t\t\t\t\t\t\t\t,mle'])
-			rname + '\t' + cat + '\t'
-			fhw.write(rname + '\t' + cat + '\t' + 'ml,\n\t\t\t\t\t\t\t\t\t\t\t,mle\n')
+			nlstr = '\n\t\t\t\t\t\t\t\t\t\t\t'
+			wstr = rname + '\t' + cat + '\t' + 'ml,'
+			for iel, el in enumerate(rule):
+				bspace = False; breplace = False
+				if el[0] == rec_def_type.conn:
+					if el[1] == conn_type.IF:
+						wstr += 'c:f,'
+					elif el[1] == conn_type.AND:
+						wstr += 'c:a,'
+					elif el[1] == conn_type.start:
+						wstr += 'c:s,'
+					elif el[1] == conn_type.end:
+						wstr += 'c:e,'
+						if rule[iel+1][0] == rec_def_type.conn and rule[iel+1][1] == conn_type.end: continue
+						wstr += nlstr
+					elif el[1] == conn_type.Insert:
+						wstr += 'c:i,'
+					elif el[1] == conn_type.Unique:
+						wstr += 'c:u,'
+					elif el[1] == conn_type.Modify:
+						wstr += 'c:m,'
+					elif el[1] == conn_type.Remove:
+						wstr += 'c:r,'
+					elif el[1] == conn_type.Broadcast:
+						wstr += 'c:b,'
+					elif el[1] == conn_type.THEN:
+						wstr += 'c:t,'
+					else:
+						exit(1)
+				elif el[0] == rec_def_type.like:
+					wstr += el[1]; bspace = True
+					if el[2] != 1.0:
+						wstr += ':' + str(el[2])
+				elif el[0] == rec_def_type.var:
+					w = rule[el[1]][1]; bspace = True; breplace = True
+				elif el[0] == rec_def_type.obj:
+					w = el[1]; bspace = True; breplace = True
+				else:
+					exit()
+				if breplace:
+					br = False
+					if len(el) > 2:
+						if el[2] == conn_type.replace_with_next:
+							br = True
+						else:
+							assert False
+					lel = w.split()
+					for ii, s in enumerate(lel):
+						wstr += s
+						if br: wstr += '::r'
+						if ii < len(lel) - 1:
+							wstr += ' '
+
+				if bspace:
+					if iel == (len(rule) - 1) or rule[iel+1][0] == rec_def_type.conn:
+						wstr += ','
+					else:
+						wstr += ' '
+			wstr += 'mle\n'
+			fhw.write(wstr)
 		fhw.close()
 
 
 def main():
 	old_rules_obj = cl_fixed_rules('adv/rules.txt')
 	old_rules_obj.write_rules('~/tmp/rules.new.txt')
+	print('Important note. Add the header and footer and modify rule gen_rule_now_held_in to only replace the word free')
 	pass
 
 if __name__ == "__main__":

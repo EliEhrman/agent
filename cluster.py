@@ -100,7 +100,7 @@ class cl_phrase_cluster_mgr(object):
 					word = self.__nlb_mgr.dbg_closest_word(self.__l_nd_centroids[plen][i_lencent][iel*self.__bitvec_size:(iel+1)*self.__bitvec_size])
 					close_phrase.append(word)
 					# print(close_phrase)
-				print('rcent:', irec, ', hd:', hd_thresh, ',', close_phrase)
+				print('rcent:', irec, 'plen:', plen, ', hd:', hd_thresh, ',', close_phrase)
 				self.__ll_centroids.append(np.reshape(self.__l_nd_centroids[plen][i_lencent], -1).tolist())
 				self.__l_cent_hd.append(hd_thresh)
 				bitvecdb.add_rec(self.__hcdb_cent, plen,
@@ -120,6 +120,7 @@ class cl_phrase_cluster_mgr(object):
 		while num_left >= c_cluster_min:
 			num_left_now = self.__bdb_all.get_cluster_seed(cent_ret, hd_avg_ret, hd_thresh, plen, recc_thresh)
 			num_added = num_left - num_left_now
+			print('py: cluster_one_thresh num_added is', num_added)
 			num_left = num_left_now
 			if num_added == 0: break
 			l_cent = [ord(cent_ret[ib]) for ib in range(self.__bitvec_size*plen)]
@@ -134,8 +135,11 @@ class cl_phrase_cluster_mgr(object):
 			nd_centroids[icluster, :] = np.array(cluster.l_cent, dtype=np.uint8)
 			l_hd_thresh.append(cluster.hd)
 			# l_homog_score.append(hd_cluster)
-		score = 0 if (l_clusters == [] or np.sum(nd_num) == 0) else np.sum(np.multiply(nd_hd_cluster, nd_num)) / np.sum(nd_num)
-		final_score = (nd_hd_cluster.shape[0] * score) + (num_left * 0.2) # think about the magic number and put it into a constant
+		if (l_clusters == [] or np.sum(nd_num) == 0):
+			final_score = 1000.0
+		else:
+			score = np.sum(np.multiply(nd_hd_cluster, nd_num)) / np.sum(nd_num)
+			final_score = (nd_hd_cluster.shape[0] * score) + (num_left * 0.2) # think about the magic number and put it into a constant
 		return final_score, nd_centroids, l_hd_thresh
 
 	def assign_rule_name_score(self, plen, nd_centroids, l_cent_hd_thresh, l_rule_names,
@@ -176,24 +180,28 @@ class cl_phrase_cluster_mgr(object):
 		return 0 if tot_tot_hits == 0 else entr_tot / tot_tot_hits , tot_tot_hits
 
 	def cluster(self, l_rule_names, max_plen):
+		print('Cluster: print db recs.')
+		self.__bdb_all.print_db(self.__nlb_mgr.get_hcbdb())
 		entr_tot, tot_hits, tot_clusters = 0., 0, 0
 		self.__l_nd_centroids, self.__ll_cent_hd_thresh = [[] for _ in range(max_plen)], [[] for _ in range(max_plen)]
 		for plen in range(max_plen):
-			print('cluster at plen', plen)
-			# if plen < 3 or plen > 8: continue
+			# print('cluster at plen', plen)
+			# if plen != 4: continue
 			num_plen_recs = self.__bdb_all.get_num_plen(plen)
+			print('cluster: Num recs for plen', plen, 'is', num_plen_recs)
 			if num_plen_recs <= 0: continue
 			best_thresh, best_homog_score = -1, sys.float_info.max
 			# for recc_thresh in range(6, self.__bitvec_size * 1 / 5): # * 2 / 5
 			# for recc_thresh in range(int(c_cluster_thresh_min * self.__bitvec_size), int(c_cluster_thresh_max * self.__bitvec_size)):
 			for recc_thresh in range(c_cluster_thresh_min, c_cluster_thresh_max):
 				homog_score, nd_centroids_t, l_cent_hd_thresh_t = self.cluster_one_thresh(plen, recc_thresh)
-				print('homog_score', homog_score, 'recc_thresh', recc_thresh)
+				print('cluster: homog_score', homog_score, 'recc_thresh', recc_thresh, 'num cents', len(l_cent_hd_thresh_t), 'thresh:', l_cent_hd_thresh_t)
 				if homog_score < best_homog_score:
 					best_homog_score = homog_score
 					best_thresh, nd_centroids, l_cent_hd_thresh = recc_thresh, nd_centroids_t, l_cent_hd_thresh_t
 				else:
-					break
+					if len(l_cent_hd_thresh_t) > 0:
+						break # Don't keep testing for higher recc_thresh if score is the same. Note. As long as there are SOME cents
 					# break
 			if best_thresh == -1: continue
 			print('best_thresh for plen', plen, 'is', best_thresh)

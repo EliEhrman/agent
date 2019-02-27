@@ -594,6 +594,8 @@ class cl_lrule_mgr(object):
 		rphrase = self.__phrase_mgr.get_rphrase(phrase)
 		s_src_rcents = set(self.__phraseperms.get_cluster(rphrase))
 		map_rphrase_to_s_rcents[rphrase] = s_src_rcents
+		if s_src_rcents == set():
+			return
 
 		if l_results == []:
 			result = []
@@ -603,6 +605,8 @@ class cl_lrule_mgr(object):
 			result = self.full_split(self.convert_phrase_to_word_list(l_results[0][1:]))
 			result_rphrase = self.__phrase_mgr.get_rphrase(result)
 			s_result_rcents = set(self.__phraseperms.get_cluster(result_rphrase))
+			if s_src_rcents == set():
+				return
 			map_rphrase_to_s_rcents[result_rphrase] = s_result_rcents
 
 		t_vars = self.make_var_list([phrase] + [result])

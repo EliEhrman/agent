@@ -2865,3 +2865,16 @@ At the end of adv_main2.py:
 	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2) # use for debugging gpsnlai
 
 Looks like long cents are failing at the cluster stage. Need to investigate why
+
+Wednesday 27th February 2019
+
+Completed the automated conversion of the rules file
+Implemented using ruleconv.py
+Follow last changes instructions output by the file if you run automated again. The rule should be
+gen_rule_now_held_in	state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 picked up chair:0.0,c:e,
+											c:s,chair is free in Belgium:0.0,c:e,c:e,
+											c:t,c:m,chair is free::r held in Belgium,mle
+
+CIW:
+
+Centroid creation was not working but is now a little better
