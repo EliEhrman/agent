@@ -10,7 +10,7 @@ from bitvecdb import bitvecdb
 
 ltotup = lambda l: tuple([tuple(li) for li in l])
 
-c_print_every = 500
+c_print_every = 50 # 500
 
 
 def convert_charvec_to_arr(bin, size=-1):
@@ -88,21 +88,26 @@ class cl_lrule(object):
 		bitvec_size = self.__mgr.get_bitvec_size()
 		phrase_bitvec = []; cent_offsets = []; l_cent_hds = []
 		plen = 0
+		ll_centroids = []; ll_el_hds = []
 		for rcent in [src_rcent] + l_close_rcent + [self.__result_rcent]:
 			if rcent < 0:
 				continue
 			l_centroid = cluster_mgr.get_centroid(rcent)
+			ll_centroids.append(l_centroid)
 			cent_len = len(l_centroid) / bitvec_size
 			cent_offsets.append(plen)
 			plen += cent_len
 			phrase_bitvec += l_centroid
-			l_cent_hds.append(cluster_mgr.get_cent_hd(rcent))
-		bitvecdb.add_rec(hcdb, plen, convert_charvec_to_arr(phrase_bitvec))
-		self.__cdb_irec, self.__mgr_irec = self.__mgr.register_write_rec(self.__rsg, self.__rpg, self)
-		bitvecdb.set_rule_data(	hcdb, self.__cdb_irec, len(cent_offsets), convert_intvec_to_arr(cent_offsets),
-								convert_intvec_to_arr(l_cent_hds), len(self.__var_list),
-								convert_intvec_to_arr([vv for var_def in self.__var_list for vv in var_def]),
-								int(self.__result_rcent != -1))
+			ll_el_hds.append(cluster_mgr.get_cent_hd(rcent))
+			l_cent_hds += cluster_mgr.get_cent_hd(rcent) # make one long list of all hds
+		self.__cdb_irec, self.__mgr_irec = \
+				self.__mgr.register_write_rec(	self.__rsg, self.__rpg, self, list(self.__var_list), ll_el_hds,
+												ll_centroids, (self.__result_rcent != -1), self.__rsg.get_cid())
+		# bitvecdb.add_rec(hcdb, plen, convert_charvec_to_arr(phrase_bitvec))
+		# bitvecdb.set_rule_data(	hcdb, self.__cdb_irec, len(cent_offsets), convert_intvec_to_arr(cent_offsets),
+		# 						convert_intvec_to_arr(l_cent_hds), len(self.__var_list),
+		# 						convert_intvec_to_arr([vv for var_def in self.__var_list for vv in var_def]),
+		# 						int(self.__result_rcent != -1), self.__rsg.get_cid(), -1, True)
 
 	def is_match(self, result_rcent, var_list, ts):
 		if result_rcent == self.__result_rcent and var_list == self.__var_list:
@@ -256,7 +261,8 @@ class cl_rule_phrase_grp(object):
 			return
 		if self.__result_entropy < 0.1:
 			self.__b_go_further = False
-			if self.get_tot_hits() > c_perf_config_learn_rpg_hits * 3:
+			if self.get_tot_hits() > c_perf_config_learn_rpg_hits * 2:
+				print('calc_status: get_parent_b_save')
 				if not self.get_parent_b_save(): # Won't hit myself 'cos we just disabled __b_save
 					self.__b_save = True
 					if not self.__b_written:
@@ -355,7 +361,7 @@ class cl_rule_phrase_grp(object):
 			self.__num_test_hits_bad += 1
 			self.__test_pct_hit_bad += lrule_pct_hit
 
-c_perf_config_learn_rpg_hits = 10
+c_perf_config_learn_rpg_hits = 5 # 10
 c_perf_config_learn_entropy_factor = .9
 c_perf_config_learn_entropy_abs = .8
 c_perf_config_learn_max_close = 3
@@ -667,10 +673,30 @@ class cl_lrule_mgr(object):
 		phrases_list = [self.__phraseperms.get_phrase(r) for r in l_rphrases]
 		return self.make_var_list(phrases_list)
 
-	def register_write_rec(self, rsg, rpg, lrule):
+	def register_write_rec(self, rsg, rpg, lrule, ll_var_list, ll_thresh_hds, ll_centroids, b_has_result, cid):
 		mgr_irec = len(self.__l_write_recs)
 		self.__l_write_recs.append((rsg, rpg, lrule),)
-		cdb_irec = self.__rule_mgr.register_lrule(mgr_irec)
+		ll_phrase_data = []
+		d_vars = dict()
+		for l_vars in ll_var_list:
+			d_vars[(l_vars[2:4])] = l_vars[:2]
+		for iphrase, l_centroid in enumerate(ll_centroids):
+			phrase_data = []
+			cent_len = len(l_centroid) / self.__bitvec_size
+			for iel in range(cent_len):
+				t_src = d_vars.get((iphrase, iel), ())
+				if t_src == ():
+					el_bits = l_centroid[iel * self.__bitvec_size:(iel + 1) * self.__bitvec_size]
+					phrase_data.append(self.__phraseperms.get_nlb_mgr().dbg_closest_word(el_bits))
+				else:
+					if t_src[0] == iphrase:
+						phrase_data.append(phrase_data[t_src[1]])
+					else:
+						phrase_data.append(ll_phrase_data[t_src[0]][t_src[1]])
+			ll_phrase_data.append(phrase_data)
+		rule_name = 'lrule'+str(mgr_irec)
+		cdb_irec = self.__rule_mgr.register_lrule(	mgr_irec, ll_var_list, ll_thresh_hds, ll_phrase_data, b_has_result,
+													cid, rule_name, d_vars)
 		return cdb_irec, mgr_irec
 
 	def save_rules(self):
@@ -680,9 +706,9 @@ class cl_lrule_mgr(object):
 			copyfile(fn, fn + '.bak')
 		fh = open(fn, 'wb')
 		csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
-		csvw.writerow(['nlbitvec rules', 'Version', '2'])
+		csvw.writerow(['nlbitvec rules', 'Version', '3'])
 		csvw.writerow(['Num Rules:', len(self.__l_write_recs)])
-		csvw.writerow(['Num Close', 'src cent', 'list close cents', 'rpg pct hit', 'result cent', 'num vars', 'var list'])
+		csvw.writerow(['cat name', 'Num Close', 'src cent', 'list close cents', 'rpg pct hit', 'result cent', 'num vars', 'var list'])
 		for irec, write_rec in enumerate(self.__l_write_recs):
 			rsg, rpg, lrule = write_rec
 			rpg.calc_rule_pct_hits()
@@ -701,11 +727,12 @@ class cl_lrule_mgr(object):
 			with open(fn, 'rb') as o_fhr:
 				csvr = csv.reader(o_fhr, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
 				_, _, version_str = next(csvr)
-				assert version_str == '2', 'cl_rule_mgr load rules. Wrong version'
+				assert version_str == '3', 'cl_rule_mgr load rules. Wrong version'
 				_, snum_rules = next(csvr)
 				next(csvr)
 				for irow, row in enumerate(csvr):
-					cat_name, num_close, src_rcent = map(int, row[:3])
+					cat_name = row[0]
+					num_close, src_rcent = map(int, row[1:3])
 					if num_close > 0:
 						l_close_rcent = map(int, row[3:num_close+3])
 					rpg_pct_hit = float(row[num_close+3])

@@ -227,13 +227,13 @@ class cl_mpdbs_mgr(object):
 		print('run rule for:', stmt, 'for db:', db_name, 'rule cats:', l_rule_cats, 'and rule name', l_rule_names)
 		return self.__rule_mgr.run_rule(self, stmt, phase_data, idb, l_rule_cats, l_rule_names)
 
-	def test_rule(self, stmt, l_results, phase_data, db_name):
+	def test_rule(self, stmt, l_results, phase_data, db_name, l_rule_cats):
 		idb = self.__d_db_names.get(db_name, -1)
 		if idb == -1:
-			print('Warning. mpdb requested to learn rule on db', db_name, 'which doesnt exist.')
+			print('Warning. mpdb requested to test rule on db', db_name, 'which doesnt exist.')
 			return
-		print('learning for:', stmt, 'for db:', db_name)
-		self.__rule_mgr.test_rule(self, stmt, l_results, idb)
+		print('testing for:', stmt, 'for db:', db_name, 'rule cats:', l_rule_cats)
+		self.__rule_mgr.test_rule(self, stmt, l_results, idb, l_rule_cats)
 
 
 	def learn_rule(self, stmt, l_results, phase_data, db_name, cat_name):

@@ -15,8 +15,8 @@ import utils
 # c_num_seeds_initial = 5
 # c_cluster_thresh = 10 # 18
 c_cluster_min = 10 # minimum number of recs in cluster
-c_cluster_thresh_min = 3 # 0.1
-c_cluster_thresh_max = 15 # 0.2  # 2 / 5
+c_cluster_thresh_min = 1 # 0.1
+c_cluster_thresh_max = 4 # 0.2  # 2 / 5
 # 6, self.__bitvec_size * 1 / 5
 
 # __bitvec_size = 0
@@ -33,7 +33,7 @@ class cl_phrase_cluster_mgr(object):
 		self.__l_nd_centroids = [] # list of np arrays, one for each len
 		self.__ll_centroids = [] # list of centroids, each centroid a list of different length
 		self.__ll_cent_hd_thresh = []
-		self.__l_cent_hd = [] # list of hds, one for each in __ll_centroids
+		self.__l_cent_hd = [] # list of hds, one for each in __ll_centroids. Note! Now list per centroid. Length of list == plen
 		self.__hcdb_cent = bitvecdb.init_capp()
 		self.__nlb_mgr = None
 		bitvecdb.set_name(self.__hcdb_cent, 'centroids')
@@ -192,8 +192,8 @@ class cl_phrase_cluster_mgr(object):
 			if num_plen_recs <= 0: continue
 			best_thresh, best_homog_score = -1, sys.float_info.max
 			# for recc_thresh in range(6, self.__bitvec_size * 1 / 5): # * 2 / 5
-			# for recc_thresh in range(int(c_cluster_thresh_min * self.__bitvec_size), int(c_cluster_thresh_max * self.__bitvec_size)):
-			for recc_thresh in range(c_cluster_thresh_min, c_cluster_thresh_max):
+			# for recc_thresh in range(c_cluster_thresh_min, c_cluster_thresh_max):
+			for recc_thresh in range(int(c_cluster_thresh_min * plen), int(c_cluster_thresh_max * plen)): # Note. This version has not been checked
 				homog_score, nd_centroids_t, l_cent_hd_thresh_t = self.cluster_one_thresh(plen, recc_thresh)
 				print('cluster: homog_score', homog_score, 'recc_thresh', recc_thresh, 'num cents', len(l_cent_hd_thresh_t), 'thresh:', l_cent_hd_thresh_t)
 				if homog_score < best_homog_score:

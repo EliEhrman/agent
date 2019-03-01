@@ -1214,27 +1214,31 @@ int get_el_hd_recs_by_list(	void * hcapp, int * irec_arr, int * cand_arr, int nu
 	
 }
 
-void set_rule_data(	void * hcapp, int irec, int num_cents, int * cent_offsets, int * cent_hds, int num_var_defs, 
+void set_rule_data(	void * hcapp, int irec, int num_phrases, int * phrase_offsets, int * thresh_hds, int num_var_defs, 
 					int * var_defs, int bresult, int cid, int rid, int b_hd_per_el) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	tSRuleRec * prule = (tSRuleRec *)&(papp->rule_data[irec]);
+	// the following calc needs explanation. Prior to calling this function, add_rec has been called to put the
+	// centroid data of the rule (all the els of all the phrases) in one record. So the length of that record, in els,
+	// is the number of hd values in the thresh_hds array if b_hd_per_el
+	// as of writing only b_hd_per_el is being supported
+	printf("set_rule_data called for irec %d. Num phrases: %d\n", irec, num_phrases);
 	int tot_num_els = papp->rec_lens[irec];
 	prule->b_hd_per_el = (bool)(b_hd_per_el != 0);
 	int num_hds = (prule->b_hd_per_el ? tot_num_els : prule->num_phrases);
-	prule->num_phrases = num_cents;
+	prule->num_phrases = num_phrases;
 	prule->phrase_offsets = (int*) bdballoc(prule->phrase_offsets, &(prule->phrase_offsets_alloc), sizeof (int), prule->num_phrases);
 	prule->phrase_lens = (int*) bdballoc(prule->phrase_lens, &(prule->phrase_lens_alloc), sizeof (int), prule->num_phrases);
-	prule->phrase_hds = (int*) bdballoc(prule->phrase_hds, &(prule->phrase_hds_alloc), sizeof (int), num_hds);
-	memcpy(prule->phrase_offsets, cent_offsets, sizeof (int)*prule->num_phrases);
+	prule->thresh_hds = (int*) bdballoc(prule->thresh_hds, &(prule->thresh_hds_alloc), sizeof (int), num_hds);
+	memcpy(prule->phrase_offsets, phrase_offsets, sizeof (int)*prule->num_phrases);
 	prule->b_result = bresult;
-	printf("set_rule_data called for irec %d.\n", irec);
 	for (int icent = 0; icent < prule->num_phrases - 1; icent++) {
 		prule->phrase_lens[icent] = prule->phrase_offsets[icent + 1] - prule->phrase_offsets[icent];
 		printf("set_rule_data: cent %d, len = %d\n", icent, prule->phrase_lens[icent]);
 	}
 	prule->phrase_lens[prule->num_phrases - 1] = papp->rec_lens[irec] - prule->phrase_offsets[prule->num_phrases - 1];
 	printf("set_rule_data: Last cent, len = %d\n", prule->phrase_lens[prule->num_phrases - 1]);
-	memcpy(prule->phrase_hds, cent_hds, sizeof (int)*num_hds);
+	memcpy(prule->thresh_hds, thresh_hds, sizeof (int)*num_hds);
 	int max_phrase_len = -1; 
 	for (int iphrase = 0; iphrase < prule->num_phrases; iphrase++) {
 		if (prule->phrase_lens[iphrase] > max_phrase_len) {
@@ -1281,8 +1285,8 @@ void set_rule_data(	void * hcapp, int irec, int num_cents, int * cent_offsets, i
 				prule->var_tbl[ivar].locs[0][0] = iphrase;
 				prule->var_tbl[ivar].locs[0][1] = iel;
 				pair_dict_set(&(prule->d_var_opts), iphrase, iel, ivar);
-				int i_orig_pos = cent_offsets[iphrase]+iel;
-				prule->var_tbl[ivar].hd_thresh = cent_hds[i_orig_pos];
+				int i_orig_pos = phrase_offsets[iphrase]+iel;
+				prule->var_tbl[ivar].hd_thresh = thresh_hds[i_orig_pos];
 //				if (cent_hds[i_orig_pos] == 0) {
 					prule->var_tbl[ivar].src_pat_el = papp->rec_ptrs[irec] + i_orig_pos; // &(papp->db[(papp->rec_ptrs[irec] + i_orig_pos) * papp->bitvec_size]);
 //				}
@@ -1345,8 +1349,8 @@ char * get_rec(tSBDBApp * pdb, int irec) {
 	return &(pdb->db[pdb->rec_ptrs[irec] * pdb->bitvec_size]);
 }
 
-int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms,
-						void * hcdb, int num_srcs, int * src_rperms) {
+int find_matching_rules(void * hcapp, void * hcdb, int * ret_arr, int * ret_rperms,
+						int num_srcs, int * src_rperms, int num_cats, int * cat_arr) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	tSBDBApp * pdb = (tSBDBApp *) hcdb;
 	int num_found = 0;
@@ -1360,7 +1364,22 @@ int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms,
 		printf("find_matching_rules: finding for rperm %d, found so far %d.\n", src_rperms[isrc], num_found);
 		for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 			tSRuleRec * prule = &(papp->rule_data[irec]);
-			bool b_rule_matched = true;
+			bool b_rule_matched = false;
+			if (num_cats >= 0) {
+				for (int icat = 0; icat < num_cats; icat++) {
+					if (prule->cid == cat_arr[icat]) {
+						b_rule_matched = true;
+						break;
+					}
+				}
+				if (!b_rule_matched) {
+					printf("Rejecting rule %d because its cid is not in the cat list.\n", irec);
+					continue;
+				}
+			}
+			else {
+				b_rule_matched = true;
+			}
 			int num_var_defs = prule->num_var_defs;
 			int * pvar_defs[num_var_defs];
 			for (int ivar = 0; ivar < num_var_defs; ivar++) {
@@ -1370,6 +1389,7 @@ int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms,
 			if (qlen != papp->rule_data[irec].phrase_lens[icent]) continue;
 			printf("find_matching_rules: searching cand %d.\n", irec);
 			int off = papp->rec_ptrs[irec] + papp->rule_data[irec].phrase_offsets[icent];
+			printf("off = %d\n", off);
 			for (int iel = 0; iel < qlen; iel++) { // qpos == pos ind query phrase
 				char * qel = &(pdbrec[icent][iel * papp->bitvec_size]);
 				int hd_el = 0; bool b_el_var = false;
@@ -1395,8 +1415,8 @@ int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms,
 				}
 				if (prule->b_hd_per_el && !b_el_var)  {
 					printf("Checking per el hd for iphrase %d iel %d.\n",icent, iel);
-					if (hd_el > prule->el_hds[prule->phrase_offsets[icent]+iel]) {
-						printf("hd_el test failed because %d > %d.\n", hd_el, prule->el_hds[prule->phrase_offsets[icent]+iel]);
+					if (hd_el > prule->thresh_hds[prule->phrase_offsets[icent]+iel]) {
+						printf("hd_el test failed because %d > %d.\n", hd_el, prule->thresh_hds[prule->phrase_offsets[icent]+iel]);
 						b_rule_matched = false;
 						break;
 					}
@@ -1408,8 +1428,8 @@ int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms,
 			if (prule->b_hd_per_el) 
 				printf("find_matching_rules: irec %d el_per_hd rule passed all tests.\n", irec);
 			else
-				printf("find_matching_rules: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->rule_data[irec].phrase_hds[icent]);
-			if (prule->b_hd_per_el || hd <= papp->rule_data[irec].phrase_hds[icent]) {
+				printf("find_matching_rules: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->rule_data[irec].thresh_hds[icent]);
+			if (prule->b_hd_per_el || hd <= papp->rule_data[irec].thresh_hds[icent]) {
 				if (ret_arr != NULL) {
 					ret_arr[num_found] = irec;
 					ret_rperms[num_found] = src_rperms[isrc];

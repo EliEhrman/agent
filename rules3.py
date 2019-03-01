@@ -36,13 +36,12 @@ class cl_nlb_mgr_notifier(nlbitvec.cl_nlb_mgr_notific):
 		self.__client = client
 		nlbitvec.cl_nlb_mgr_notific.__init__(self)
 
-
 	def iel_bitvec_changed_alert(self, iel, bitvec):
 		self.__client.iel_bitvec_changed(iel)
 
 
 class cl_ext_rules(object):
-	def __init__(self, fn):
+	def __init__(self, fn, bitvec_size):
 		self.__l_rules = []
 		self.__l_categories = []
 		self.__d_rcats = dict() # keyed by cat names, returns an index into __l_irules_in_cats and __l_cat_names
@@ -54,10 +53,10 @@ class cl_ext_rules(object):
 		self.__lll_phrase_data = []
 		self.__lll_el_data = []
 		self.__lll_vars = []
-		self.__lll_el_cds = []
+		self.__lll_el_hds = []
 		self.__l_bresults = [] # for each rule does it have a result phrase
 		self.__el_bitvec_mgr = None
-		self.__bitvec_size = -1
+		self.__bitvec_size = bitvec_size
 		self.__nlb_mgr_notifier = cl_nlb_mgr_notifier(self)
 		self.__phrase_mgr = None
 		self.__l_active_rules = [] # A list of pairs, first a bool for ext rule, second an index into either l_rules or rule_learn.py's write_recs array
@@ -72,10 +71,21 @@ class cl_ext_rules(object):
 		self.__d_db_arg_cache = dict()
 		self.load_rules(fn)
 
-	def register_lrule(self, ilrule):
-		ret = len(self.__l_active_rules)
+	def register_lrule(self, ilrule, ll_var_list, ll_thresh_hds, ll_phrase_data, b_has_result, cid, rule_name, d_vars):
+		icdb = len(self.__l_active_rules)
+		assert cid < len(self.__l_cat_names), 'Error! register_lrule passed a cid out of bounds of cat_names'
+		cat_name = self.__l_cat_names[cid]
+		self.__l_categories.append(cat_name)
+		self.__l_irules_in_cats[cid].append(icdb)
+		self.__d_rnames[rule_name] = icdb
+		self.__l_names.append(rule_name)
+		self.__lll_vars.append(ll_var_list); self.__lll_el_hds.append(ll_thresh_hds);
+		self.__lll_phrase_data.append(ll_phrase_data); self.__l_bresults.append(b_has_result)
+		rule = self.create_rule_rec(icdb, b_has_result, d_vars)
+		self.write_crec(icdb, b_change_not_add=False)
+		self.__l_rules.append(rule)
 		self.__l_active_rules.append((False, ilrule))
-		return ret
+		return icdb
 
 	def register_rule_learner(self, lrule_mgr):
 		self.__lrule_mgr = lrule_mgr
@@ -147,10 +157,12 @@ class cl_ext_rules(object):
 			self.__lll_el_data.append(ll_el_data)
 			self.__lll_phrase_data.append(ll_phrase_data)
 			self.__lll_vars.append(ll_vars)
-			self.__lll_el_cds.append(ll_el_cds)
+			ll_el_hds = [[int(((1.0 - cd)*self.__bitvec_size)) for cd in l_cds] for l_cds in ll_el_cds]
+			self.__lll_el_hds.append(ll_el_hds)
 			self.__l_bresults.append(bresult)
 
-		pass
+
+			pass
 
 	def extract_ml_srule(self, srule, csvr):
 		ret = ''
@@ -284,16 +296,61 @@ class cl_ext_rules(object):
 
 		return rec, l_phrase_data, ll_el_data, ll_vars, ll_el_cds, bgens
 
+	def create_rule_rec(self, irule, bresult, d_vals):
+		ll_phrase_data, ll_vars, ll_el_hds = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_hds[irule]
+		# d_vals = dict()
+		d_comps = dict()
+		# irec = 0
+		rec = [[rec_def_type.conn, conn_type.IF]]
+		b_close_AND = False
+		if len(ll_phrase_data) > (2 if bresult else 1):
+			b_close_AND = True
+			rec += [[rec_def_type.conn, conn_type.AND]]
+		for iphrase, l_phrase in enumerate(ll_phrase_data):
+			if bresult and iphrase == len(ll_phrase_data) - 1:
+				continue
+			l_hds = ll_el_hds[iphrase]
+			rec += [[rec_def_type.conn, conn_type.start]]
+			for iel, (el, hd) in enumerate(zip(l_phrase, l_hds)):
+				t_src = d_vals.get((iphrase, iel), ())
+				if t_src == ():
+					d_comps[(iphrase, iel)] = len(rec)
+					if hd == 0:
+						rec += [[rec_def_type.obj, el]]
+					else:
+						rec += [[rec_def_type.like, el, 1.0 - (float(hd) / self.__bitvec_size)]]
+				else:
+					rec += [[rec_def_type.var, d_comps[d_vals[(iphrase, iel)]]]]
+			rec += [[rec_def_type.conn, conn_type.end]]
+		if b_close_AND:
+			rec += [[rec_def_type.conn, conn_type.end]]
+		if bresult:
+			iphrase = len(ll_phrase_data) - 1
+			l_phrase = ll_phrase_data[-1]
+			l_hds = ll_el_hds[-1]
+			rec += [[rec_def_type.conn, conn_type.THEN]]
+			for iel, (el, hd) in enumerate(zip(l_phrase, l_hds)):
+				t_src = d_vals.get((iphrase, iel), ())
+				if t_src == ():
+					d_comps[(iphrase, iel)] = len(rec)
+					if hd == 0:
+						rec += [[rec_def_type.obj, el]]
+					else:
+						rec += [[rec_def_type.like, el, 1.0 - (float(hd) / self.__bitvec_size)]]
+				else:
+					rec += [[rec_def_type.var, d_comps[d_vals[(iphrase, iel)]]]]
+		return rec
+
 	def set_mgrs(self, nlbitvec_mgr, phrase_mgr, phraseperms_mgr):
 		self.__el_bitvec_mgr = nlbitvec_mgr
 		self.__el_bitvec_mgr.register_notific(self.__nlb_mgr_notifier)
 		self.__phrase_mgr = phrase_mgr
 		self.__phraseperms = phraseperms_mgr
-		self.__bitvec_size = nlbitvec_mgr.get_bitvec_size()
+		assert self.__bitvec_size == nlbitvec_mgr.get_bitvec_size(), 'Error! Misconfiguration resulted in multiple bitvec size definition'
 		self.__hcdb_rules = bitvecdb.init_capp()
 		bitvecdb.set_name(self.__hcdb_rules, 'rules')
 		bitvecdb.set_b_rules(self.__hcdb_rules)
-		self.__bitvec_size = nlbitvec_mgr.get_bitvec_size()
+		# self.__bitvec_size = nlbitvec_mgr.get_bitvec_size()
 		bitvecdb.set_el_bitvec_size(self.__hcdb_rules, self.__bitvec_size)
 		bitvecdb.set_pdbels(self.__hcdb_rules, self.__el_bitvec_mgr.get_hcbdb())
 		for i_ext_rule, _ in enumerate(self.__lll_phrase_data):
@@ -312,31 +369,36 @@ class cl_ext_rules(object):
 			self.write_crec(irule, b_change_not_add=True)
 
 	def write_crec(self, irule, b_change_not_add = False):
-		phrase_data, ll_vars, ll_el_cds = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_cds[irule]
+		phrase_data, ll_vars, ll_el_hds = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_hds[irule]
 		phrase_bitvec = []; plen = 0; phrase_offsets = []; l_hds = []; phrase_offset = 0
-		for iphrase, (phrase, l_el_cds) in enumerate(zip(phrase_data, ll_el_cds)):
+		l_add_notifies = []
+		for phrase in phrase_data:
 			self.__phrase_mgr.add_phrase(phrase)
-			for iel, (el, cd) in enumerate(zip(phrase, l_el_cds)):
+		for iphrase, (phrase, l_el_hds) in enumerate(zip(phrase_data, ll_el_hds)):
+			for iel, (el, hd) in enumerate(zip(phrase, l_el_hds)):
 				rel = self.__el_bitvec_mgr.get_el_id(el)
 				assert rel != -1, 'Error! External rules at this point should have registered all their names.'
 				if not b_change_not_add:
-					s_irules = self.__d_iel_to_l_irules.get(rel, set())
-					s_irules.add(irule)
-					self.__d_iel_to_l_irules[rel] = s_irules
-					self.__nlb_mgr_notifier.notify_on_iel(rel)
+					l_add_notifies.append(rel)
+					# s_irules = self.__d_iel_to_l_irules.get(rel, set())
+					# s_irules.add(irule)
+					# self.__d_iel_to_l_irules[rel] = s_irules
+					# self.__nlb_mgr_notifier.notify_on_iel(rel)
 				el_bitvec = self.__el_bitvec_mgr.get_bin_by_id(rel)
 				assert el_bitvec.count(1) > 0, 'Any external rule may only use one word not found in samples in a rule'
 				phrase_bitvec += el_bitvec
 				plen += 1
-				l_hds.append(int(((1.0 - cd)*self.__bitvec_size)))
+				l_hds.append(hd) # (int(((1.0 - cd)*self.__bitvec_size)))
 			phrase_offsets.append(phrase_offset)
 			phrase_offset += len(phrase)
 		if b_change_not_add:
 			bitvecdb.change_rec(self.__hcdb_rules, plen, convert_charvec_to_arr(phrase_bitvec),
 								self.__d_irule_to_iactive[irule])
 			return
+		print('adding rec plen', plen, 'len', len(phrase_bitvec), '. bits', phrase_bitvec)
 		bitvecdb.add_rec(self.__hcdb_rules, plen, convert_charvec_to_arr(phrase_bitvec))
 		self.__d_irule_to_iactive[irule] = len(self.__l_active_rules)
+		print('phrase_offsets', phrase_offsets)
 		bitvecdb.set_rule_data(	self.__hcdb_rules, len(self.__l_active_rules), len(phrase_offsets),
 									utils.convert_intvec_to_arr(phrase_offsets),
 									utils.convert_intvec_to_arr(l_hds), len(ll_vars),
@@ -344,6 +406,13 @@ class cl_ext_rules(object):
 									int(self.__l_bresults[irule]),
 									self.__d_rcats[self.__l_categories[irule]], self.__d_rnames[self.__l_names[irule]],
 									True)
+
+		for rel in l_add_notifies:
+			s_irules = self.__d_iel_to_l_irules.get(rel, set())
+			s_irules.add(irule)
+			self.__d_iel_to_l_irules[rel] = s_irules
+			self.__nlb_mgr_notifier.notify_on_iel(rel)
+
 		pass
 
 	def run_rule(self, mpdbs, stmt, phase_data, idb, l_rule_cats, l_rule_names=[]):
@@ -381,7 +450,7 @@ class cl_ext_rules(object):
 						nd_qbitvec = np.array(self.__el_bitvec_mgr.get_bin_by_id(eid), dtype=np.int8)
 						nd_rbitvec = np.array(self.__el_bitvec_mgr.get_el_bin(self.__lll_phrase_data[rid][0][pos]), dtype=np.int8)
 						hd = np.sum(np.not_equal(nd_qbitvec, nd_rbitvec))
-						if hd > int((1. - self.__lll_el_cds[rid][0][pos])*self.__bitvec_size):
+						if hd > self.__lll_el_hds[rid][0][pos]: #  int((1. - self.__lll_el_cds[rid][0][pos])*self.__bitvec_size):
 							bmatch =  False
 							break
 				if not bmatch: continue
@@ -403,7 +472,7 @@ class cl_ext_rules(object):
 	# 	print('should run rule called', self.__l_names[irule])
 	# 	self.run_one_rule(irule, rperm_ret, result_words, mpdbs, idb)
 
-	def test_rule(self, mpdbs, stmt, l_results, idb):
+	def test_rule(self, mpdbs, stmt, l_results, idb, l_rule_cats):
 		phrase = utils.full_split(stmt)
 		result_words = ''
 		if l_results != []:
@@ -415,44 +484,61 @@ class cl_ext_rules(object):
 		num_poss_ret = len(self.__l_active_rules) * len(l_rperms)
 		irule_arr = bitvecdb.intArray(num_poss_ret); rperms_ret_arr = bitvecdb.intArray(num_poss_ret)
 		rperms_arr = utils.convert_intvec_to_arr(l_rperms)
-		num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, irule_arr, rperms_ret_arr,
-														self.__phraseperms.get_bdb_all_hcdb(), len(l_rperms), rperms_arr)
+		l_rule_cids = [self.get_cid(rule_cat) for rule_cat in l_rule_cats]
+		num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
+														irule_arr, rperms_ret_arr, len(l_rperms), rperms_arr,
+														len(l_rule_cids), utils.convert_intvec_to_arr(l_rule_cids))
+		num_rules_matched = 0
 		for iret in range(num_rules_found):
 			# self.run_one_rule(irule_arr[iret], rperms_ret_arr[iret])
-			bext, irule = self.__l_active_rules[irule_arr[iret]]
+			irule = irule_arr[iret]
+			bext, iactive = self.__l_active_rules[irule]
 			rperm_ret = rperms_ret_arr[iret]
 			if not bext:
-				self.__lrule_mgr.test_rule(irule, rperm_ret, result_words, mpdbs, idb)
-				continue
+				# assert False, 'lrules should be run just like ext rules'
+				print('Will run learned rule', iactive, 'as standard rule', irule)
+				# self.__lrule_mgr.test_rule(irule, rperm_ret, result_words, mpdbs, idb)
+				# continue
 			print('should run rule called', self.__l_names[irule])
-			self.run_one_rule(irule, rperm_ret, result_words, mpdbs, idb)
+			bmatched, ll_rperms_src, ll_result_eids = self.run_one_rule(irule, rperm_ret, result_words, mpdbs, idb)
+			if not bmatched:
+				print('rule', irule, 'did not match the state of the story db for idb', idb)
+				continue
+			print('test rule produced: ', ' '.join([self.__el_bitvec_mgr.get_el_by_eid(el) for el in ll_result_eids[0]]))
+			print('test expected result:', result_words)
+			num_rules_matched += 1
 
 
-		if num_rules_found > 0:
+		if num_rules_matched > 0:
 			self.__test_stat_num_rules_found += 1
 		else:
 			self.__test_stat_num_rules_not_found += 1
 		pass
 
 	# currently this function is used to run one external rule on one src_rperm. The first clause has already been
-	# checked. There is always a result clause.
+	# checked. There is always a result clause. CORRECTION If lrules are included, there should be no guarantee of a result clause
 	def run_one_rule(self, irule, src_rperm, result_words, mpdbs, idb):
-		ll_phrase_data, ll_vars, ll_el_cds, = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_cds[irule]
+		ll_phrase_data, ll_vars, ll_el_hds, = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_hds[irule]
 		ll_rperms_src, ll_rperms = [[src_rperm]], []
 		print('run one rule:\n', mpdbs.get_bdb_story().print_db(self.__el_bitvec_mgr.get_hcbdb()))
-		for i_phrase_close, (l_phrase, l_el_cds) in enumerate(zip(ll_phrase_data[1:-1], ll_el_cds[1:-1])):
+		# assert False, 'this code should all run inside the c bitvec library'
+		if self.__l_bresults[irule]:
+			ll_close_phrase_data = ll_phrase_data[1:-1]; ll_close_el_hs = ll_el_hds[1:-1]
+		else:
+			ll_close_phrase_data = ll_phrase_data[1:]; ll_close_el_hs = ll_el_hds[1:]
+		for i_phrase_close, (l_phrase, l_el_hds) in enumerate(zip(ll_close_phrase_data, ll_close_el_hs)):
 			num_len_recs, irec_arr = mpdbs.get_bdb_story().get_plen_irecs(idb, len(l_phrase))
 			for rperm_combo in ll_rperms_src:
 				ll_eids = [self.__phraseperms.get_perm_eids(rperm1) for rperm1 in rperm_combo]
 				# l_phrase_eids = [self.__phraseperms.get_perm_eids(rperm1) for el in l_phrase]
 				iclose_vars = filter(lambda l: l[2] == (i_phrase_close + 1), ll_vars)
 				num_match, match_arr = num_len_recs, irec_arr
-				for iel, el_cd in enumerate(l_el_cds):
+				for iel, el_hd in enumerate(l_el_hds):
 					# There can only be one var matching a dest, so we simply take the first from the list created by the filter
 					l_one_var = filter(lambda l: l[3] == iel, iclose_vars)
 					if l_one_var == []:
 						num_match, match_arr = \
-							mpdbs.get_bdb_story().get_el_hd_recs(	iel, int((1 - el_cd)*self.__bitvec_size),
+							mpdbs.get_bdb_story().get_el_hd_recs(	iel, el_hd, # int((1 - el_cd)*self.__bitvec_size),
 																	l_phrase[iel], num_match, match_arr)
 					else:
 						one_var = l_one_var[0]
@@ -463,20 +549,23 @@ class cl_ext_rules(object):
 						break
 				for imatch in range(num_match):
 					ll_rperms.append(rperm_combo + [mpdbs.get_bdb_story().get_rperm_from_iperm(match_arr[imatch])])
-			if ll_rperms == []: return [], []
+			if ll_rperms == []:
+				return False, [], []
 			ll_rperms_src = list(ll_rperms)
 			ll_rperms = []
 
-		iresult_vars = filter(lambda l: l[2] == len(ll_phrase_data)-1, ll_vars)
-		l_result_eids = [self.__el_bitvec_mgr.get_el_id(el) for el in ll_phrase_data[-1]]
+		# assert False, 'there should be no guarantee of a return'
 		ll_result_eids = []
-		for l_rperms in ll_rperms_src:
-			ll_eids = [self.__phraseperms.get_perm_eids(rperm1) for rperm1 in l_rperms]
-			l_result_eids_copy = list(l_result_eids)
-			for var in iresult_vars:
-				l_result_eids_copy[var[3]] = ll_eids[var[0]][var[1]]
-			ll_result_eids.append(l_result_eids_copy)
-		return ll_rperms_src, ll_result_eids
+		if self.__l_bresults[irule]:
+			iresult_vars = filter(lambda l: l[2] == len(ll_phrase_data)-1, ll_vars)
+			l_result_eids = [self.__el_bitvec_mgr.get_el_id(el) for el in ll_phrase_data[-1]]
+			for l_rperms in ll_rperms_src:
+				ll_eids = [self.__phraseperms.get_perm_eids(rperm1) for rperm1 in l_rperms]
+				l_result_eids_copy = list(l_result_eids)
+				for var in iresult_vars:
+					l_result_eids_copy[var[3]] = ll_eids[var[0]][var[1]]
+				ll_result_eids.append(l_result_eids_copy)
+		return True, ll_rperms_src, ll_result_eids
 
 	def find_var_opts(self, idb, irule, num_var_opts, rperm, var_obj_parent, calc_level):
 		print('irule', irule, 'num vars ret', num_var_opts, 'for rperm', rperm)

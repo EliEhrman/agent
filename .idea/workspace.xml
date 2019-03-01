@@ -10,17 +10,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60b20013-eebf-4dd4-a709-0b01b1d10aab" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/adv/rules.new.txt" afterDir="false" />
-      <change beforePath="/devlink2/dev/myfaiss/glove_kmeans.py" beforeDir="false" afterPath="/devlink2/dev/myfaiss/glove_kmeans.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/adv2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/adv_main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/adv_main2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bdb.py" beforeDir="false" afterPath="$PROJECT_DIR$/bdb.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvecdb/_bitvecdb.so" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/_bitvecdb.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitvecdb/bdb.h" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/bdb.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvecdb/bitvecdb.c" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/bitvecdb.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitvecdb/bitvecdb.h" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/bitvecdb.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitvecdb/bitvecdb.py" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/bitvecdb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitvecdb/bitvecdb_wrap.c" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/bitvecdb_wrap.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/bitvecdb.o" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/bitvecdb.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/bitvecdb_wrap.o" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/bitvecdb_wrap.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/vo.o" beforeDir="false" afterPath="$PROJECT_DIR$/bitvecdb/build/temp.linux-x86_64-2.7/vo.o" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cluster.py" beforeDir="false" afterPath="$PROJECT_DIR$/cluster.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mpdbs.py" beforeDir="false" afterPath="$PROJECT_DIR$/mpdbs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebook.txt" beforeDir="false" afterPath="$PROJECT_DIR$/notebook.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rule_learn.py" beforeDir="false" afterPath="$PROJECT_DIR$/rule_learn.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ruleconv.py" beforeDir="false" afterPath="$PROJECT_DIR$/ruleconv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rules3.py" beforeDir="false" afterPath="$PROJECT_DIR$/rules3.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -31,52 +38,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/phraseperms.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="179">
-              <caret line="91" selection-start-line="91" selection-end-line="91" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cluster.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="148" column="53" lean-forward="true" selection-start-line="148" selection-start-column="53" selection-end-line="148" selection-end-column="53" />
-              <folding>
-                <element signature="e#0#37#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/bdb.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="208">
-              <caret line="211" column="11" lean-forward="true" selection-start-line="211" selection-start-column="11" selection-end-line="211" selection-end-column="11" />
-              <folding>
-                <element signature="e#0#37#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/notebook.txt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="189">
-              <caret line="2861" column="4" selection-start-line="2861" selection-start-column="4" selection-end-line="2861" selection-end-column="4" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/adv_main2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="201">
-              <caret line="424" column="18" selection-start-line="424" selection-start-column="18" selection-end-line="424" selection-end-column="18" />
+            <state relative-caret-position="256">
+              <caret line="248" column="28" selection-start-line="248" selection-start-column="28" selection-end-line="248" selection-end-column="28" />
               <folding>
                 <element signature="e#320#357#0" expanded="true" />
               </folding>
@@ -87,8 +52,32 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rule_learn.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="179">
-              <caret line="594" selection-start-line="594" selection-end-line="594" />
+            <state relative-caret-position="8262">
+              <caret line="494" selection-start-line="494" selection-end-line="494" />
+              <folding>
+                <element signature="e#0#37#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mpdbs.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="3944">
+              <caret line="235" selection-start-line="235" selection-end-line="235" />
+              <folding>
+                <element signature="e#463#500#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cluster.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="986">
+              <caret line="69" column="34" selection-start-line="69" selection-start-column="20" selection-end-line="69" selection-end-column="34" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -99,8 +88,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/phrases.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="55" selection-start-line="55" selection-end-line="55" />
+            <state relative-caret-position="1020">
+              <caret line="61" selection-start-line="61" selection-end-line="61" />
               <folding>
                 <element signature="e#310#320#0" expanded="true" />
               </folding>
@@ -111,8 +100,29 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rules3.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="188">
-              <caret line="72" selection-start-line="72" selection-end-line="72" />
+            <state relative-caret-position="8483">
+              <caret line="515" selection-start-line="515" selection-end-line="515" />
+              <folding>
+                <element signature="e#0#37#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/notebook.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="837">
+              <caret line="2909" selection-start-line="2909" selection-end-line="2909" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ruleconv.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="3655">
+              <caret line="220" column="119" selection-start-line="220" selection-start-column="119" selection-end-line="220" selection-end-column="119" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -123,8 +133,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nlbitvec.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="188">
-              <caret line="345" column="17" selection-start-line="345" selection-start-column="8" selection-end-line="345" selection-end-column="17" />
+            <state relative-caret-position="3400">
+              <caret line="215" column="8" selection-start-line="215" selection-start-column="8" selection-end-line="215" selection-end-column="8" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -133,13 +143,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/adv2.py">
+        <entry file="file://$PROJECT_DIR$/adv/ext_rules.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="246">
-              <caret line="63" column="22" selection-start-line="63" selection-start-column="22" selection-end-line="63" selection-end-column="22" />
-              <folding>
-                <element signature="e#0#10#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="119">
+              <caret line="7" column="71" selection-start-line="7" selection-start-column="71" selection-end-line="7" selection-end-column="71" />
             </state>
           </provider>
         </entry>
@@ -155,36 +162,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>r</find>
-      <find>convert_charvec_to_arr</find>
-      <find>self.convert_charvec_to_arr</find>
-      <find>uncomm</find>
-      <find>cluster_one_thresh</find>
-      <find>__l_nd_centroids</find>
-      <find>i_lencent</find>
-      <find>c_cluster_thresh_min</find>
-      <find>c_cluster_thresh_max</find>
-      <find>l_results</find>
-      <find>l_rphrases_close</find>
-      <find>open</find>
-      <find>str</find>
-      <find>replace_with_next</find>
-      <find>full_spl</find>
-      <find>c:m,</find>
-      <find>:r</find>
-      <find>gen_rule_now_held_in</find>
-      <find>::r</find>
-      <find>c:m</find>
-      <find>:m</find>
-      <find>bfurther</find>
-      <find>bitvecdb.get_clus</find>
-      <find>phrases init_data complete</find>
-      <find>bdb_all</find>
-      <find>get_bdb_all_hcdb</find>
-      <find>print_db</find>
-      <find>rcent:</find>
-      <find>cluster a</find>
-      <find>bitvecdb.add</find>
+      <find>__l_write_recs</find>
+      <find>__l_parent_rpgs</find>
+      <find>__b_save</find>
+      <find>__l_cent_hd</find>
+      <find>__cid</find>
+      <find>find_matching_rules</find>
+      <find>test_rule</find>
+      <find>---</find>
+      <find>__last_print</find>
+      <find>ts =</find>
+      <find>.ts</find>
+      <find>``</find>
+      <find>rperm_combo</find>
+      <find>ll_rperms_src</find>
+      <find>test_r</find>
+      <find>__ll_centroids</find>
+      <find>dbg_</find>
+      <find>get_nlb_mgr</find>
+      <find>__lll_el_cds</find>
+      <find>l_el_cds</find>
+      <find>c_bitvec_size</find>
+      <find>__bitvec_size</find>
+      <find>get_cid</find>
+      <find>self.__l_rules.append(rule)</find>
+      <find>__l_active_rules</find>
+      <find>__d_irule_to_iactive</find>
+      <find>bitvecdb.find_matching_rules</find>
+      <find>__d_iel_to_l_irules</find>
+      <find>cid</find>
+      <find>ll_rperms</find>
     </findStrings>
     <replaceStrings>
       <replace>self.bitvec_size</replace>
@@ -236,22 +243,22 @@
         <option value="$PROJECT_DIR$/bitvecdb/bitvecdb.c" />
         <option value="$PROJECT_DIR$/utils.py" />
         <option value="$PROJECT_DIR$/bitvecdb/setup.py" />
-        <option value="$PROJECT_DIR$/rules3.py" />
         <option value="$PROJECT_DIR$/adv/ext_rules.txt" />
-        <option value="$PROJECT_DIR$/mpdbs.py" />
         <option value="$PROJECT_DIR$/gpsnlai.py" />
         <option value="$PROJECT_DIR$/embed.py" />
         <option value="$PROJECT_DIR$/nlbitvec.py" />
-        <option value="$PROJECT_DIR$/bdb.py" />
         <option value="$PROJECT_DIR$/phrases.py" />
         <option value="$PROJECT_DIR$/phraseperms.py" />
         <option value="$USER_HOME$/tmp/rules.new.txt" />
         <option value="$PROJECT_DIR$/ruleconv.py" />
         <option value="$PROJECT_DIR$/adv/rules.new.txt" />
+        <option value="$PROJECT_DIR$/cluster.py" />
+        <option value="$PROJECT_DIR$/bdb.py" />
+        <option value="$PROJECT_DIR$/adv2.py" />
+        <option value="$PROJECT_DIR$/mpdbs.py" />
         <option value="$PROJECT_DIR$/rule_learn.py" />
         <option value="$PROJECT_DIR$/adv_main2.py" />
-        <option value="$PROJECT_DIR$/cluster.py" />
-        <option value="$PROJECT_DIR$/adv2.py" />
+        <option value="$PROJECT_DIR$/rules3.py" />
         <option value="$PROJECT_DIR$/notebook.txt" />
       </list>
     </option>
@@ -688,7 +695,14 @@
       <option name="project" value="LOCAL" />
       <updated>1551109415318</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="Centroid creation was not working but is now a little better">
+      <created>1551286798077</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1551286798077</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -700,7 +714,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3263041" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.3263041" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3263041" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3107658" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -784,7 +798,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Directed Cyclic Graph for action options. Some bugs fixed. Should have a recursion limit but does not." />
     <MESSAGE value="Added a global profile decorator." />
     <MESSAGE value="Testing git addition of SWIG stub." />
     <MESSAGE value="Added some c code for first part of find_var_opts." />
@@ -809,7 +822,8 @@
     <MESSAGE value="new nl varopts working with no multi word nl or learned rules and not filtering up the ai yet" />
     <MESSAGE value="gpsnlai minimally working with new varopts" />
     <MESSAGE value="Centroid creation works with the nlb system." />
-    <option name="LAST_COMMIT_MESSAGE" value="Centroid creation works with the nlb system." />
+    <MESSAGE value="Centroid creation was not working but is now a little better" />
+    <option name="LAST_COMMIT_MESSAGE" value="Centroid creation was not working but is now a little better" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1214,7 +1228,7 @@
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <condition expression="len(base_event_hits)&gt;1" language="Python" />
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>163</line>
+          <line>168</line>
           <option name="timeStamp" value="1384" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1249,34 +1263,34 @@
           <line>228</line>
           <option name="timeStamp" value="1412" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="len(l_rcent_close) &gt; 1" language="Python" />
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>409</line>
+          <line>415</line>
           <option name="timeStamp" value="1436" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="l_rcent_close != []" language="Python" />
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>412</line>
+          <line>418</line>
           <option name="timeStamp" value="1452" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="len(l_rcent_close) &gt; 1" language="Python" />
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>416</line>
+          <line>422</line>
           <option name="timeStamp" value="1475" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="len(l_parent_rpgs) &gt; 1" language="Python" />
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>432</line>
+          <line>438</line>
           <option name="timeStamp" value="1486" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="len(l_rcent_close) &gt; 1" language="Python" />
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>426</line>
+          <line>432</line>
           <option name="timeStamp" value="1488" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1286,28 +1300,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>537</line>
+          <line>543</line>
           <option name="timeStamp" value="1515" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>387</line>
+          <line>393</line>
           <option name="timeStamp" value="1521" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>322</line>
+          <line>328</line>
           <option name="timeStamp" value="1527" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>326</line>
+          <line>332</line>
           <option name="timeStamp" value="1528" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/adv_main2.py</url>
-          <line>192</line>
-          <option name="timeStamp" value="1546" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/gpsai.py</url>
@@ -1336,7 +1345,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>226</line>
+          <line>238</line>
           <option name="timeStamp" value="1579" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1346,17 +1355,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>406</line>
+          <line>475</line>
           <option name="timeStamp" value="1603" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>421</line>
-          <option name="timeStamp" value="1605" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>419</line>
+          <line>491</line>
           <option name="timeStamp" value="1608" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1401,7 +1405,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>72</line>
+          <line>71</line>
           <option name="timeStamp" value="1733" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1426,12 +1430,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>732</line>
+          <line>821</line>
           <option name="timeStamp" value="1795" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>655</line>
+          <line>744</line>
           <option name="timeStamp" value="1798" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1465,11 +1469,6 @@
           <option name="timeStamp" value="1815" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mpdbs.py</url>
-          <line>119</line>
-          <option name="timeStamp" value="1816" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/gpsnlai.py</url>
           <line>191</line>
           <option name="timeStamp" value="1821" />
@@ -1495,7 +1494,7 @@
           <line>179</line>
           <option name="timeStamp" value="1843" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="el_name == 'has'" language="Python" />
           <url>file://$PROJECT_DIR$/nlbitvec.py</url>
           <line>362</line>
@@ -1524,7 +1523,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rules3.py</url>
-          <line>573</line>
+          <line>662</line>
           <option name="timeStamp" value="1934" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1581,28 +1580,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>488</line>
+          <line>494</line>
           <option name="timeStamp" value="2011" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/cluster.py</url>
-          <line>290</line>
-          <option name="timeStamp" value="2014" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <condition expression="l_rphrases_close != []" language="Python" />
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>403</line>
+          <line>409</line>
           <option name="timeStamp" value="2015" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>649</line>
-          <option name="timeStamp" value="2016" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>656</line>
+          <line>662</line>
           <option name="timeStamp" value="2017" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1622,63 +1611,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>595</line>
-          <option name="timeStamp" value="2038" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>597</line>
-          <option name="timeStamp" value="2039" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>611</line>
-          <option name="timeStamp" value="2040" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>608</line>
+          <line>614</line>
           <option name="timeStamp" value="2041" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>614</line>
-          <option name="timeStamp" value="2042" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>622</line>
-          <option name="timeStamp" value="2043" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>641</line>
-          <option name="timeStamp" value="2044" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>299</line>
-          <option name="timeStamp" value="2045" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>262</line>
-          <option name="timeStamp" value="2046" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>266</line>
-          <option name="timeStamp" value="2047" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
           <line>268</line>
-          <option name="timeStamp" value="2048" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/rule_learn.py</url>
-          <line>256</line>
-          <option name="timeStamp" value="2049" />
+          <option name="timeStamp" value="2046" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <condition expression="plen == 8" language="Python" />
@@ -1691,6 +1630,81 @@
           <line>184</line>
           <option name="timeStamp" value="2052" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rule_learn.py</url>
+          <line>705</line>
+          <option name="timeStamp" value="2063" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rule_learn.py</url>
+          <line>712</line>
+          <option name="timeStamp" value="2084" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rule_learn.py</url>
+          <line>718</line>
+          <option name="timeStamp" value="2085" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/adv_main2.py</url>
+          <line>244</line>
+          <option name="timeStamp" value="2089" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/adv_main2.py</url>
+          <line>257</line>
+          <option name="timeStamp" value="2090" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>528</line>
+          <option name="timeStamp" value="2091" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/adv_main2.py</url>
+          <line>426</line>
+          <option name="timeStamp" value="2135" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>502</line>
+          <option name="timeStamp" value="2136" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>557</line>
+          <option name="timeStamp" value="2137" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>567</line>
+          <option name="timeStamp" value="2138" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>486</line>
+          <option name="timeStamp" value="2139" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>548</line>
+          <option name="timeStamp" value="2140" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>552</line>
+          <option name="timeStamp" value="2141" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>504</line>
+          <option name="timeStamp" value="2142" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rules3.py</url>
+          <line>508</line>
+          <option name="timeStamp" value="2143" />
+        </line-breakpoint>
         <breakpoint enabled="true" type="python-exception">
           <properties notifyOnTerminate="true" exception="runpy._Error">
             <option name="notifyOnTerminate" value="true" />
@@ -1699,11 +1713,6 @@
         </breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="wstr" />
-      </configuration>
-    </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="evaluateCodeFragment">
@@ -1761,11 +1770,6 @@
     </expressions>
     <expressions id="breakpointCondition">
       <expression>
-        <expression-string>plen == 8</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
         <expression-string>len(l_rcent_close) &gt; 1</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
@@ -1777,6 +1781,16 @@
       </expression>
       <expression>
         <expression-string>l_rphrases_close != []</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>el_name == 'has'</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>plen == 8</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1800,11 +1814,6 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>el_stats.get_num_hits() &gt; 9</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
     <expressions id="watch">
       <expression>
@@ -1820,47 +1829,47 @@
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
+        <expression-string>d_vals[(iphrase, iel)]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>d_vars</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>rperms_ret_arr[4]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>rperms_ret_arr[3]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>rperms_ret_arr[2]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>rperms_ret_arr[1]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>rperms_ret_arr[0:3]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>rperms_ret_arr[0]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
         <expression-string>hd_avg_ret[0]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>self._cl_nlb_mgr__l_els_stats._cl_els_list__list[1067]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>saved_phrases[1001]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>saved_phrases[1000]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>saved_phrases[999]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>match_arr[0]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>irule_arr[0]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>match_arr[imatch]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>self._cl_ext_rules__el_bitvec_mgr._cl_nlb_mgr__l_els_stats._cl_els_list__list[500]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1990,13 +1999,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bitvecdb/vo.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="490">
-          <caret line="302" column="1" selection-start-line="302" selection-start-column="1" selection-end-line="302" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.PyCharmCE2018.3/system/python_stubs/-1247972723/__builtin__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1648">
@@ -2055,13 +2057,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bitvecdb/bitvecdb.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9288">
-          <caret line="471" selection-start-line="471" selection-end-line="471" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gpsai.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="247">
@@ -2089,16 +2084,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/adv/rules_new.txt/rules.new.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/adv/ext_rules.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" column="71" selection-start-line="7" selection-start-column="71" selection-end-line="7" selection-end-column="71" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/adv/rules_new.txt/rules.new.txt" />
     <entry file="file://$PROJECT_DIR$/adv/rules.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
@@ -2113,16 +2099,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ruleconv.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="438">
-          <caret line="220" column="119" selection-start-line="220" selection-start-column="119" selection-end-line="220" selection-end-column="119" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/adv/rules.new.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="97">
@@ -2130,20 +2106,41 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mpdbs.py">
+    <entry file="file://$PROJECT_DIR$/phraseperms.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="244" selection-start-line="244" selection-end-line="244" />
+        <state relative-caret-position="1870">
+          <caret line="110" selection-start-line="110" selection-end-line="110" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bitvecdb/vo.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="490">
+          <caret line="302" column="1" selection-start-line="302" selection-start-column="1" selection-end-line="302" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bitvecdb/bitvecdb.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="141" selection-start-line="141" selection-end-line="141" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="952">
+          <caret line="63" column="21" selection-start-line="63" selection-start-column="21" selection-end-line="63" selection-end-column="21" />
           <folding>
-            <element signature="e#463#500#0" expanded="true" />
+            <element signature="e#0#10#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rule_learn.py">
+    <entry file="file://$PROJECT_DIR$/bdb.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="179">
-          <caret line="594" selection-start-line="594" selection-end-line="594" />
+        <state relative-caret-position="4454">
+          <caret line="269" selection-start-line="269" selection-end-line="269" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
@@ -2152,35 +2149,38 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/adv_main2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
-          <caret line="424" column="18" selection-start-line="424" selection-start-column="18" selection-end-line="424" selection-end-column="18" />
+        <state relative-caret-position="256">
+          <caret line="248" column="28" selection-start-line="248" selection-start-column="28" selection-end-line="248" selection-end-column="28" />
           <folding>
             <element signature="e#320#357#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/phraseperms.py">
+    <entry file="file://$PROJECT_DIR$/rule_learn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="179">
-          <caret line="91" selection-start-line="91" selection-end-line="91" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/nlbitvec.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="188">
-          <caret line="345" column="17" selection-start-line="345" selection-start-column="8" selection-end-line="345" selection-end-column="17" />
+        <state relative-caret-position="8262">
+          <caret line="494" selection-start-line="494" selection-end-line="494" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rules3.py">
+    <entry file="file://$PROJECT_DIR$/mpdbs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="188">
-          <caret line="72" selection-start-line="72" selection-end-line="72" />
+        <state relative-caret-position="3944">
+          <caret line="235" selection-start-line="235" selection-end-line="235" />
+          <folding>
+            <element signature="e#463#500#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cluster.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="986">
+          <caret line="69" column="34" selection-start-line="69" selection-start-column="20" selection-end-line="69" selection-end-column="34" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
@@ -2189,48 +2189,55 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/phrases.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="55" selection-start-line="55" selection-end-line="55" />
+        <state relative-caret-position="1020">
+          <caret line="61" selection-start-line="61" selection-end-line="61" />
           <folding>
             <element signature="e#310#320#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cluster.py">
+    <entry file="file://$PROJECT_DIR$/rules3.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="148" column="53" lean-forward="true" selection-start-line="148" selection-start-column="53" selection-end-line="148" selection-end-column="53" />
+        <state relative-caret-position="8483">
+          <caret line="515" selection-start-line="515" selection-end-line="515" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bdb.py">
+    <entry file="file://$PROJECT_DIR$/ruleconv.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="208">
-          <caret line="211" column="11" lean-forward="true" selection-start-line="211" selection-start-column="11" selection-end-line="211" selection-end-column="11" />
+        <state relative-caret-position="3655">
+          <caret line="220" column="119" selection-start-line="220" selection-start-column="119" selection-end-line="220" selection-end-column="119" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/adv2.py">
+    <entry file="file://$PROJECT_DIR$/nlbitvec.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="246">
-          <caret line="63" column="22" selection-start-line="63" selection-start-column="22" selection-end-line="63" selection-end-column="22" />
+        <state relative-caret-position="3400">
+          <caret line="215" column="8" selection-start-line="215" selection-start-column="8" selection-end-line="215" selection-end-column="8" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#37#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adv/ext_rules.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="71" selection-start-line="7" selection-start-column="71" selection-end-line="7" selection-end-column="71" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/notebook.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="189">
-          <caret line="2861" column="4" selection-start-line="2861" selection-start-column="4" selection-end-line="2861" selection-end-column="4" />
+        <state relative-caret-position="837">
+          <caret line="2909" selection-start-line="2909" selection-end-line="2909" />
         </state>
       </provider>
     </entry>

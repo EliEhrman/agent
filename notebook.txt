@@ -2878,3 +2878,33 @@ gen_rule_now_held_in	state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 picked up chair:0
 CIW:
 
 Centroid creation was not working but is now a little better
+
+Thursday 28th February 2019
+
+rules learned are now added to the rules list just like external rules and written to the cdb from there. I even have
+a translation to an old-style rule rec.
+
+In theory I could write out the learned rules together with the external rules in one format in one file
+
+The correct thing to do is to write a c function that does a run rule on the data in the rules database (along with the c story db)
+
+However, I got lazy on that. I was afraid it would take more than a day or so, Instead, I adapted the run rule from rules3
+that works with python data on the extrnal rules as just (1) finds rules using c (2) finds phrases from story using c
+I simply add the data from lrule to the external rule data
+
+Friday 1st March 2019
+
+Turns out the python run rule in rules3 is no where near solid enough. It does not manage forbidden combinations of vars
+and probably does not handle complex combinations of phrases found.
+
+Decided to convert the vo function to become a generic run rule.
+1. Any of the phrases (even more than one) can be fixed, not just the result
+2. Can either run a rule or look for combos
+
+The do_vo function must be broken down into sub-function
+There will still need to be 2 functions, do_vo and run_rule, different returns
+They will use common blocks and the SVOState struct
+
+CIW:
+
+Integrated lrules and ext rules using minimaly functional py run rule that must be replaced with solid c engine.

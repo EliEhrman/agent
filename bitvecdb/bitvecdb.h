@@ -31,11 +31,12 @@ void set_b_rules(void * hcapp);
 void set_b_rec_names(void * happ);
 void set_rec_name(void * happ, char * name, int irec);
 int test_rec_name(void * happ, char * name, int irec);
-void set_rule_data( void * hcapp, int irec, int num_cents, int * cent_offsets, int * cent_hds, int num_var_defs, 
+void set_rule_data( void * hcapp, int irec, int num_phrases, int * phrase_offsets, int * thresh_hds, int num_var_defs, 
                     int * var_defs, int bresult, int cid, int rid, int b_hd_per_el);
 //void set_rule_el_data(  void * hcapp, int irec, int num_cents, int * cent_offsets, int * el_hds, int num_var_defs, 
 //                        int * var_defs, int bresult, int cid, int rid);
-int find_matching_rules(void * hcapp, int * ret_arr, int * ret_rperms, void * hcdb, int num_srcs, int * src_rperms);
+int find_matching_rules(void * hcapp, void * hcdb, int * ret_arr, int * ret_rperms, int num_srcs, int * src_rperms, 
+                        int num_cats, int * cat_arr);
 int find_result_matching_rules(	void * hcapp, void * hcdb, void * hcdbels, int * ret_arr, int * ret_num_vars, 
                                 int * ret_rperms, int num_srcs, int * src_rperms, int num_cats, int * cat_arr, 
                                 int num_rids, int * rid_arr);

@@ -50,10 +50,10 @@ typedef struct SRuleRec {
     int phrase_offsets_alloc;
     int * phrase_lens; // length of each phrase/centroid
     int phrase_lens_alloc;
-    int * phrase_hds; // For rules that have hd only per phrase, the list num_cents long of phrase hds
-    int phrase_hds_alloc;
-    int * el_hds; // For rules where b_hd_per_el is true, one hd per el. The size of this list is the length of the Rec in the tSBDBApp->rec_lens
-    int el_hds_alloc;
+    int * thresh_hds; // For rules that have hd only per phrase, the list num_cents long of phrase hds
+    int thresh_hds_alloc;
+//    int * el_hds; // For rules where b_hd_per_el is true, one hd per el. The size of this list is the length of the Rec in the tSBDBApp->rec_lens
+//    int el_hds_alloc;
     int num_var_defs; // All rules have a quartet of values per var (i_src_phrase, i_src_pos, i_dest_phrase, i_dest_pos).
     int * var_defs; // Num of quartets
     int var_defs_alloc;

@@ -375,12 +375,12 @@ def test_rec_name(happ, name, irec):
     return _bitvecdb.test_rec_name(happ, name, irec)
 test_rec_name = _bitvecdb.test_rec_name
 
-def set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el):
-    return _bitvecdb.set_rule_data(hcapp, irec, num_cents, cent_offsets, cent_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el)
+def set_rule_data(hcapp, irec, num_phrases, phrase_offsets, thresh_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el):
+    return _bitvecdb.set_rule_data(hcapp, irec, num_phrases, phrase_offsets, thresh_hds, num_var_defs, var_defs, bresult, cid, rid, b_hd_per_el)
 set_rule_data = _bitvecdb.set_rule_data
 
-def find_matching_rules(hcapp, ret_arr, ret_rperms, hcdb, num_srcs, src_rperms):
-    return _bitvecdb.find_matching_rules(hcapp, ret_arr, ret_rperms, hcdb, num_srcs, src_rperms)
+def find_matching_rules(hcapp, hcdb, ret_arr, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr):
+    return _bitvecdb.find_matching_rules(hcapp, hcdb, ret_arr, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr)
 find_matching_rules = _bitvecdb.find_matching_rules
 
 def find_result_matching_rules(hcapp, hcdb, hcdbels, ret_arr, ret_num_vars, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr):

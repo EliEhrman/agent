@@ -5899,48 +5899,56 @@ fail:
 SWIGINTERN PyObject *_wrap_find_matching_rules(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   void *arg1 = (void *) 0 ;
-  int *arg2 = (int *) 0 ;
+  void *arg2 = (void *) 0 ;
   int *arg3 = (int *) 0 ;
-  void *arg4 = (void *) 0 ;
+  int *arg4 = (int *) 0 ;
   int arg5 ;
   int *arg6 = (int *) 0 ;
+  int arg7 ;
+  int *arg8 = (int *) 0 ;
   int res1 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  int res2 ;
   void *argp3 = 0 ;
   int res3 = 0 ;
-  int res4 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
   int val5 ;
   int ecode5 = 0 ;
   void *argp6 = 0 ;
   int res6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  void *argp8 = 0 ;
+  int res8 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
   int result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:find_matching_rules",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:find_matching_rules",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "find_matching_rules" "', argument " "1"" of type '" "void *""'"); 
   }
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_int, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "find_matching_rules" "', argument " "2"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "find_matching_rules" "', argument " "2"" of type '" "void *""'"); 
   }
-  arg2 = (int *)(argp2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "find_matching_rules" "', argument " "3"" of type '" "int *""'"); 
   }
   arg3 = (int *)(argp3);
-  res4 = SWIG_ConvertPtr(obj3,SWIG_as_voidptrptr(&arg4), 0, 0);
+  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "find_matching_rules" "', argument " "4"" of type '" "void *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "find_matching_rules" "', argument " "4"" of type '" "int *""'"); 
   }
+  arg4 = (int *)(argp4);
   ecode5 = SWIG_AsVal_int(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "find_matching_rules" "', argument " "5"" of type '" "int""'");
@@ -5951,7 +5959,17 @@ SWIGINTERN PyObject *_wrap_find_matching_rules(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "find_matching_rules" "', argument " "6"" of type '" "int *""'"); 
   }
   arg6 = (int *)(argp6);
-  result = (int)find_matching_rules(arg1,arg2,arg3,arg4,arg5,arg6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "find_matching_rules" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  res8 = SWIG_ConvertPtr(obj7, &argp8,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "find_matching_rules" "', argument " "8"" of type '" "int *""'"); 
+  }
+  arg8 = (int *)(argp8);
+  result = (int)find_matching_rules(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:

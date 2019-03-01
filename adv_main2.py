@@ -255,10 +255,10 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					mpdbs_mgr.learn_rule(	one_decide, event_as_decided,
 											(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 											story_names[i_story_player], 'event_from_decide') # 'main') #
-				# if mod.c_lrn_rule_fn == 'load':
-				# 	mpdbs_mgr.test_rule(	one_decide, event_as_decided,
-				# 							(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
-				# 							'main') # story_names[i_story_player] #
+				if mod.c_lrn_rule_fn == 'load':
+					mpdbs_mgr.test_rule(	one_decide, event_as_decided,
+											(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
+											story_names[i_story_player], ['event_from_decide']) #  # 'main'
 
 
 			elif story_loop_stage == e_story_loop_stage.state1:
@@ -401,7 +401,7 @@ def main():
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
-	ext_rule_mgr = rules3.cl_ext_rules(ext_rules_fn)
+	ext_rule_mgr = rules3.cl_ext_rules(ext_rules_fn, nlbitvec.c_bitvec_size)
 	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt)
 	nlbitvec_mgr = None
 	if mod.c_b_nl:
@@ -422,7 +422,6 @@ def main():
 		cluster_mgr.set_nlb_mgr(nlbitvec_mgr)
 		if mod.c_b_init_data:
 			phrases_mgr.init_data()
-			exit(0)
 		ext_rule_mgr.set_mgrs(nlbitvec_mgr, phrases_mgr, phraseperms_mgr)
 		mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_fn, ext_rule_mgr)
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)

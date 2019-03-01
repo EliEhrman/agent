@@ -246,7 +246,7 @@ class cl_bitvec_db(object):
 	def get_irecs_with_eid(self, idb, eid, rphrase_src, l_rphrase_excl):
 		bufsize = len(self.__l_rperms)
 		irec_arr = bitvecdb.intArray(bufsize)
-		el_bitvec = self.__el_nlb_mgr.get_bin_by_id(eid).tolist()
+		el_bitvec = self.__el_nlb_mgr.get_bin_by_id(eid)
 		num_ret = bitvecdb.get_irecs_with_eid(self.__hcbdb, irec_arr, idb, -1,
 							utils.convert_charvec_to_arr(el_bitvec, bitvec_size))
 		s_rphrases_close = set()
@@ -281,8 +281,8 @@ class cl_bitvec_db(object):
 	def get_close_recs(self, idb, plen, hd_thresh, l_qbits):
 		num_ret, len_arr = self.get_plen_irecs(idb, plen)
 		ret_arr = bitvecdb.intArray(num_ret)
-		num_ret = bitvecdb.get_thresh_recs_by_list(	self.__hcbdb, ret_arr, plen, hd_thresh, len_arr, num_ret,
-													utils.convert_charvec_to_arr(l_qbits))
+		num_ret = bitvecdb.get_thresh_recs_by_list(	self.__hcbdb, ret_arr, plen, utils.convert_intvec_to_arr(hd_thresh),
+													len_arr, num_ret, utils.convert_charvec_to_arr(l_qbits))
 		return num_ret, ret_arr
 
 	def get_el_hd_recs(self, pos, hd, el, num_cands, cands_arr):
