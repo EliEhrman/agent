@@ -1443,21 +1443,30 @@ int find_matching_rules(void * hcapp, void * hcdb, int * ret_arr, int * ret_rper
 	return num_found;
 }
 
-void find_result_matching_rules_opt(tSBDBApp * papp, tSBDBApp * pdb, tSBDBApp * pdbels, int irec, int qlen, 
-									int * pnum_found, char * pdbrec, int * ret_arr, 
-									int * ret_num_vars, int * ret_rperms,
-									int src_rperm, int num_cats, int * cat_arr, int num_rids, int * rid_arr,
-									int * iel_ret, int * ivar_ret,int * src_iphrase_ret, int * src_iel_ret, int num_rets) {
+void find_matching_rules_opt(	tSBDBApp * papp, tSBDBApp * pdb, tSBDBApp * pdbels, int irec, int qlen, 
+								int * pnum_found, char * pdbrec, int * ret_arr, 
+								int * ret_num_vars, int * ret_rperms,
+								int src_rperm, int num_cats, int * cat_arr, int num_rids, int * rid_arr,
+								int * iel_ret, int * ivar_ret,int * src_iphrase_ret, int * src_iel_ret, int num_rets,
+								bool bresult, int iphrase) {
 	tSRuleRec * prule = &(papp->rule_data[irec]);
-	if (!prule->b_result)  {
-		printf("rejecting rule %d because has no result.\n", irec);
-		return;
+	if (bresult) {		
+		if (!prule->b_result)  {
+			printf("rejecting rule %d because has no result.\n", irec);
+			return;
+		}
+		iphrase = prule->num_phrases-1;
 	}
-	int iphrase = prule->num_phrases-1;
+	else {
+		if (iphrase >= prule->num_phrases) {
+			printf("rejecting rule %d because iphrase requested is beyond the range of num phrases.\n", irec);
+			return;
+		}
+	}
 //	int result_off = prule->phrase_offsets[iphrase];
-	int result_len = prule->phrase_lens[iphrase];
-	if (qlen != result_len) {
-		printf("rejecting rule %d because result len is %d but rule result len is %d.\n", irec, qlen, result_len);
+	int req_phrase_len = prule->phrase_lens[iphrase];
+	if (qlen != req_phrase_len) {
+		printf("rejecting rule %d because result len is %d but rule phrase len is %d.\n", irec, qlen, req_phrase_len);
 		return;
 	}
 	if (num_cats > 0) {
@@ -1482,7 +1491,7 @@ void find_result_matching_rules_opt(tSBDBApp * papp, tSBDBApp * pdb, tSBDBApp * 
 			}
 		}
 		if (!b_in_rids) {
-			printf("rejecting rule %d because cid %d not in requested list.\n", irec, prule->rid);
+			printf("rejecting rule %d because rid %d not in requested list.\n", irec, prule->rid);
 			return;
 		}
 	}
@@ -1490,7 +1499,7 @@ void find_result_matching_rules_opt(tSBDBApp * papp, tSBDBApp * pdb, tSBDBApp * 
 	bool b_rule_matched = true;
 	printf("find_matching_rules: searching cand %d.\n", irec);
 	if (!prule->b_hd_per_el) {
-		printf("Not implemented result searching for cent rules yet.\n");
+		printf("Not implemented result searching for cent rules yet. Currently no support planned\n");
 		exit(1);
 	}
 	int num_opt_vars = 0;
@@ -1546,101 +1555,10 @@ void find_result_matching_rules_opt(tSBDBApp * papp, tSBDBApp * pdb, tSBDBApp * 
 		(*pnum_found)++;
 	}
 	printf("find_matching_rules: irec %d el_per_hd rule passed all tests.\n", irec);
-	/*
-	int num_var_defs = prule->num_var_defs;
-	int * pvar_defs[num_var_defs];
-	for (int ivar = 0; ivar < num_var_defs; ivar++) {
-		pvar_defs[ivar] = &(prule->var_defs[ivar * 4]);
-	}
-	int hd_tot = 0;
-	int num_opt_vars = 0;
-//			int off = papp->rec_ptrs[irec] + papp->rule_data[irec].cent_offsets[iphrase];
-	for (int iel = 0; iel < qlen; iel++) { 
-		char * qel = &(pdbrec[iel * papp->bitvec_size]);
-		bool b_el_var = false;
-		for (int ivar = 0; ivar < num_var_defs; ivar++) {
-			if ((iphrase == pvar_defs[ivar][2]) && (iel == pvar_defs[ivar][3])) {
-				b_el_var = true;
-				if (pvar_defs[ivar][0] == iphrase) { // unlikely event that the result has an internal var
-					printf("Checking for var def %d that iel %d,%d == iel %d,%d.\n",
-							ivar, iphrase, iel, pvar_defs[ivar][0], pvar_defs[ivar][1]);
-					char * qvar = &(pdbrec[pvar_defs[ivar][1] * papp->bitvec_size]);
-					if (memcmp(qel, qvar, sizeof (char)*papp->bitvec_size) != 0) {
-						printf("find_matching_rules fails var match internal to result!\n");
-						b_rule_matched = false;
-						break;
-					}
-				}
-				else { // standard scenario where a var in the result has a source in one of the earlier phrases
-					// iel ivar src_iphrase src_iel
-					int var_phrase_off = prule->phrase_offsets[pvar_defs[ivar][0]];
-					int var_el_off = pvar_defs[ivar][1];
-					char * var_bits = &(papp->db[(var_phrase_off+var_el_off)*papp->bitvec_size]);
-					if (prule->b_hd_per_el) {
-						int hd_thresh = prule->el_hds[var_phrase_off+var_el_off];
-						int hd_var = 0;
-						for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
-		//					printf(" %hhdvs.%hhd", pel[ibit], qel[ibit]);
-							if (var_bits[ibit] != qel[ibit]) hd_var++;
-						}
-						if (hd_var > hd_thresh) {
-							printf(	"find_matching_rules fails var %d match on iel %d from phrase %d iel %d!\n", 
-									ivar, iel, pvar_defs[ivar][0], pvar_defs[ivar][1]);
-							b_rule_matched = false;
-							break;
-						}
-						if (num_rets != -1) {
-							iel_ret[num_opt_vars] = iel; ivar_ret[num_opt_vars] = ivar;
-							src_iphrase_ret[num_opt_vars] = pvar_defs[ivar][0];
-							src_iel_ret[num_opt_vars] = pvar_defs[ivar][1];
-						}
-						num_opt_vars++;
-					}
-				}
-			}
-		}
-		if (!b_rule_matched) break;
-		char * rule_el = &(papp->db[( papp->rec_ptrs[irec] + result_off + iel) * papp->bitvec_size]);
-//				printf("iel %d db vs. qel %d:", iel, iel);
-		int hd_el = 0; 
-		for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
-//					printf(" %hhdvs.%hhd", pel[ibit], qel[ibit]);
-			if (rule_el[ibit] != qel[ibit]) hd_el++;
-		}
-//				printf("\n");
-		if (prule->b_hd_per_el && !b_el_var)  {
-			printf("Checking per el hd for iphrase %d iel %d.\n",iphrase, iel);
-			if (hd_el > prule->el_hds[prule->phrase_offsets[iphrase]+iel]) {
-				printf("hd_el test failed because %d > %d.\n", hd_el, prule->el_hds[prule->phrase_offsets[iphrase]+iel]);
-				b_rule_matched = false;
-				break;
-			}
-		}
-		hd_tot += hd_el;
-	}
-	if (!b_rule_matched) return;
-	if (prule->b_hd_per_el) 
-		printf("find_matching_rules: irec %d el_per_hd rule passed all tests.\n", irec);
-	else
-		printf("find_matching_rules: irec %d hd %d vs. thresh %d.\n", irec, hd_tot, papp->rule_data[irec].phrase_hds[iphrase]);
-	if (prule->b_hd_per_el || hd_tot <= papp->rule_data[irec].phrase_hds[iphrase]) {
-		if (num_rets == -1) {
-			if (ret_arr != NULL) {
-				ret_arr[*pnum_found] = irec;
-				ret_num_vars[*pnum_found] = num_opt_vars;
-				ret_rperms[*pnum_found] = src_rperm;
-			}
-			(*pnum_found)++;
-		}
-		if (!prule->b_hd_per_el) {
-			printf("find_matching_rules: cent test passed too.\n");
-		}
-	}
-	 */
 }
 
-void result_matching_rule_get_opt(	void * hcapp, void * hcdb, void * hcdbels, int irec, int src_rperm, int * iel_ret, int * ivar_ret,
-									int * src_iphrase_ret, int * src_iel_ret, int num_rets) {
+void matching_rule_get_opt(	void * hcapp, void * hcdb, void * hcdbels, int irec, int src_rperm, int * iel_ret, int * ivar_ret,
+									int * src_iphrase_ret, int * src_iel_ret, int num_rets, int bresult, int iphrase) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	tSBDBApp * pdb = (tSBDBApp *) hcdb;
 	tSBDBApp * pdbels = (tSBDBApp *) hcdbels;
@@ -1648,14 +1566,16 @@ void result_matching_rule_get_opt(	void * hcapp, void * hcdb, void * hcdbels, in
 	char * pdbrec = get_rec(pdb, src_rperm);
 	int num_cats = -1; int * cat_arr = NULL; int num_rids = -1; int * rid_arr = NULL;
 	int * ret_arr = NULL; int * ret_num_vars = NULL; int * ret_rperms = NULL; int * pnum_found = NULL;
-	find_result_matching_rules_opt(	papp, pdb, pdbels, irec, qlen, pnum_found, pdbrec, ret_arr, 
-									ret_num_vars, ret_rperms,
-									src_rperm, num_cats, cat_arr, num_rids, rid_arr,
-									iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets);
+	find_matching_rules_opt(	papp, pdb, pdbels, irec, qlen, pnum_found, pdbrec, ret_arr, 
+								ret_num_vars, ret_rperms,
+								src_rperm, num_cats, cat_arr, num_rids, rid_arr,
+								iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets,
+								bresult != 0, iphrase);
 } 
 
-int find_result_matching_rules(	void * hcapp, void * hcdb, void * hcdbels, int * ret_arr, int * ret_num_vars, int * ret_rperms,
-								int num_srcs, int * src_rperms, int num_cats, int * cat_arr, int num_rids, int * rid_arr) {
+int find_matching_rules_vo(	void * hcapp, void * hcdb, void * hcdbels, int * ret_arr, int * ret_num_vars, int * ret_rperms,
+							int num_srcs, int * src_rperms, int num_cats, int * cat_arr, int num_rids, int * rid_arr,
+							int bresult, int iphrase) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	tSBDBApp * pdb = (tSBDBApp *) hcdb;
 	tSBDBApp * pdbels = (tSBDBApp *) hcdbels;
@@ -1670,10 +1590,11 @@ int find_result_matching_rules(	void * hcapp, void * hcdb, void * hcdbels, int *
 		for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 			int * iel_ret= NULL; int * ivar_ret = NULL; int * src_iphrase_ret = NULL;
 			int * src_iel_ret = NULL; int num_rets = -1;
-			find_result_matching_rules_opt(	papp, pdb, pdbels, irec, qlen, &num_found, pdbrec, ret_arr, 
-								ret_num_vars, ret_rperms,
-								src_rperms[isrc], num_cats, cat_arr, num_rids, rid_arr,
-								iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets);
+			find_matching_rules_opt(papp, pdb, pdbels, irec, qlen, &num_found, pdbrec, ret_arr, 
+									ret_num_vars, ret_rperms,
+									src_rperms[isrc], num_cats, cat_arr, num_rids, rid_arr,
+									iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets,
+									bresult != 0, iphrase);
 
 		}
 	}

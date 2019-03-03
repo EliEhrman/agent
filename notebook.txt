@@ -2908,3 +2908,40 @@ They will use common blocks and the SVOState struct
 CIW:
 
 Integrated lrules and ext rules using minimaly functional py run rule that must be replaced with solid c engine.
+
+Sunday 3rd March 2019
+
+Created a c version of run_one_rule based on do_vo. I also have a new, untested version of do_vo that is broken
+down into a few sub-functions.
+
+Tested on only one case. That of movement. Theoretically it has all the code required including multiple
+matches and combinations of story-found phrases as well as prevention of forbidded combos. However,
+I don't have a framework to test it.
+
+Again I am faced with two choices, one which is to do the right thing but it will take a long time. Again, I will
+initially go for a second option where I just modify what I have.
+
+What I should do is to remove all the old non-nl modules and replace them.
+However, I would still need to do two things:
+1. I would need to create a separate batch of instances of the classes nlbitvec, phrases, phraseperms and mpdbs. So the
+Oracle would run as a different "overseer" object than the learning "overseer". The nlbitvec would not learn
+bitvectors for words. It would simply create a unique random bitvector for every word or sub-phrase it is input.
+2. I would need to create a tab;e of all the word-groups/sub-phrases in the config el files (countries, names, objects).
+Whenever a phrase is onput, it will need to group the words if they are found in the table.
+
+However, I think I can get away with a lesser effort. Whever a phrase is output from the gpsnlai, I use a similar system
+to pass the output back to the old-style system. The only difference I can see is that I might have to add words from the
+rules. Not sure even about that.
+
+Anyway. The next steps are:
+1. Go back two stages and build a new sample phrase file. This time add events and state phrases such as X has Y
+2. Build up to the rule learn phase and see that more complex rules can be learned. (Today, I am not going beyond A went to B
+because I don't have the clusters for enough phrases)
+3. Go back and include the multi-word phrase learning.
+I will then have the trio, (i) nl, (ii) rule learning and (iii) gpsai
+
+After that I need to work on hardware level optimizations.
+
+CIW:
+
+C run rule works with minimal testing.

@@ -37,16 +37,17 @@ void set_rule_data( void * hcapp, int irec, int num_phrases, int * phrase_offset
 //                        int * var_defs, int bresult, int cid, int rid);
 int find_matching_rules(void * hcapp, void * hcdb, int * ret_arr, int * ret_rperms, int num_srcs, int * src_rperms, 
                         int num_cats, int * cat_arr);
-int find_result_matching_rules(	void * hcapp, void * hcdb, void * hcdbels, int * ret_arr, int * ret_num_vars, 
-                                int * ret_rperms, int num_srcs, int * src_rperms, int num_cats, int * cat_arr, 
-                                int num_rids, int * rid_arr);
-void result_matching_rule_get_opt(  void * hcapp, void * hcdb, void * hcdbels, int irec, int src_rperm, int * iel_ret, 
-                                    int * ivar_ret, int * src_iphrase_ret, int * src_iel_ret, int num_rets);
+int find_matching_rules_vo( void * hcapp, void * hcdb, void * hcdbels, int * ret_arr, int * ret_num_vars, 
+                            int * ret_rperms, int num_srcs, int * src_rperms, int num_cats, int * cat_arr, 
+                            int num_rids, int * rid_arr, int bresult, int iphrase);
+void matching_rule_get_opt( void * hcapp, void * hcdb, void * hcdbels, int irec, int src_rperm, int * iel_ret, 
+                            int * ivar_ret, int * src_iphrase_ret, int * src_iel_ret, int num_rets, int bresult, int iphrase);
 void * create_vo(void * hcdb_rules, void * hcdb_all, void * hcdb_story, void * hcdb_els);
-void init_vo(void * hvos, int irule_rec, int idb, int call_num, int rperm);
+void init_vo(void * hvos, int irule_rec, int idb, int call_num, int rperm, int bresult, int iphrase);
 //void set_ext_rperm(void * hvos, int rperm);
 void add_ext_var(void * hvos, int ivar, int b_bound, int b_must_bind, int iel, int hd, int iext_var );
-void do_vo(void * hcapp);
+void do_vo(void * hvos);
+int run_rule(void * hvos, int * pnum_matched);
 int get_num_match_phrases(void * hvos);
 int get_match_phrase_istage(void * hvos, int imatch);
 int get_match_phrase_b_matched(void * hvos, int imatch);

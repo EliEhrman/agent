@@ -69,6 +69,7 @@ class cl_ext_rules(object):
 		self.__d_irule_to_iactive = dict()
 		self.__d_arg_cache = dict()
 		self.__d_db_arg_cache = dict()
+		self.__hvos = None
 		self.load_rules(fn)
 
 	def register_lrule(self, ilrule, ll_var_list, ll_thresh_hds, ll_phrase_data, b_has_result, cid, rule_name, d_vars):
@@ -358,6 +359,7 @@ class cl_ext_rules(object):
 			self.__l_active_rules.append((True, i_ext_rule))
 		bitvecdb.print_db_recs(self.__hcdb_rules, self.__el_bitvec_mgr.get_hcbdb())
 
+
 	def init_vo(self, mpdbs_mgr):
 		self.__mpdbs_mgr = mpdbs_mgr
 		self.__hvos = bitvecdb.create_vo(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
@@ -454,6 +456,7 @@ class cl_ext_rules(object):
 							bmatch =  False
 							break
 				if not bmatch: continue
+				assert False, 'Error! Code not adapted to new version of run one rule'
 				_, ll_result_eids_one_rule = self.run_one_rule(rid, rperm, [], mpdbs, idb)
 				ll_result_eids += ll_result_eids_one_rule
 				for l_result_eids in ll_result_eids_one_rule:
@@ -485,23 +488,36 @@ class cl_ext_rules(object):
 		irule_arr = bitvecdb.intArray(num_poss_ret); rperms_ret_arr = bitvecdb.intArray(num_poss_ret)
 		rperms_arr = utils.convert_intvec_to_arr(l_rperms)
 		l_rule_cids = [self.get_cid(rule_cat) for rule_cat in l_rule_cats]
-		num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
-														irule_arr, rperms_ret_arr, len(l_rperms), rperms_arr,
-														len(l_rule_cids), utils.convert_intvec_to_arr(l_rule_cids))
+		num_vars_ret_arr = bitvecdb.intArray(num_poss_ret)
+		# num_rules_found = bitvecdb.find_matching_rules(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
+		# 												irule_arr, rperms_ret_arr, len(l_rperms), rperms_arr,
+		# 												len(l_rule_cids), utils.convert_intvec_to_arr(l_rule_cids))
 		num_rules_matched = 0
+		num_rules_found = bitvecdb.find_matching_rules_vo(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
+															self.__el_bitvec_mgr.get_hcbdb(), irule_arr,
+															num_vars_ret_arr, rperms_ret_arr, len(l_rperms),
+															rperms_arr, len(l_rule_cids), utils.convert_intvec_to_arr(l_rule_cids),
+															0, utils.convert_intvec_to_arr([]), False, 0)
+		print('num_rules_found', num_rules_found)
+		# l_var_opt_objs = []
+		# for ifound in range(num_rules_found):
+		# 	l_var_opt_objs.append(self.find_var_opts(	idb, irule_arr[ifound], num_vars_ret_arr[ifound],
+		# 												rperms_ret_arr[ifound], var_obj_parent, calc_level))
+		# return l_var_opt_objs
 		for iret in range(num_rules_found):
 			# self.run_one_rule(irule_arr[iret], rperms_ret_arr[iret])
 			irule = irule_arr[iret]
 			bext, iactive = self.__l_active_rules[irule]
 			rperm_ret = rperms_ret_arr[iret]
+			num_vars_ret = num_vars_ret_arr[iret]
 			if not bext:
 				# assert False, 'lrules should be run just like ext rules'
 				print('Will run learned rule', iactive, 'as standard rule', irule)
 				# self.__lrule_mgr.test_rule(irule, rperm_ret, result_words, mpdbs, idb)
 				# continue
 			print('should run rule called', self.__l_names[irule])
-			bmatched, ll_rperms_src, ll_result_eids = self.run_one_rule(irule, rperm_ret, result_words, mpdbs, idb)
-			if not bmatched:
+			b_has_result, num_matched, ll_result_eids = self.run_one_rule(irule, rperm_ret, result_words, mpdbs, idb, num_vars_ret)
+			if num_matched < 1:
 				print('rule', irule, 'did not match the state of the story db for idb', idb)
 				continue
 			print('test rule produced: ', ' '.join([self.__el_bitvec_mgr.get_el_by_eid(el) for el in ll_result_eids[0]]))
@@ -517,7 +533,49 @@ class cl_ext_rules(object):
 
 	# currently this function is used to run one external rule on one src_rperm. The first clause has already been
 	# checked. There is always a result clause. CORRECTION If lrules are included, there should be no guarantee of a result clause
-	def run_one_rule(self, irule, src_rperm, result_words, mpdbs, idb):
+	def run_one_rule(self, irule, src_rperm, result_words, mpdbs, idb, num_var_opts):
+		iel_ret = bitvecdb.intArray(num_var_opts);
+		ivar_ret = bitvecdb.intArray(num_var_opts)
+		src_iphrase_ret = bitvecdb.intArray(num_var_opts);
+		src_iel_ret = bitvecdb.intArray(num_var_opts)
+		bitvecdb.matching_rule_get_opt(self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
+											  self.__el_bitvec_mgr.get_hcbdb(),
+											  irule, src_rperm, iel_ret, ivar_ret,
+											  src_iphrase_ret, src_iel_ret, num_var_opts, False, 0)
+		bitvecdb.init_vo(self.__hvos, irule, idb, -1, src_rperm, False, 0)
+		for ivar in range(num_var_opts):
+			print('iel', iel_ret[ivar], 'ivar', ivar_ret[ivar], 'src iphrase', src_iphrase_ret[ivar],
+				  'src iel', src_iel_ret[ivar])
+			bitvecdb.add_ext_var(self.__hvos, ivar_ret[ivar], True, True, iel_ret[ivar], 0, ivar)
+		num_matched_ret = bitvecdb.intArray(1);
+		b_has_result = bitvecdb.run_rule(self.__hvos, num_matched_ret)
+		if not b_has_result:
+			return False, num_matched_ret[0], [], []
+		num_match_phrases = bitvecdb.get_num_match_phrases(self.__hvos)
+		num_rule_stages = bitvecdb.get_rule_num_phrases(self.__hvos)
+		result_iphrase = num_rule_stages - 1
+		ll_result_eids = []
+		for imatch in range(num_match_phrases):
+			istage = bitvecdb.get_match_phrase_istage(self.__hvos, imatch)
+			if istage != result_iphrase: continue
+			b_matched = bool(bitvecdb.get_match_phrase_b_matched(self.__hvos, imatch))
+			if not b_matched: continue
+			num_phrase_els = bitvecdb.get_num_phrase_els(self.__hvos, imatch)
+			match_phrase = []; b_all_obj = True; open_phrase = []
+			ll_result_eids.append([])
+			for iel in range(num_phrase_els):
+				i_def_type = bitvecdb.get_phrase_el_def_type(self.__hvos, imatch, iel)
+				def_type = def_type_table[i_def_type]
+				assert def_type == rec_def_type.obj, 'Error! Run rule should produce matched phrases with b_match that has only rec_def_type.obj'
+				eid = bitvecdb.get_phrase_el_val(self.__hvos, imatch, iel)
+				phrase_val = '(not found)' if eid == -1 else self.__el_bitvec_mgr.get_el_by_eid(eid)
+				# phrase_hd = bitvecdb.get_phrase_el_hd(self.__hvos, imatch, iel)
+				# match_phrase.append([def_type, phrase_val])
+				match_phrase.append(phrase_val)
+				ll_result_eids[-1].append(eid)
+
+		return b_has_result, num_matched_ret[0], ll_result_eids
+
 		ll_phrase_data, ll_vars, ll_el_hds, = self.__lll_phrase_data[irule], self.__lll_vars[irule], self.__lll_el_hds[irule]
 		ll_rperms_src, ll_rperms = [[src_rperm]], []
 		print('run one rule:\n', mpdbs.get_bdb_story().print_db(self.__el_bitvec_mgr.get_hcbdb()))
@@ -575,10 +633,10 @@ class cl_ext_rules(object):
 		ivar_ret = bitvecdb.intArray(num_var_opts)
 		src_iphrase_ret = bitvecdb.intArray(num_var_opts);
 		src_iel_ret = bitvecdb.intArray(num_var_opts)
-		bitvecdb.result_matching_rule_get_opt(self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
-											  self.__el_bitvec_mgr.get_hcbdb(),
-											  irule, rperm, iel_ret, ivar_ret,
-											  src_iphrase_ret, src_iel_ret, num_var_opts)
+		bitvecdb.matching_rule_get_opt(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
+										self.__el_bitvec_mgr.get_hcbdb(),
+										irule, rperm, iel_ret, ivar_ret,
+										src_iphrase_ret, src_iel_ret, num_var_opts, True, -1)
 		bitvecdb.init_vo(self.__hvos, irule, idb, -1, rperm)
 		for ivar in range(num_var_opts):
 			print('iel', iel_ret[ivar], 'ivar', ivar_ret[ivar], 'src iphrase', src_iphrase_ret[ivar],
@@ -656,10 +714,11 @@ class cl_ext_rules(object):
 		# if num_rids > 0:
 		rid_arr = utils.convert_intvec_to_arr(l_rids)
 		# bitvecdb.print_db_recs(self.__hcdb_rules, self.__el_bitvec_mgr.get_hcbdb())
-		num_rules_found = bitvecdb.find_result_matching_rules(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
-																self.__el_bitvec_mgr.get_hcbdb(), irule_arr,
-																num_vars_ret_arr, rperms_ret_arr, len(l_rperms),
-																rperms_arr, num_cats, cat_arr, num_rids, rid_arr)
+		num_rules_found = bitvecdb.find_matching_rules_vo(	self.__hcdb_rules, self.__phraseperms.get_bdb_all_hcdb(),
+															self.__el_bitvec_mgr.get_hcbdb(), irule_arr,
+															num_vars_ret_arr, rperms_ret_arr, len(l_rperms),
+															rperms_arr, num_cats, cat_arr, num_rids, rid_arr,
+															False, -1)
 		print('num_rules_found', num_rules_found)
 		l_var_opt_objs = []
 		for ifound in range(num_rules_found):

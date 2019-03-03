@@ -383,29 +383,33 @@ def find_matching_rules(hcapp, hcdb, ret_arr, ret_rperms, num_srcs, src_rperms, 
     return _bitvecdb.find_matching_rules(hcapp, hcdb, ret_arr, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr)
 find_matching_rules = _bitvecdb.find_matching_rules
 
-def find_result_matching_rules(hcapp, hcdb, hcdbels, ret_arr, ret_num_vars, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr):
-    return _bitvecdb.find_result_matching_rules(hcapp, hcdb, hcdbels, ret_arr, ret_num_vars, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr)
-find_result_matching_rules = _bitvecdb.find_result_matching_rules
+def find_matching_rules_vo(hcapp, hcdb, hcdbels, ret_arr, ret_num_vars, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr, bresult, iphrase):
+    return _bitvecdb.find_matching_rules_vo(hcapp, hcdb, hcdbels, ret_arr, ret_num_vars, ret_rperms, num_srcs, src_rperms, num_cats, cat_arr, num_rids, rid_arr, bresult, iphrase)
+find_matching_rules_vo = _bitvecdb.find_matching_rules_vo
 
-def result_matching_rule_get_opt(hcapp, hcdb, hcdbels, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets):
-    return _bitvecdb.result_matching_rule_get_opt(hcapp, hcdb, hcdbels, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets)
-result_matching_rule_get_opt = _bitvecdb.result_matching_rule_get_opt
+def matching_rule_get_opt(hcapp, hcdb, hcdbels, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets, bresult, iphrase):
+    return _bitvecdb.matching_rule_get_opt(hcapp, hcdb, hcdbels, irec, src_rperm, iel_ret, ivar_ret, src_iphrase_ret, src_iel_ret, num_rets, bresult, iphrase)
+matching_rule_get_opt = _bitvecdb.matching_rule_get_opt
 
 def create_vo(hcdb_rules, hcdb_all, hcdb_story, hcdb_els):
     return _bitvecdb.create_vo(hcdb_rules, hcdb_all, hcdb_story, hcdb_els)
 create_vo = _bitvecdb.create_vo
 
-def init_vo(hvos, irule_rec, idb, call_num, rperm):
-    return _bitvecdb.init_vo(hvos, irule_rec, idb, call_num, rperm)
+def init_vo(hvos, irule_rec, idb, call_num, rperm, bresult, iphrase):
+    return _bitvecdb.init_vo(hvos, irule_rec, idb, call_num, rperm, bresult, iphrase)
 init_vo = _bitvecdb.init_vo
 
 def add_ext_var(hvos, ivar, b_bound, b_must_bind, iel, hd, iext_var):
     return _bitvecdb.add_ext_var(hvos, ivar, b_bound, b_must_bind, iel, hd, iext_var)
 add_ext_var = _bitvecdb.add_ext_var
 
-def do_vo(hcapp):
-    return _bitvecdb.do_vo(hcapp)
+def do_vo(hvos):
+    return _bitvecdb.do_vo(hvos)
 do_vo = _bitvecdb.do_vo
+
+def run_rule(hvos, pnum_matched):
+    return _bitvecdb.run_rule(hvos, pnum_matched)
+run_rule = _bitvecdb.run_rule
 
 def get_num_match_phrases(hvos):
     return _bitvecdb.get_num_match_phrases(hvos)

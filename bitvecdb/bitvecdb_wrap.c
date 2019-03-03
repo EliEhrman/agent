@@ -5977,7 +5977,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_find_result_matching_rules(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_find_matching_rules_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   void *arg1 = (void *) 0 ;
   void *arg2 = (void *) 0 ;
@@ -5991,6 +5991,8 @@ SWIGINTERN PyObject *_wrap_find_result_matching_rules(PyObject *SWIGUNUSEDPARM(s
   int *arg10 = (int *) 0 ;
   int arg11 ;
   int *arg12 = (int *) 0 ;
+  int arg13 ;
+  int arg14 ;
   int res1 ;
   int res2 ;
   int res3 ;
@@ -6012,6 +6014,10 @@ SWIGINTERN PyObject *_wrap_find_result_matching_rules(PyObject *SWIGUNUSEDPARM(s
   int ecode11 = 0 ;
   void *argp12 = 0 ;
   int res12 = 0 ;
+  int val13 ;
+  int ecode13 = 0 ;
+  int val14 ;
+  int ecode14 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -6024,67 +6030,79 @@ SWIGINTERN PyObject *_wrap_find_result_matching_rules(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj9 = 0 ;
   PyObject * obj10 = 0 ;
   PyObject * obj11 = 0 ;
+  PyObject * obj12 = 0 ;
+  PyObject * obj13 = 0 ;
   int result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:find_result_matching_rules",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOO:find_matching_rules_vo",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "find_result_matching_rules" "', argument " "1"" of type '" "void *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "find_matching_rules_vo" "', argument " "1"" of type '" "void *""'"); 
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "find_result_matching_rules" "', argument " "2"" of type '" "void *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "find_matching_rules_vo" "', argument " "2"" of type '" "void *""'"); 
   }
   res3 = SWIG_ConvertPtr(obj2,SWIG_as_voidptrptr(&arg3), 0, 0);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "find_result_matching_rules" "', argument " "3"" of type '" "void *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "find_matching_rules_vo" "', argument " "3"" of type '" "void *""'"); 
   }
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "find_result_matching_rules" "', argument " "4"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "find_matching_rules_vo" "', argument " "4"" of type '" "int *""'"); 
   }
   arg4 = (int *)(argp4);
   res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "find_result_matching_rules" "', argument " "5"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "find_matching_rules_vo" "', argument " "5"" of type '" "int *""'"); 
   }
   arg5 = (int *)(argp5);
   res6 = SWIG_ConvertPtr(obj5, &argp6,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "find_result_matching_rules" "', argument " "6"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "find_matching_rules_vo" "', argument " "6"" of type '" "int *""'"); 
   }
   arg6 = (int *)(argp6);
   ecode7 = SWIG_AsVal_int(obj6, &val7);
   if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "find_result_matching_rules" "', argument " "7"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "find_matching_rules_vo" "', argument " "7"" of type '" "int""'");
   } 
   arg7 = (int)(val7);
   res8 = SWIG_ConvertPtr(obj7, &argp8,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "find_result_matching_rules" "', argument " "8"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "find_matching_rules_vo" "', argument " "8"" of type '" "int *""'"); 
   }
   arg8 = (int *)(argp8);
   ecode9 = SWIG_AsVal_int(obj8, &val9);
   if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "find_result_matching_rules" "', argument " "9"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "find_matching_rules_vo" "', argument " "9"" of type '" "int""'");
   } 
   arg9 = (int)(val9);
   res10 = SWIG_ConvertPtr(obj9, &argp10,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "find_result_matching_rules" "', argument " "10"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "find_matching_rules_vo" "', argument " "10"" of type '" "int *""'"); 
   }
   arg10 = (int *)(argp10);
   ecode11 = SWIG_AsVal_int(obj10, &val11);
   if (!SWIG_IsOK(ecode11)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "find_result_matching_rules" "', argument " "11"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "find_matching_rules_vo" "', argument " "11"" of type '" "int""'");
   } 
   arg11 = (int)(val11);
   res12 = SWIG_ConvertPtr(obj11, &argp12,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res12)) {
-    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "find_result_matching_rules" "', argument " "12"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "find_matching_rules_vo" "', argument " "12"" of type '" "int *""'"); 
   }
   arg12 = (int *)(argp12);
-  result = (int)find_result_matching_rules(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+  ecode13 = SWIG_AsVal_int(obj12, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "find_matching_rules_vo" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
+  ecode14 = SWIG_AsVal_int(obj13, &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "find_matching_rules_vo" "', argument " "14"" of type '" "int""'");
+  } 
+  arg14 = (int)(val14);
+  result = (int)find_matching_rules_vo(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6092,7 +6110,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_result_matching_rule_get_opt(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_matching_rule_get_opt(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   void *arg1 = (void *) 0 ;
   void *arg2 = (void *) 0 ;
@@ -6104,6 +6122,8 @@ SWIGINTERN PyObject *_wrap_result_matching_rule_get_opt(PyObject *SWIGUNUSEDPARM
   int *arg8 = (int *) 0 ;
   int *arg9 = (int *) 0 ;
   int arg10 ;
+  int arg11 ;
+  int arg12 ;
   int res1 ;
   int res2 ;
   int res3 ;
@@ -6121,6 +6141,10 @@ SWIGINTERN PyObject *_wrap_result_matching_rule_get_opt(PyObject *SWIGUNUSEDPARM
   int res9 = 0 ;
   int val10 ;
   int ecode10 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -6131,56 +6155,68 @@ SWIGINTERN PyObject *_wrap_result_matching_rule_get_opt(PyObject *SWIGUNUSEDPARM
   PyObject * obj7 = 0 ;
   PyObject * obj8 = 0 ;
   PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOO:result_matching_rule_get_opt",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:matching_rule_get_opt",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "result_matching_rule_get_opt" "', argument " "1"" of type '" "void *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "matching_rule_get_opt" "', argument " "1"" of type '" "void *""'"); 
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "result_matching_rule_get_opt" "', argument " "2"" of type '" "void *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "matching_rule_get_opt" "', argument " "2"" of type '" "void *""'"); 
   }
   res3 = SWIG_ConvertPtr(obj2,SWIG_as_voidptrptr(&arg3), 0, 0);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "result_matching_rule_get_opt" "', argument " "3"" of type '" "void *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "matching_rule_get_opt" "', argument " "3"" of type '" "void *""'"); 
   }
   ecode4 = SWIG_AsVal_int(obj3, &val4);
   if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "result_matching_rule_get_opt" "', argument " "4"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "matching_rule_get_opt" "', argument " "4"" of type '" "int""'");
   } 
   arg4 = (int)(val4);
   ecode5 = SWIG_AsVal_int(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "result_matching_rule_get_opt" "', argument " "5"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "matching_rule_get_opt" "', argument " "5"" of type '" "int""'");
   } 
   arg5 = (int)(val5);
   res6 = SWIG_ConvertPtr(obj5, &argp6,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "result_matching_rule_get_opt" "', argument " "6"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "matching_rule_get_opt" "', argument " "6"" of type '" "int *""'"); 
   }
   arg6 = (int *)(argp6);
   res7 = SWIG_ConvertPtr(obj6, &argp7,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "result_matching_rule_get_opt" "', argument " "7"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "matching_rule_get_opt" "', argument " "7"" of type '" "int *""'"); 
   }
   arg7 = (int *)(argp7);
   res8 = SWIG_ConvertPtr(obj7, &argp8,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "result_matching_rule_get_opt" "', argument " "8"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "matching_rule_get_opt" "', argument " "8"" of type '" "int *""'"); 
   }
   arg8 = (int *)(argp8);
   res9 = SWIG_ConvertPtr(obj8, &argp9,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "result_matching_rule_get_opt" "', argument " "9"" of type '" "int *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "matching_rule_get_opt" "', argument " "9"" of type '" "int *""'"); 
   }
   arg9 = (int *)(argp9);
   ecode10 = SWIG_AsVal_int(obj9, &val10);
   if (!SWIG_IsOK(ecode10)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "result_matching_rule_get_opt" "', argument " "10"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "matching_rule_get_opt" "', argument " "10"" of type '" "int""'");
   } 
   arg10 = (int)(val10);
-  result_matching_rule_get_opt(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
+  ecode11 = SWIG_AsVal_int(obj10, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "matching_rule_get_opt" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj11, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "matching_rule_get_opt" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  matching_rule_get_opt(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -6236,6 +6272,8 @@ SWIGINTERN PyObject *_wrap_init_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
   int arg3 ;
   int arg4 ;
   int arg5 ;
+  int arg6 ;
+  int arg7 ;
   int res1 ;
   int val2 ;
   int ecode2 = 0 ;
@@ -6245,13 +6283,19 @@ SWIGINTERN PyObject *_wrap_init_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
   int ecode4 = 0 ;
   int val5 ;
   int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:init_vo",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:init_vo",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "init_vo" "', argument " "1"" of type '" "void *""'"); 
@@ -6276,7 +6320,17 @@ SWIGINTERN PyObject *_wrap_init_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "init_vo" "', argument " "5"" of type '" "int""'");
   } 
   arg5 = (int)(val5);
-  init_vo(arg1,arg2,arg3,arg4,arg5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "init_vo" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "init_vo" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  init_vo(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -6370,6 +6424,35 @@ SWIGINTERN PyObject *_wrap_do_vo(PyObject *SWIGUNUSEDPARM(self), PyObject *args)
   }
   do_vo(arg1);
   resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_run_rule(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  void *arg1 = (void *) 0 ;
+  int *arg2 = (int *) 0 ;
+  int res1 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:run_rule",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "run_rule" "', argument " "1"" of type '" "void *""'"); 
+  }
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_int, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "run_rule" "', argument " "2"" of type '" "int *""'"); 
+  }
+  arg2 = (int *)(argp2);
+  result = (int)run_rule(arg1,arg2);
+  resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
   return NULL;
@@ -6880,12 +6963,13 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"test_rec_name", _wrap_test_rec_name, METH_VARARGS, NULL},
 	 { (char *)"set_rule_data", _wrap_set_rule_data, METH_VARARGS, NULL},
 	 { (char *)"find_matching_rules", _wrap_find_matching_rules, METH_VARARGS, NULL},
-	 { (char *)"find_result_matching_rules", _wrap_find_result_matching_rules, METH_VARARGS, NULL},
-	 { (char *)"result_matching_rule_get_opt", _wrap_result_matching_rule_get_opt, METH_VARARGS, NULL},
+	 { (char *)"find_matching_rules_vo", _wrap_find_matching_rules_vo, METH_VARARGS, NULL},
+	 { (char *)"matching_rule_get_opt", _wrap_matching_rule_get_opt, METH_VARARGS, NULL},
 	 { (char *)"create_vo", _wrap_create_vo, METH_VARARGS, NULL},
 	 { (char *)"init_vo", _wrap_init_vo, METH_VARARGS, NULL},
 	 { (char *)"add_ext_var", _wrap_add_ext_var, METH_VARARGS, NULL},
 	 { (char *)"do_vo", _wrap_do_vo, METH_VARARGS, NULL},
+	 { (char *)"run_rule", _wrap_run_rule, METH_VARARGS, NULL},
 	 { (char *)"get_num_match_phrases", _wrap_get_num_match_phrases, METH_VARARGS, NULL},
 	 { (char *)"get_match_phrase_istage", _wrap_get_match_phrase_istage, METH_VARARGS, NULL},
 	 { (char *)"get_match_phrase_b_matched", _wrap_get_match_phrase_b_matched, METH_VARARGS, NULL},
