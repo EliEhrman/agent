@@ -157,7 +157,7 @@ knows_went_has......	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finlan
 											c:s,Roy has chair:0.0,c:e,c:e,
 											c:t,c:u,Roy has::r chair::r,mle
 remove_went_free_in.	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
-											c:s,chair:0.0 is held in Finland,c:e,c:e,
+											c:s,cknows_went_lochair:0.0 is held in Finland,c:e,c:e,
 											c:t,c:r,chair::r is::r free::r in::r Finland,mle
 remove_went_free_in2	br_state_from_event	ml,c:f,c:a,c:s,Edgar:0.0 went to Finland:0.0,c:e,
 											c:s,chair:0.0 is free in Finland,c:e,c:e,

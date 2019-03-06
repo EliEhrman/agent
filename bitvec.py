@@ -83,7 +83,11 @@ total_time = 0
 
 
 class cl_bitvec_mgr(object):
-	def __init__(self, phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt):
+	def __init__(self, play_mod):
+		phrase_freq_fnt = play_mod.c_phrase_freq_fnt
+		bitvec_dict_fnt = play_mod.c_phrase_bitvec_dict_fnt
+		bitvec_saved_phrases_fnt = play_mod.c_bitvec_saved_phrases_fnt
+		rule_grp_fnt = play_mod.c_rule_grp_fnt
 		d_words, nd_bit_db, s_word_bit_db, l_els = load_word_db(bitvec_dict_fnt)
 		# freq_tbl, s_phrase_lens = load_order_freq_tbl(fnt)
 		# init_len = c_init_len  # len(freq_tbl) / 2
@@ -113,6 +117,7 @@ class cl_bitvec_mgr(object):
 		self.__rule_stages = 1
 		self.__d_gg2 = dict() # for two stage rules
 		self.__l_els = l_els
+		self.__b_save_phrases = play_mod.c_b_save_phrases
 		self.__l_saved_phrases = []
 
 		self.__bitvec_saved_phrases_fnt = bitvec_saved_phrases_fnt
@@ -125,6 +130,7 @@ class cl_bitvec_mgr(object):
 		self.__d_fr_categories = dict()
 		self.__mpdb_mgr = None
 		self.__mpdb_bins = [] # np.zeros(shape=(0, 0),dtype=np.uint8)  # 2D np array holding all bitvecs for all phrases in story held by mpdb
+		self.__s_rule_clauses = set()
 		gg.cl_bitvec_gg.bitvec_size = c_bitvec_size
 		self.__hcvo = varopts.init_capp()
 		varopts.set_el_bitvec_size(self.__hcvo, c_bitvec_size)
@@ -135,7 +141,8 @@ class cl_bitvec_mgr(object):
 			# test_bin_arr = varopts.check_el_bin(self.__hcvo, el_word);
 
 		self.load_rule_grps()
-		self.load_save_phrases()
+		if not self.__b_save_phrases:
+			self.load_save_phrases()
 
 	def get_saved_phrases(self):
 		return self.__l_saved_phrases
@@ -190,7 +197,8 @@ class cl_bitvec_mgr(object):
 
 
 	def save_phrase(self, rule_name, phrase):
-		self.__l_saved_phrases.append([rule_name, ' '.join(phrase)])
+		if self.__b_save_phrases:
+			self.__l_saved_phrases.append([rule_name, ' '.join(phrase)])
 
 	def convert_charvec_to_arr(self, bin, size=-1):
 		if size==-1:
@@ -315,7 +323,14 @@ class cl_bitvec_mgr(object):
 	def get_mpdb_mgr(self):
 		return self.__mpdb_mgr
 
+	def get_s_rule_clauses(self):
+		return self.__s_rule_clauses
+
 	def add_fixed_rule(self, rule_rec, rule_category, rule_name):
+		for rule_el in rule_rec:
+			if rule_el[0] in [rec_def_type.like, rec_def_type.obj]:
+				self.__s_rule_clauses.add(rule_el[1])
+
 		if rule_rec == [] or rule_rec[0] == [] or rule_rec[0][1] != conn_type.IF:
 			raise ValueError('Error. Trying to add ill-formed rule to bitvec mgr')
 		then_el = [rec_def_type.conn, conn_type.THEN]

@@ -66,6 +66,32 @@ class cl_gpsnlai_mgr(object):
 	def db_changed(self):
 		self.__player_goal_arg_cache = dict()
 
+	def create_clause_dict(self, l_all_words):
+		self.__d_clauses = dict()
+		for word in l_all_words:
+			if word.count(' ') > 0:
+				self.__d_clauses[word] = True
+
+	def create_claused_phrase(self, src_phrase):
+		phrase = list(src_phrase)
+		claused_phrase = []
+		while phrase != []:
+			word = phrase.pop(0)
+			if len(phrase) > 1:
+				bfound = self.__d_clauses.get((word, phrase[0], phrase[1]), False)
+				if bfound:
+					phrase = phrase[2:]
+					claused_phrase.append(' '.join([word, phrase[0], phrase[1]]))
+					continue
+			if len(phrase) > 0:
+				bfound = self.__d_clauses.get((word, phrase[0]), False)
+				if bfound:
+					phrase = phrase[1:]
+					claused_phrase.append(' '.join([word, phrase[0]]))
+					continue
+			claused_phrase.append(word)
+		return claused_phrase
+
 	def make_decision_by_goal(self, player_name, phase_data, rule_stats):
 		_, ll_done_els = self.__mpdbs_mgr.run_rule(['I', 'am', player_name], phase_data,
 									   player_name, [], ['get_done_phrase'])
@@ -96,6 +122,8 @@ class cl_gpsnlai_mgr(object):
 				if action_selected != []:
 					break
 
+		if (action_selected != []):
+			action_selected = self.create_claused_phrase(action_selected)
 		return l_var_opt_objs, action_selected
 
 	def add_phrase_to_get_decision(self, player_name, phase_data, rule_stats, new_phrase):

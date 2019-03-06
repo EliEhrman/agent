@@ -251,11 +251,11 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					mpdb_mgr.learn_rule(one_decide, event_as_decided,
 										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 										  'main')
-				if mod.c_b_learn_full_rules_nl and mod.c_lrn_rule_fn == 'learn':
+				if mod.c_b_learn_full_rules_nl: #  and mod.c_lrn_rule_mode == 'learn':
 					mpdbs_mgr.learn_rule(	one_decide, event_as_decided,
 											(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 											story_names[i_story_player], 'event_from_decide') # 'main') #
-				if mod.c_lrn_rule_fn == 'load':
+				if mod.c_lrn_rule_mode == 'load':
 					mpdbs_mgr.test_rule(	one_decide, event_as_decided,
 											(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 											story_names[i_story_player], ['event_from_decide']) #  # 'main'
@@ -297,6 +297,9 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 																	(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 																	'main', ['state_from_event', 'br_state_from_event'],
 																	[], result_rule_names)
+				for event_stmt, event_rule_name in zip(events_to_queue, result_rule_names):
+					event_wlist = rules2.convert_phrase_to_word_list([event_stmt[1:]])[0]
+					bitvec_mgr.save_phrase(event_rule_name, event_wlist)
 				mpdb_mgr.extract_mod_db(l_dbs_to_mod, events_to_queue)
 				for trnsfr in events_transfrs:
 					if trnsfr[0][1] != conn_type.Broadcast or len(trnsfr[0]) <= 2:
@@ -396,13 +399,13 @@ def main():
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = getattr(mod, 'mod_init')()
 	els_sets, set_names, l_agents, rules_fn, ext_rules_fn, phrase_freq_fnt, bitvec_dict_fnt, \
 			bitvec_saved_phrases_fnt, rule_grp_fnt, nlbitvec_dict_fnt, nlbitvec_dict_output_fnt, \
-			cluster_fnt, rules_fnt, b_restart_from_glv, lrn_rule_fn \
+			cluster_fnt, rules_fnt, b_restart_from_glv, lrn_rule_mode \
 		= d_mod_fns['mod_init']()
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
-	ext_rule_mgr = rules3.cl_ext_rules(ext_rules_fn, nlbitvec.c_bitvec_size)
-	bitvec_mgr = bitvec.cl_bitvec_mgr(phrase_freq_fnt, bitvec_dict_fnt, bitvec_saved_phrases_fnt, rule_grp_fnt)
+	ext_rule_mgr = rules3.cl_ext_rules(ext_rules_fn, nlbitvec.c_bitvec_size, lrn_rule_mode)
+	bitvec_mgr = bitvec.cl_bitvec_mgr(mod)
 	nlbitvec_mgr = None
 	if mod.c_b_nl:
 		phrases_mgr = phrases.cl_phrase_mgr(b_restart_from_glv, bitvec_saved_phrases_fnt)
@@ -423,7 +426,7 @@ def main():
 		if mod.c_b_init_data:
 			phrases_mgr.init_data()
 		ext_rule_mgr.set_mgrs(nlbitvec_mgr, phrases_mgr, phraseperms_mgr)
-		mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_fn, ext_rule_mgr)
+		mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_mode, ext_rule_mgr)
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents), nlbitvec_mgr)
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
@@ -433,8 +436,10 @@ def main():
 	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2) # use for learning rules while keeping the oracle classic
 	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
 	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2) # use for debugging gpsnlai
+	l_all_set_words = mod.get_all_set_words()
+	s_rule_words = bitvec_mgr.get_s_rule_clauses()
+	gpsnlai_mgr.create_clause_dict(l_all_set_words + list(s_rule_words))
 	ext_rule_mgr.init_vo(mpdbs_mgr)
-
 
 	event_step_id = -1
 	learn_vars = [event_step_id]

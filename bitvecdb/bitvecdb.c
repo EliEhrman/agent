@@ -762,7 +762,7 @@ int pick_thresh_map(tSBDBApp * papp, int plen, int max_picks, int * pick_map, in
 				}
 				if (bfound) {
 					if (!papp->num_left_buf[irec]) {
-						printf("collision with num_left_buf. \n");
+//						printf("collision with num_left_buf. \n");
 						pick_map_avoid[ip] = true;
 						num_to_avoid++;
 						num_found = 0;
@@ -795,10 +795,6 @@ int pick_thresh_map(tSBDBApp * papp, int plen, int max_picks, int * pick_map, in
 			}
 		} // loop over els (plen)
 //		printf("ip_max is %d.\n", ip_max);
-		if (pick_map_avoid[ip_max]) {
-			printf("Error!! ip_max selected despite collision.\n");
-			return 0;
-		}
 		if (ip_max == -1) {
 			if (num_to_avoid == plen) {
 				printf("pick_thresh_map: No further pick progress possible without hitting non available.\n");
@@ -815,7 +811,8 @@ int pick_thresh_map(tSBDBApp * papp, int plen, int max_picks, int * pick_map, in
 			}
 		}
 		if (pick_map_avoid[ip_max]) {
-			printf("Error!! ip_max selected despite collision after random.\n");
+			printf("Error!! ip_max selected as %d despite collision after random. max_found_this_round %d. max_num_found %d.\n", 
+					ip_max, max_found_this_round, max_num_found);
 			return 0;
 		}
 		pick_map[ip_max]++;
@@ -951,7 +948,7 @@ int get_cluster_seed(	void * hcapp, char * cent_ret, float * hd_avg_ret,
 //		printf("\n");
 
 	}
-//	printf("returning with ibest_score = %d.\n", ibest_score);
+	printf("returning with ibest_score = %d.\n", ibest_score);
 	int num_left = 0;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 		if (papp->rec_lens[irec] != plen || !papp->num_left_buf[irec]) continue;
@@ -1125,7 +1122,7 @@ bool test_for_thresh(tSBDBApp * papp, int plen, int * ext_thresh, int irec, char
 			int hd_thresh;
 			if (bext) hd_thresh = ext_thresh[iel];
 			else hd_thresh = papp->hd_thresh[(irec*papp->max_rec_len)+iel];
-			printf("test_for_thresh: irec %d, iel %d, hd %d for thresh hd %d.\n", irec, iel, hd, hd_thresh);
+//			printf("test_for_thresh: irec %d, iel %d, hd %d for thresh hd %d.\n", irec, iel, hd, hd_thresh);
 			if (hd > hd_thresh) {
 				bfound = false;
 				break;
@@ -1135,7 +1132,7 @@ bool test_for_thresh(tSBDBApp * papp, int plen, int * ext_thresh, int irec, char
 		//			printf("\n");
 	}
 	if (!bfound) {
-		printf("test_for_thresh: irec %d does not match. \n", irec);
+//		printf("test_for_thresh: irec %d does not match. \n", irec);
 		return false;
 	}
 	//		printf("get_thresh_recs: irec %d hd %d vs. thresh %d.\n", irec, hd, papp->hd_thresh[irec]);
@@ -1147,7 +1144,7 @@ bool test_for_thresh(tSBDBApp * papp, int plen, int * ext_thresh, int irec, char
 			if (hd_tot > papp->hd_thresh[irec*papp->max_rec_len]) return false;
 		}
 	}
-	printf("test_for_thresh: irec %d matches. \n", irec);
+//	printf("test_for_thresh: irec %d matches. \n", irec);
 	return true;
 }
 
@@ -1156,7 +1153,7 @@ bool test_for_thresh(tSBDBApp * papp, int plen, int * ext_thresh, int irec, char
 
 int get_thresh_recs(void * hcapp, int * ret_arr, int plen, int * ext_thresh, char * qrec, int bext, int bperel) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
-	printf("get_thresh_recs called for plen %d, bext %d bperel %d.\n", plen, bext, bperel);
+//	printf("get_thresh_recs called for plen %d, bext %d bperel %d.\n", plen, bext, bperel);
 	int num_found = 0;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 		if (test_for_thresh(papp, plen, ext_thresh, irec, qrec, bext == 1, bperel == 1)) {

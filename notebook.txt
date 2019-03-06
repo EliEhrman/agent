@@ -2945,3 +2945,29 @@ After that I need to work on hardware level optimizations.
 CIW:
 
 C run rule works with minimal testing.
+
+Monday March 4th 2019
+
+Before making changes the config params were:
+
+c_b_gpsai = False
+c_lrn_rule_fn = 'load' # 'load', 'learn', 'none'
+c_b_learn_full_rules = False
+c_b_learn_full_rules_nl = True
+c_b_restart_from_glv = False
+c_b_init_data = True
+c_b_save_phrases = False # Create a file of phrases with the rule that generated them
+
+set mgrs looks like:
+
+	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2) # use for learning rules while keeping the oracle classic
+	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
+	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2) # use for debugging gpsnlai
+
+
+c_lrn_rule_fn is now c_lrn_rule_mode
+
+Note. If you don't put this line back in adv.py, you will get nothing but movement
+
+											   p=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+

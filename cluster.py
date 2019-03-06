@@ -63,7 +63,7 @@ class cl_phrase_cluster_mgr(object):
 
 	def init(self, l_rule_names):
 		self.load_rule_grps()
-		score = self.cluster(l_rule_names,  self.__bdb_all.get_max_plen())
+		score = self.cluster(l_rule_names,  self.__bdb_all.get_max_plen()+1)
 		self.save_clusters()
 
 	def get_centroid(self, rcluster):
@@ -179,13 +179,13 @@ class cl_phrase_cluster_mgr(object):
 			tot_tot_hits += tot_hits
 		return 0 if tot_tot_hits == 0 else entr_tot / tot_tot_hits , tot_tot_hits
 
-	def cluster(self, l_rule_names, max_plen):
+	def cluster(self, l_rule_names, num_plens):
 		print('Cluster: print db recs.')
 		self.__bdb_all.print_db(self.__nlb_mgr.get_hcbdb())
 		entr_tot, tot_hits, tot_clusters = 0., 0, 0
-		self.__l_nd_centroids, self.__ll_cent_hd_thresh = [[] for _ in range(max_plen)], [[] for _ in range(max_plen)]
-		for plen in range(max_plen):
-			# print('cluster at plen', plen)
+		self.__l_nd_centroids, self.__ll_cent_hd_thresh = [[] for _ in range(num_plens)], [[] for _ in range(num_plens)]
+		for plen in range(num_plens):
+			print('cluster at plen', plen)
 			# if plen != 4: continue
 			num_plen_recs = self.__bdb_all.get_num_plen(plen)
 			print('cluster: Num recs for plen', plen, 'is', num_plen_recs)
@@ -211,7 +211,7 @@ class cl_phrase_cluster_mgr(object):
 			entr_score,plen_hits= self.assign_rule_name_score(plen, nd_centroids, l_cent_hd_thresh, l_rule_names,
 														 num_plen_recs)
 			entr_tot += entr_score*plen_hits; tot_hits += plen_hits; tot_clusters += nd_centroids.shape[0]
-			# if plen > 9:
+			# if plen > 5:
 			# 	exit()
 
 		# The entropy score is just entr_tot / tot_hits, but I want to penalize for having too many clusters

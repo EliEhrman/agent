@@ -61,7 +61,7 @@ l_dummy_events = []
 l_dummy_ruleid = []
 g_dummy_idx = -1
 c_b_gpsai = False
-c_lrn_rule_fn = 'load' # 'load', 'learn', 'none'
+c_lrn_rule_mode = 'learn' # 'load', 'learn', 'none'
 c_b_learn_full_rules = False
 c_b_learn_full_rules_nl = True
 c_b_restart_from_glv = False
@@ -87,9 +87,9 @@ def mod_init():
 
 	l_agents = els_sets[set_names.index('names')]
 
-	return 	els_sets, set_names, l_agents, c_rules_fn, c_ext_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt, \
-			c_bitvec_saved_phrases_fnt, c_rule_grp_fnt, c_nlbitvec_dict_input_fnt, c_nlbitvec_dict_output_fnt, \
-			c_nlbitvec_clusters_fnt, c_nlbitvec_rules_fnt, c_b_restart_from_glv, c_lrn_rule_fn
+	return els_sets, set_names, l_agents, c_rules_fn, c_ext_rules_fn, c_phrase_freq_fnt, c_phrase_bitvec_dict_fnt, \
+		   c_bitvec_saved_phrases_fnt, c_rule_grp_fnt, c_nlbitvec_dict_input_fnt, c_nlbitvec_dict_output_fnt, \
+		   c_nlbitvec_clusters_fnt, c_nlbitvec_rules_fnt, c_b_restart_from_glv, c_lrn_rule_mode
 
 def set_mgrs(rules_mgr, mpdb_mgr, ai_mgr, bitvec_mgr, rules_mod):
 	global __rules_mgr, __mpdb_mgr, __ai_mgr, __bitvec_mgr, __rules_mod, __rec_def_type, __d_mgrs
@@ -144,6 +144,9 @@ def init_functions():
 				'get_mgr':get_mgr,
 				'get_decision_ruleid_name':get_decision_ruleid_name}
 	return d_fns
+
+def get_all_set_words():
+	return [w for el_set in els_sets for w in el_set]
 
 def create_initial_db():
 	l_db, l_db_names, l_db_poss, l_db_rule_names = [], [], [], []
@@ -339,7 +342,8 @@ def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice
 			decision_choice = np.random.choice([e_player_decide.goto, e_player_decide.pickup,
 												e_player_decide.ask_where, e_player_decide.tell_where,
 												e_player_decide.ask_give, e_player_decide.give],
-											   p=[0.02, 0.28, 0.2, 0.2, 0.15, 0.15])
+											   p=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+		# p = [0.02, 0.28, 0.2, 0.2, 0.15, 0.15])
 		# decision_choice = e_player_decide.ask_where
 		ruleid = decision_choice.value-1
 		if c_b_learn_full_rules or c_b_learn_full_rules_nl:

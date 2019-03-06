@@ -10,7 +10,7 @@ from bitvecdb import bitvecdb
 
 ltotup = lambda l: tuple([tuple(li) for li in l])
 
-c_print_every = 50 # 500
+c_print_every = 500
 
 
 def convert_charvec_to_arr(bin, size=-1):
@@ -89,6 +89,9 @@ class cl_lrule(object):
 		phrase_bitvec = []; cent_offsets = []; l_cent_hds = []
 		plen = 0
 		ll_centroids = []; ll_el_hds = []
+		print('write rec:')
+		# self.__rsg.print_rsg()
+		self.print_lrule()
 		for rcent in [src_rcent] + l_close_rcent + [self.__result_rcent]:
 			if rcent < 0:
 				continue
@@ -592,7 +595,7 @@ class cl_lrule_mgr(object):
 	def learn_rule(self, mpdbs, stmt, l_results, phase_data, idb, rule_cat):
 		cid = self.__rule_mgr.get_cid(rule_cat)
 		if not self.__b_learn:
-			self.test_rule(mpdbs, stmt, l_results, idb)
+			self.test_rule(mpdbs, stmt, l_results, idb, )
 			return
 		map_rphrase_to_s_rcents = dict()
 		type(self).ts += 1
@@ -667,6 +670,7 @@ class cl_lrule_mgr(object):
 			self.__last_print += c_print_every
 			print('---> end rules learned at timestamp:', type(self).ts)
 			self.save_rules()
+			exit()
 		pass
 
 	def get_grp_vars(self, l_rphrases):
@@ -692,7 +696,12 @@ class cl_lrule_mgr(object):
 					if t_src[0] == iphrase:
 						phrase_data.append(phrase_data[t_src[1]])
 					else:
-						phrase_data.append(ll_phrase_data[t_src[0]][t_src[1]])
+						try:
+							phrase_data.append(ll_phrase_data[t_src[0]][t_src[1]])
+						except:
+							print('Crashing. len(ll_phrase_data)', len(ll_phrase_data), 't_src', t_src, 'len(ll_phrase_data[t_src[0]])', len(ll_phrase_data[t_src[0]]))
+							print('ll_phrase_data', ll_phrase_data)
+							exit(1)
 			ll_phrase_data.append(phrase_data)
 		rule_name = 'lrule'+str(mgr_irec)
 		cdb_irec = self.__rule_mgr.register_lrule(	mgr_irec, ll_var_list, ll_thresh_hds, ll_phrase_data, b_has_result,
