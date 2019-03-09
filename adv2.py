@@ -342,8 +342,9 @@ def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice
 			decision_choice = np.random.choice([e_player_decide.goto, e_player_decide.pickup,
 												e_player_decide.ask_where, e_player_decide.tell_where,
 												e_player_decide.ask_give, e_player_decide.give],
-											   p=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-		# p = [0.02, 0.28, 0.2, 0.2, 0.15, 0.15])
+												p=[0.2, 0.8, 0.0, 0.0, 0.0, 0.0])
+												# p=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+												# p = [0.02, 0.28, 0.2, 0.2, 0.15, 0.15])
 		# decision_choice = e_player_decide.ask_where
 		ruleid = decision_choice.value-1
 		if c_b_learn_full_rules or c_b_learn_full_rules_nl:

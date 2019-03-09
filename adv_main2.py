@@ -426,7 +426,6 @@ def main():
 		if mod.c_b_init_data:
 			phrases_mgr.init_data()
 		ext_rule_mgr.set_mgrs(nlbitvec_mgr, phrases_mgr, phraseperms_mgr)
-		mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_mode, ext_rule_mgr)
 		mod.set_nl_mgrs(nlbitvec_mgr, phrases_mgr, mpdbs_mgr, phraseperms_mgr)
 	mpdb_mgr = mpdb.cl_mpdb_mgr(bitvec_mgr, fixed_rule_mgr, len(l_agents), nlbitvec_mgr)
 	gpsai_mgr = gpsai.cl_gpsai_mgr()
@@ -437,9 +436,11 @@ def main():
 	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
 	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2) # use for debugging gpsnlai
 	l_all_set_words = mod.get_all_set_words()
+	mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_mode, ext_rule_mgr, l_all_set_words)
 	s_rule_words = bitvec_mgr.get_s_rule_clauses()
 	gpsnlai_mgr.create_clause_dict(l_all_set_words + list(s_rule_words))
 	ext_rule_mgr.init_vo(mpdbs_mgr)
+
 
 	event_step_id = -1
 	learn_vars = [event_step_id]

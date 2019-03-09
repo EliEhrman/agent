@@ -28,11 +28,13 @@ class cl_mpdbs_mgr(object):
 		self.__nl_el_mgr = nlbitvec_mgr
 		self.__bdb_story.set_nlb_mgr(nlbitvec_mgr)
 
-	def init_lrule_mgr(self, rules_fnt, lrn_rule_fn, rule_mgr):
+	def init_lrule_mgr(self, rules_fnt, lrn_rule_fn, rule_mgr, l_special_words):
 		self.__rule_mgr = rule_mgr
 		if lrn_rule_fn != 'none':
 			self.__lrule_mgr = rule_learn.cl_lrule_mgr(	self.__phrase_mgr, self.__phraseperms, rules_fnt,
 														lrn_rule_fn, rule_mgr)
+			assert self.__nl_el_mgr != None, 'Error! Initialization order. set_nlb_mgr must be called before init_lrule_mgr'
+			self.__lrule_mgr.set_special_words(l_special_words, self.__nl_el_mgr)
 
 	def clear_dbs(self):
 		self.__l_dbs = []  # type: List[List[int]] # list of rphrase in each idb

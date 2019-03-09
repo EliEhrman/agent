@@ -2971,3 +2971,36 @@ Note. If you don't put this line back in adv.py, you will get nothing but moveme
 
 											   p=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
+Wednesday 6th March 2019
+
+For saving phrases
+
+c_b_gpsai = False
+c_lrn_rule_mode = 'none' # 'load', 'learn', 'none'
+c_b_learn_full_rules = False
+c_b_learn_full_rules_nl = False
+c_b_restart_from_glv = False
+c_b_init_data = False
+c_b_save_phrases = True # Create a file of phrases with the rule that generated them
+
+For learning clusters once the phrases are saved
+
+c_b_gpsai = False
+c_lrn_rule_mode = 'none' # 'load', 'learn', 'none'
+c_b_learn_full_rules = False
+c_b_learn_full_rules_nl = False
+c_b_restart_from_glv = True
+c_b_init_data = True
+c_b_save_phrases = False # Create a file of phrases with the rule that generated them
+
+For learning rules using those clusters
+
+c_b_gpsai = False
+c_lrn_rule_mode = 'learn' # 'load', 'learn', 'none'
+c_b_learn_full_rules = False
+c_b_learn_full_rules_nl = True
+c_b_restart_from_glv = False
+c_b_init_data = True
+c_b_save_phrases = False # Create a file of phrases with the rule that generated them
+
+

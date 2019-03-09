@@ -229,13 +229,14 @@ class cl_bitvec_db(object):
 		return s_close_pairs
 
 
-	def get_matching_rphrases(self, idb, rphrase, l_rphrase_excl = []):
+	def get_matching_rphrases(self, idb, rphrase, l_rphrase_excl = [], s_special_eids = None):
 		l_rperms = self.__phraseperms.get_perms(rphrase)
 		s_eids = set()
 		for rperm in l_rperms:
 			l_perm_eids = self.__phraseperms.get_perm_eids(rperm)
 			for eid in l_perm_eids:
-				s_eids.add(eid)
+				if s_special_eids is not None and eid in s_special_eids:
+					s_eids.add(eid)
 		s_rphrases_close = set()
 		for eid in s_eids:
 			# print('Story phrases for:', )
