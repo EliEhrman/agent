@@ -715,10 +715,16 @@ class cl_nlb_mgr(object):
 		for iclosest in hd_idx_sorted:
 			l_closest.append(self.__l_els_here[iclosest])
 
-	def dbg_closest_word(self, bins):
+	def dbg_closest_word(self, bins, s_do_not_use = set()):
+		# Note. Default arg is a set/list, careful not to add to arg because that will change the set for future callers
 		nd_hd_iword = np.sum(np.not_equal(bins, self.__nd_word_bin), axis=1)
-		iclosest = np.argmin(nd_hd_iword)
-		return self.__l_els_here[iclosest]
+		while True: # no way loop infinitely unless s_do_not_use is all words
+			iclosest = np.argmin(nd_hd_iword)
+			word = self.__l_els_here[iclosest]
+			if word in s_do_not_use:
+				nd_hd_iword[iclosest] = c_bitvec_size
+				continue
+			return word
 
 	def assert_glove_uniqueness(self, bitvec):
 		print('Implement shoving a non-glove bitvec out of the way if already taken by a glove')

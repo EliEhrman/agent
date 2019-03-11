@@ -404,7 +404,7 @@ def main():
 	# import adv2
 	# els_sets, set_names, l_agents, rules_fn, phrase_freq_fnt, bitvec_dict_fnt = mod.mod_init()
 	fixed_rule_mgr = rules2.cl_fixed_rules(rules_fn)
-	ext_rule_mgr = rules3.cl_ext_rules(ext_rules_fn, nlbitvec.c_bitvec_size, lrn_rule_mode)
+	ext_rule_mgr = rules3.cl_ext_rules(ext_rules_fn, nlbitvec.c_bitvec_size, lrn_rule_mode, mod)
 	bitvec_mgr = bitvec.cl_bitvec_mgr(mod)
 	nlbitvec_mgr = None
 	if mod.c_b_nl:

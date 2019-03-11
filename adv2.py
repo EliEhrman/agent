@@ -60,8 +60,9 @@ l_dummy_types = []
 l_dummy_events = []
 l_dummy_ruleid = []
 g_dummy_idx = -1
+c_write_pct_thresh = 0.99 # pct a rule must be hit within its rpg in order to allow it to be saved to file
 c_b_gpsai = False
-c_lrn_rule_mode = 'learn' # 'load', 'learn', 'none'
+c_lrn_rule_mode = 'load' # 'load', 'learn', 'none'
 c_b_learn_full_rules = False
 c_b_learn_full_rules_nl = True
 c_b_restart_from_glv = False
@@ -342,8 +343,9 @@ def get_decision_for_player(player_name, phase_data, rule_stats, decision_choice
 			decision_choice = np.random.choice([e_player_decide.goto, e_player_decide.pickup,
 												e_player_decide.ask_where, e_player_decide.tell_where,
 												e_player_decide.ask_give, e_player_decide.give],
-												p=[0.2, 0.8, 0.0, 0.0, 0.0, 0.0])
 												# p=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+												p=[0.2, 0.0, 0.8, 0.0, 0.0, 0.0])
+												# p=[0.2, 0.8, 0.0, 0.0, 0.0, 0.0])
 												# p = [0.02, 0.28, 0.2, 0.2, 0.15, 0.15])
 		# decision_choice = e_player_decide.ask_where
 		ruleid = decision_choice.value-1

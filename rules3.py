@@ -41,7 +41,8 @@ class cl_nlb_mgr_notifier(nlbitvec.cl_nlb_mgr_notific):
 
 
 class cl_ext_rules(object):
-	def __init__(self, fn, bitvec_size, lrn_rules_mode):
+	def __init__(self, fn, bitvec_size, lrn_rules_mode, play_mod):
+		self.__play_mod = play_mod # currently adv
 		self.__l_rules = []
 		self.__l_categories = []
 		self.__d_rcats = dict() # keyed by cat names, returns an index into __l_irules_in_cats and __l_cat_names
@@ -72,6 +73,9 @@ class cl_ext_rules(object):
 		self.__hvos = None
 		if lrn_rules_mode != 'none':
 			self.load_rules(fn)
+
+	def get_play_mod(self):
+		return self.__play_mod
 
 	def register_lrule(self, ilrule, ll_var_list, ll_thresh_hds, ll_phrase_data, b_has_result, cid, rule_name, d_vars):
 		icdb = len(self.__l_active_rules)

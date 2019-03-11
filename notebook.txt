@@ -3004,3 +3004,22 @@ c_b_init_data = True
 c_b_save_phrases = False # Create a file of phrases with the rule that generated them
 
 
+Saturday 9th March 2019
+
+to do:
+	create a map of rphrase to cluster at a central point rather than in rule learn
+
+Monday 11th March 2019
+
+Still very much in the middle of making rule learning work on the new system
+
+One or two rules have been learned succesfully. Still seeing some extra rules learned with little explanation for why. However,
+hoping they would disappear below thecertaintly threshold with more running.
+
+Want to check in - (1) to save the progress made and (2) in case the APU hardware takes me away from the project for
+too long
+
+CIW:
+
+Progress made in learning but rule testing not working yet.
+

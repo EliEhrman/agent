@@ -123,7 +123,7 @@ class cl_lrule(object):
 		return len(self.__l_ts_hits)
 
 	def print_lrule(self):
-		print(	'lrule: c#', self.__cdb_irec, 'mgr #', self.__mgr_irec, 'with', len(self.__l_ts_hits), 'hits. vars:',
+		print(	'lrule: c#', self.__cdb_irec, 'mgr #',  self.__mgr_irec, 'rpg#', self.__rpg.get_irpg(), 'with', len(self.__l_ts_hits), 'hits. vars:',
 				self.__var_list, 'no result' if self.__result_rcent == -1 else 'result cent:')
 		self.__mgr.get_phraseperms().print_cluster(self.__result_rcent)
 
@@ -138,9 +138,10 @@ class cl_lrule(object):
 		self.__rpg_pct_hit = pct_hit
 
 class cl_rule_phrase_grp(object):
-	def __init__(self, mgr, rsg, l_rcents_close, grp_vars, l_parent_rpgs, ts):
+	def __init__(self, mgr, rsg, l_rcents_close, grp_vars, l_parent_rpgs, irpg, ts):
 		self.__mgr = mgr
 		self.__rsg = rsg
+		self.__irpg = irpg # index into rsg's list of rpgs
 		self.__l_rcents_close =  l_rcents_close
 		self.__grp_vars = grp_vars # vars that define the group excluding result vars
 		self.__l_rules = [] #  [cl_lrule(mgr, self, -1, (), cl_rule_phrase_grp.ts)]
@@ -154,6 +155,7 @@ class cl_rule_phrase_grp(object):
 		self.__l_ts_no_result = []
 		self.__result_entropy = -1
 		self.__b_go_further = False
+		self.__b_terminal = False
 		self.__b_save = False
 		self.__l_parent_rpgs = l_parent_rpgs # All the rpgs with one missing in l_rcents_close. None for the rpg with no close cent
 		self.__b_written = False
@@ -162,11 +164,17 @@ class cl_rule_phrase_grp(object):
 		self.__test_pct_hit_good = 0.
 		self.__test_pct_hit_bad = 0.
 
+	def get_irpg(self):
+		return self.__irpg
+
 	def get_l_close_rcent(self):
 		return self.__l_rcents_close
 
 	def get_result_entropy(self):
 		return self.__result_entropy
+
+	def get_l_rules(self):
+		return self.__l_rules
 
 	def assign_base_events(self, base_event_hits, b_no_result, ts):
 		if base_event_hits != []:
@@ -223,6 +231,9 @@ class cl_rule_phrase_grp(object):
 	def get_tot_hits(self):
 		return self.__tot_hits
 
+	def get_grp_vars(self):
+		return self.__grp_vars
+
 	def print_rpg(self):
 		print(	'rpg. tot hits:', self.__tot_hits, '. entropy', self.__entropy,
 				'. base entropy', self.__base_entropy, '. result entropy', self.__result_entropy,
@@ -232,13 +243,16 @@ class cl_rule_phrase_grp(object):
 		for lrule in self.__l_rules:
 			lrule.print_lrule()
 
-	def add_event(self, result_rcent, var_list, ts):
+	def add_event(self, result_rcent, l_rphrases, ts):
 		# if not any(lrule.is_match(result_rcent, var_list) for lrule in self.__l_rules):
 		# 	self.__l_rules.append(cl_lrule(self.__mgr, self, result_rcent, var_list, cl_rule_phrase_grp.ts))
 
 		# for rphrase_close, var_list in zip(l_rphrases_close, l_t_vars):
 		# l_event_hits = []
-		l_ilrules = [ilrule for ilrule, lrule in enumerate(self.__l_rules) if lrule.is_match(result_rcent, var_list, ts)]
+		phrases_wlist = [self.__mgr.get_phraseperms().get_phrase(r) for r in l_rphrases]
+		var_list = self.__mgr.make_var_list(phrases_wlist)
+
+		l_ilrules = [ilrule for ilrule, lrule in enumerate(self.get_l_rules()) if lrule.is_match(result_rcent, var_list, ts)]
 		if l_ilrules == []:
 			l_ilrules = [len(self.__l_rules)]
 			self.__l_rules.append(cl_lrule(self.__mgr, self.__rsg, self, result_rcent, var_list, ts))
@@ -250,6 +264,9 @@ class cl_rule_phrase_grp(object):
 		# l_event_hits.append(l_ilrules)
 		return l_ilrules
 
+	def get_b_terminal(self):
+		return self.__b_terminal
+
 	def get_b_written(self):
 		return self.__b_written
 
@@ -260,13 +277,15 @@ class cl_rule_phrase_grp(object):
 	def calc_status(self):
 		self.__b_go_further = False
 		self.__b_save = False
+		self.__b_terminal = False
 		if self.get_tot_hits() < c_perf_config_learn_rpg_hits:
 			return
 		if self.__result_entropy < 0.1:
 			self.__b_go_further = False
+			self.__b_terminal = True
 			if self.get_tot_hits() > c_perf_config_learn_rpg_hits * 2:
 				print('calc_status: get_parent_b_save')
-				if not self.get_parent_b_save(): # Won't hit myself 'cos we just disabled __b_save. Later. Don't think this comment is corrent
+				if not False: # self.get_parent_b_save(): # Won't hit myself 'cos we just disabled __b_save. Later. Don't think this comment is corrent
 					self.__b_save = True
 					if not self.__b_written:
 						self.write_lrules()
@@ -319,6 +338,7 @@ class cl_rule_phrase_grp(object):
 		if self.__b_save:
 			return True
 		l_rcent_close_sorted = sorted(self.__l_rcents_close)
+		assert False, 'Shouldno longer need to check parent save'
 		l_parent_rpgs = self.__rsg.find_parent_rpgs(l_rcent_close_sorted, self.__grp_vars)
 		assert l_parent_rpgs == self.__l_parent_rpgs, 'Why arent parent lists equal?'
 		for parent_rpg in self.__l_parent_rpgs:
@@ -410,19 +430,26 @@ class cl_rule_src_grp(object):
 				break
 		return irpg, rpg
 
-	def find_parent_rpg_by_phrase(self, l_rphrase_close, l_rcent_close):
-		l_parent_rpgs= []
+	def find_removed_rpg(self, l_parent_rpgs, l_imm, src_rphrase, l_rphrase_close, l_rcent_close, bimm):
 		for irphrase, rphrase in enumerate(l_rphrase_close):
-			l_copy = list(l_rphrase_close)
+			l_rphrase_copy = list(l_rphrase_close)
 			l_rcent_copy = list(l_rcent_close)
-			del l_copy[irphrase]
-			phrases_wlist = [self.__mgr.get_phraseperms().get_phrase(r) for r in l_copy]
+			del l_rphrase_copy[irphrase]; del l_rcent_copy[irphrase]
+			phrases_wlist = [self.__mgr.get_phraseperms().get_phrase(r) for r in [src_rphrase] + l_rphrase_copy]
 			t_vars_grp, canon_iorder = self.__mgr.make_canon_var_list(phrases_wlist)
-			l_rcent_canon = [l_rcent_copy[i] for i in canon_iorder]
-			_, parent_rpg = self.find_rpg(l_rcent_canon, t_vars_grp)
+			l_rcent_close_canon = [l_rcent_copy[i-1] for i in canon_iorder if i > 0]
+			_, parent_rpg = self.find_rpg(l_rcent_close_canon, t_vars_grp)
 			if parent_rpg != None:
-				if parent_rpg not in l_parent_rpgs: l_parent_rpgs.append(parent_rpg)
-		return l_parent_rpgs
+				if parent_rpg not in l_parent_rpgs:
+					l_parent_rpgs.append(parent_rpg)
+					l_imm.append(bimm)
+			if l_rphrase_copy != []:
+				self.find_removed_rpg(l_parent_rpgs, l_imm, src_rphrase, l_rphrase_copy, l_rcent_copy, False)
+
+	def find_parent_rpg_by_phrase(self, src_rphrase, l_rphrase_close, l_rcent_close):
+		l_parent_rpgs= []; l_immediate = []
+		self.find_removed_rpg(l_parent_rpgs, l_immediate, src_rphrase, l_rphrase_close, l_rcent_close, True)
+		return l_parent_rpgs, l_immediate
 
 	def find_parent_rpgs(self, l_rcent_close_sorted, t_vars_grp):
 		l_parent_rpgs= []
@@ -449,34 +476,51 @@ class cl_rule_src_grp(object):
 		# l_rpgs = []
 		base_event_hits = []
 		# t_vars_grp = filter(lambda l: l[2] != result_idx, t_vars)
-		l_rphrases_close_sorted = [x for x,y in sorted(zip(l_rphrases_close, l_rcent_close), key = lambda x: x[1])]
-		l_rcent_close_sorted = sorted(l_rcent_close)
-		grp_phrases = [rphrase]+l_rphrases_close
-		phrases_wlist = [self.__mgr.get_phraseperms().get_phrase(r) for r in grp_phrases]
+		# l_rphrases_close_sorted = [x for x,y in sorted(zip(l_rphrases_close, l_rcent_close), key = lambda x: x[1])]
+		# l_rcent_close_sorted = sorted(l_rcent_close)
+		grp_rphrases = [rphrase]+l_rphrases_close
+		phrases_wlist = [self.__mgr.get_phraseperms().get_phrase(r) for r in grp_rphrases]
 		t_vars_grp, canon_grp_iorder = self.__mgr.make_canon_var_list(phrases_wlist)
+		l_rphrases_close_canon = [l_rphrases_close[i-1] for i in canon_grp_iorder if i > 0]
+		l_rcent_close_canon = [l_rcent_close[i-1] for i in canon_grp_iorder if i > 0]
+		l_parent_rpgs, l_bimm_parent = self.find_parent_rpg_by_phrase(rphrase, l_rphrases_close_canon, l_rcent_close_canon)
+		b_parent_wants_further = False
+		# check that one of the parents actually wants to move further and this is not just because some other guy's parent added to the list
+		for parent_rpg, bimm in zip(l_parent_rpgs, l_bimm_parent):
+			if bimm and parent_rpg.get_b_go_further(b_dont_calc=True): b_parent_wants_further = True
+			if parent_rpg.get_b_terminal():
+				return None, [], False
+			del parent_rpg
+		if l_rcent_close == []: b_parent_wants_further = True
+		if not b_parent_wants_further: return None, [], False
 
 		# t_vars_grp = self.__mgr.get_grp_vars([rphrase]+l_rphrases_close_sorted) # sorted(l_rcent_close))
-		irpg, rpg = self.find_rpg(l_rcent_close_sorted, t_vars_grp)
-		if rpg == None:
-			last_close_idx = len(l_rcent_close)
-			l_parent_rpgs = []
-			b_parent_wants_further = False
-			l_parent_rpgs = self.find_parent_rpgs(l_rcent_close_sorted, t_vars_grp)
-			find_parent_rpg_by_phrase
-			for parent_rpg in l_parent_rpgs:
-				if parent_rpg.get_b_go_further(b_dont_calc=True): b_parent_wants_further = True
-				del parent_rpg
+		# irpg, rpg = self.find_rpg(l_rcent_close_sorted, t_vars_grp)
+		irpg, rpg = self.find_rpg(l_rcent_close_canon, t_vars_grp)
+		if irpg == 111:
+			print('irpg', irpg,  'result: phrases:', phrases_wlist, '\n vars', rpg.get_grp_vars(), 'hits:', rpg.get_tot_hits())
+			rpg.print_rpg()
 
-			# check that one of the parents actually wants to move further and this is not just because some other guy's parent added to the list
-			if l_rcent_close == []: b_parent_wants_further = True
-			assert b_parent_wants_further, 'Warning. Strange that got here without parental approval'
-			if not b_parent_wants_further:
-				return None, [], False
-			assert not (l_rcent_close_sorted != [] and l_parent_rpgs == []), 'error'
-			rpg = cl_rule_phrase_grp(self.__mgr, self, l_rcent_close_sorted, t_vars_grp, l_parent_rpgs, ts)
+		if rpg == None:
+			# l_parent_rpgs = []
+			# b_parent_wants_further = False
+			# l_parent_rpgs = self.find_parent_rpgs(l_rcent_close_sorted, t_vars_grp)
+			# for parent_rpg in l_parent_rpgs:
+			# 	if parent_rpg.get_b_go_further(b_dont_calc=True): b_parent_wants_further = True
+			# 	del parent_rpg
+
+			# if l_rcent_close == []: b_parent_wants_further = True
+			# assert b_parent_wants_further, 'Warning. Strange that got here without parental approval'
+			# if not b_parent_wants_further:
+			# 	return None, [], False
+			assert not (l_rcent_close != [] and l_parent_rpgs == []), 'error'
+			# rpg = cl_rule_phrase_grp(self.__mgr, self, l_rcent_close_sorted, t_vars_grp, l_parent_rpgs, ts)
 			irpg = len(self.__l_rpgs)
+			rpg = cl_rule_phrase_grp(self.__mgr, self, l_rcent_close_canon, t_vars_grp, l_parent_rpgs, irpg, ts)
 			self.__l_rpgs.append(rpg)
-		event_hits =  rpg.add_event(result_rcent, t_vars, ts)
+		# event_hits =  rpg.add_event(result_rcent, t_vars, ts)
+		l_all_rphrases = [rphrase] + l_rphrases_close_canon + ([] if result_rcent == -1 else [rphrase_result])
+		event_hits =  rpg.add_event(result_rcent, l_all_rphrases, ts)
 		l_event_hits.append([irpg, event_hits])
 		if l_rcent_close == []:
 			base_event_hits = event_hits
@@ -492,13 +536,13 @@ class cl_rule_src_grp(object):
 
 	def load_rpgs(self, l_rcent_close, result_rcent, t_vars, rpg_pct_hit):
 		result_idx = len(l_rcent_close) + 1
-		l_rcent_close_sorted = sorted(l_rcent_close)
+		# l_rcent_close_sorted = sorted(l_rcent_close)
 		t_vars_grp = filter(lambda l: l[2] != result_idx, t_vars)
-		irpg, rpg = self.find_rpg(l_rcent_close_sorted, t_vars_grp)
+		irpg, rpg = self.find_rpg(l_rcent_close, t_vars_grp)
 		if rpg == None:
-			assert False, 'Why are we losing the parent information?'
-			rpg = cl_rule_phrase_grp(self.__mgr, self, l_rcent_close_sorted, t_vars_grp, [], 0)
+			# assert False, 'Why are we losing the parent information?'
 			irpg = len(self.__l_rpgs)
+			rpg = cl_rule_phrase_grp(self.__mgr, self, l_rcent_close, t_vars_grp, [], irpg, 0)
 			self.__l_rpgs.append(rpg)
 		rpg.load_rules(result_rcent, t_vars, rpg_pct_hit)
 
@@ -506,6 +550,7 @@ class cl_rule_src_grp(object):
 
 class cl_lrule_mgr(object):
 	ts = 0
+	max_combos = 0
 
 	def __init__(self, phrase_mgr, phraseperms, rules_fnt, lrn_rule_fn, rule_mgr):
 		self.__rules_fnt = rules_fnt
@@ -685,6 +730,7 @@ class cl_lrule_mgr(object):
 	def learn_rule(self, mpdbs, stmt, l_results, phase_data, idb, rule_cat):
 		cid = self.__rule_mgr.get_cid(rule_cat)
 		if not self.__b_learn:
+			Error Must call rules3 test_rule
 			self.test_rule(mpdbs, stmt, l_results, idb, )
 			return
 		map_rphrase_to_s_rcents = dict()
@@ -713,6 +759,10 @@ class cl_lrule_mgr(object):
 		num_phrase_combos = 1; curr_combo = 0
 		base_event_hits = []
 		while curr_combo < len(ll_rphrases_close):
+			if curr_combo > type(self).max_combos:
+				type(self).max_combos = curr_combo
+				print('type(self).max_combos', type(self).max_combos)
+
 			for src_rcent in s_src_rcents:
 				rsg = self.__d_rsgs.get((cid, src_rcent), None)
 				if rsg == None:
@@ -779,6 +829,7 @@ class cl_lrule_mgr(object):
 		d_vars = dict()
 		for l_vars in ll_var_list:
 			d_vars[(l_vars[2:4])] = l_vars[:2]
+		s_words_used = set()
 		for iphrase, l_centroid in enumerate(ll_centroids):
 			phrase_data = []
 			cent_len = len(l_centroid) / self.__bitvec_size
@@ -786,7 +837,9 @@ class cl_lrule_mgr(object):
 				t_src = d_vars.get((iphrase, iel), ())
 				if t_src == ():
 					el_bits = l_centroid[iel * self.__bitvec_size:(iel + 1) * self.__bitvec_size]
-					phrase_data.append(self.__phraseperms.get_nlb_mgr().dbg_closest_word(el_bits))
+					word = self.__phraseperms.get_nlb_mgr().dbg_closest_word(el_bits, s_words_used)
+					s_words_used.add(word)
+					phrase_data.append(word)
 				else:
 					if t_src[0] == iphrase:
 						phrase_data.append(phrase_data[t_src[1]])
@@ -807,16 +860,26 @@ class cl_lrule_mgr(object):
 	def save_rules(self):
 		fn = expanduser(self.__rules_fnt)
 
+		write_pct_thresh = self.__rule_mgr.get_play_mod().c_write_pct_thresh
+		num_rules_to_write = 0
+		for irec, write_rec in enumerate(self.__l_write_recs):
+			rsg, rpg, lrule = write_rec
+			rpg.calc_rule_pct_hits()
+			if lrule.get_rpg_pct_hit() > write_pct_thresh:
+				num_rules_to_write += 1
+
+
 		if os.path.isfile(fn):
 			copyfile(fn, fn + '.bak')
 		fh = open(fn, 'wb')
 		csvw = csv.writer(fh, delimiter='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
 		csvw.writerow(['nlbitvec rules', 'Version', '3'])
-		csvw.writerow(['Num Rules:', len(self.__l_write_recs)])
+		csvw.writerow(['Num Rules:', num_rules_to_write])
 		csvw.writerow(['cat name', 'Num Close', 'src cent', 'list close cents', 'rpg pct hit', 'result cent', 'num vars', 'var list'])
 		for irec, write_rec in enumerate(self.__l_write_recs):
 			rsg, rpg, lrule = write_rec
-			rpg.calc_rule_pct_hits()
+			if lrule.get_rpg_pct_hit() <= write_pct_thresh: continue
+			# rpg.calc_rule_pct_hits()
 			src_rcent = rsg.get_src_rcent()
 			l_close_rcent = rpg.get_l_close_rcent()
 			var_list, result_rcent = lrule.get_var_list(), lrule.get_result_rcent()
@@ -838,8 +901,7 @@ class cl_lrule_mgr(object):
 				for irow, row in enumerate(csvr):
 					cat_name = row[0]
 					num_close, src_rcent = map(int, row[1:3])
-					if num_close > 0:
-						l_close_rcent = map(int, row[3:num_close+3])
+					l_close_rcent = map(int, row[3:num_close+3]) if num_close > 0 else []
 					rpg_pct_hit = float(row[num_close+3])
 					result_rcent, num_vars = map(int, row[num_close+4:num_close+6])
 					l_var_int = map(int, row[num_close+6:])
