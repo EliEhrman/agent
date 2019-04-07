@@ -174,9 +174,11 @@ void* bdballoc(void * ptr, int * palloc_size, size_t elsize, size_t num_els) {
 	return new_ptr;
 }
 
+void respond(void);
 
 void * init_capp(void) {
 //	return NULL;
+	respond();
 	tSBDBApp * papp = (tSBDBApp *) bdbmalloc(sizeof (tSBDBApp));
 	papp->name = NULL;
 	papp->db = NULL;

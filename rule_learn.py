@@ -730,7 +730,7 @@ class cl_lrule_mgr(object):
 	def learn_rule(self, mpdbs, stmt, l_results, phase_data, idb, rule_cat):
 		cid = self.__rule_mgr.get_cid(rule_cat)
 		if not self.__b_learn:
-			Error Must call rules3 test_rule
+			assert False, ('Error Must call rules3 test_rule!!!!!!!!!!!!!!!!!')
 			self.test_rule(mpdbs, stmt, l_results, idb, )
 			return
 		map_rphrase_to_s_rcents = dict()
