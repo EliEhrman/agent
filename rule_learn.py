@@ -349,7 +349,8 @@ class cl_rule_phrase_grp(object):
 	def load_rules(self, result_rcent, var_list, rpg_pct_hit):
 		self.__l_rules.append(cl_lrule(self.__mgr, self.__rsg, self, result_rcent, var_list, -1))
 		self.__l_rules[-1].load_rpg_pct_hit(rpg_pct_hit)
-		self.__l_rules[-1].write_rec_new()
+		if self.__mgr.get_b_learn():
+			self.__l_rules[-1].write_rec_new()
 
 	def test_rule(self, mpdbs, src_rperm, idb):
 		bitvec_size = self.__mgr.get_bitvec_size()
@@ -565,6 +566,7 @@ class cl_lrule_mgr(object):
 		self.__test_stat_num_rules_not_found = 0
 		self.__s_special_eids = set() # Set of eids important enough to define close phrases
 		self.__rule_mgr = rule_mgr # overall rule mgr that includes both external rules and references to the lrules learned here
+		self.__l_flat_rules = [] # a way of storing rules using their rcents and var list without the native rsg, rpg, lrule tree
 		# bitvecdb.set_name(self.__hcdb_rules, 'rules')
 		# bitvecdb.set_b_rules(self.__hcdb_rules)
 		self.__bitvec_size = self.__phraseperms.get_nlb_mgr().get_bitvec_size()
@@ -576,6 +578,8 @@ class cl_lrule_mgr(object):
 		pass
 
 	# def get_hcdb_rules(self):
+	def get_b_learn(self):
+		return self.__b_learn
 
 	def set_special_words(self, l_special_words, nlb_el_mgr):
 		for word in l_special_words:
@@ -889,6 +893,35 @@ class cl_lrule_mgr(object):
 
 		fh.close()
 
+	class cl_flat_rule(object):
+		def __init__(self, cat_name, src_rcent, l_close_rcent, result_rcent, var_list):
+			self.__cat_name = cat_name
+			self.__src_rcent = src_rcent
+			self.__l_close_rcents = l_close_rcent
+			self.__result_rcent = result_rcent
+			self.__var_list = var_list
+
+		def create_rule_like_fixed(self, phraseperms_mgr):
+			ll_phrase_data = []; ll_el_hds = []
+			l_cluster_mgr = phraseperms_mgr.get_cluster_mgr()
+			ll_phrase_data.append(l_cluster_mgr.get_cluster_words(self.__src_rcent))
+			ll_el_hds.append(l_cluster_mgr.get_cent_hd(self.__src_rcent))
+			for close_rcent in self.__l_close_rcents:
+				ll_phrase_data.append(l_cluster_mgr.get_cluster_words(close_rcent))
+				ll_el_hds.append(l_cluster_mgr.get_cent_hd(close_rcent))
+			if self.__result_rcent != -1:
+				ll_phrase_data.append(l_cluster_mgr.get_cluster_words(self.__result_rcent))
+				ll_el_hds.append(l_cluster_mgr.get_cent_hd(self.__result_rcent))
+			# a cosmetic clean-up
+			for one_var in self.__var_list:
+				ll_phrase_data[one_var[2]][one_var[3]] = ll_phrase_data[one_var[0]][one_var[1]]
+			return self.__cat_name, None, ll_phrase_data, [], self.__var_list, ll_el_hds, (self.__result_rcent != -1)
+
+	def get_flat_rules(self):
+		if self.__b_learn:
+			return [] # currently we add rules loaded to the ext_rule_mgr only if we are not learning
+		return self.__l_flat_rules
+
 	def load_rules(self):
 		fn = expanduser(self.__rules_fnt)
 		try:
@@ -913,5 +946,6 @@ class cl_lrule_mgr(object):
 						rsg = cl_rule_src_grp(self, src_rcent, type(self).ts, cid)
 						self.__d_rsgs[(cid, src_rcent)] = rsg
 					rsg.load_rpgs(l_close_rcent, result_rcent, var_list, rpg_pct_hit)
+					self.__l_flat_rules.append(self.cl_flat_rule(cat_name, src_rcent, l_close_rcent, result_rcent, var_list))
 		except IOError:
 			print('Cannot open or read ', fn)

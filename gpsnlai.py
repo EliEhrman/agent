@@ -63,6 +63,9 @@ class cl_gpsnlai_mgr(object):
 		self.__min_calc_level = min_calc_level
 		self.__max_calc_level = max_calc_level
 
+	def test_rule(self, mpdbs, stmt, l_results, idb, l_rule_cats):
+		return self.__rule_mgr.test_rule(mpdbs, stmt, l_results, idb, l_rule_cats)
+
 	def db_changed(self):
 		self.__player_goal_arg_cache = dict()
 

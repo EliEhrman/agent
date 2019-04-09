@@ -251,7 +251,7 @@ def play(	els_lists, num_stories, num_story_steps, learn_vars, mod, d_mod_fns):
 					mpdb_mgr.learn_rule(one_decide, event_as_decided,
 										  (i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 										  'main')
-				if mod.c_b_learn_full_rules_nl: #  and mod.c_lrn_rule_mode == 'learn':
+				if mod.c_b_learn_full_rules_nl and mod.c_lrn_rule_mode == 'learn': #  and mod.c_lrn_rule_mode == 'learn':
 					mpdbs_mgr.learn_rule(	one_decide, event_as_decided,
 											(i_one_story, i_story_step, story_loop_stage, event_step_id[0]),
 											story_names[i_story_player], 'event_from_decide') # 'main') #
@@ -432,13 +432,15 @@ def main():
 	gpsai_mgr.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2)
 	gpsnlai_mgr = gpsnlai.cl_gpsnlai_mgr()
 	gpsnlai_mgr.set_mgrs(mpdbs_mgr, nlbitvec_mgr, ext_rule_mgr, phrases_mgr, phraseperms_mgr, rules3)
-	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2) # use for learning rules while keeping the oracle classic
+	mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2) #  oracle classic, testing nlrules for ai_mgr
+	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsai_mgr, bitvec_mgr, rules2) # use for learning rules while keeping the oracle classic
 	# mod.set_mgrs(ext_rule_mgr, mpdbs_mgr, gpsnlai_mgr, nlbitvec_mgr, rules3)
 	# mod.set_mgrs(fixed_rule_mgr, mpdb_mgr, gpsnlai_mgr, bitvec_mgr, rules2) # use for debugging gpsnlai
 	l_all_set_words = mod.get_all_set_words()
 	mpdbs_mgr.init_lrule_mgr(rules_fnt, lrn_rule_mode, ext_rule_mgr, l_all_set_words)
 	s_rule_words = bitvec_mgr.get_s_rule_clauses()
 	gpsnlai_mgr.create_clause_dict(l_all_set_words + list(s_rule_words))
+	ext_rule_mgr.complete_rule_acquisition()
 	ext_rule_mgr.init_vo(mpdbs_mgr)
 
 
