@@ -39,6 +39,8 @@ class cl_bitvec_db(object):
 		self.__phraseperms.register_notific(self.__phrase_perms_notifier)
 		self.__nlb_mgr_notifier = cl_nlb_mgr_notifier(self)
 		self.__hcbdb = bitvecdb.init_capp()
+		print('bitvecdb init did not crash!')
+		exit()
 		bitvecdb.set_el_bitvec_size(self.__hcbdb, bitvec_size)
 		bitvecdb.set_name(self.__hcbdb, name)
 		# cluster.init_clusters(bitvec_size)
