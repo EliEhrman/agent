@@ -3023,3 +3023,21 @@ CIW:
 
 Progress made in learning but rule testing not working yet.
 
+Tuesday 9th April
+
+CIW:
+
+Initial testing shows incorporating learned rules as if ext is working.
+
+I disabled the feature where learned module records rules directly to the rules3 bitvecdb hcdb where there is no learning going on.
+Instead, in this mode, before the rules3 module writes its records to bitvecdb, it adds the rules that lrule loaded. lrule formats
+its rules to conform with the ext rules (it does not bother to actually produce the rule in if, like, obj format, it simply
+writes the words, the var list and the el_hds.
+
+A simple test rule has now been called. At this time, comprehensive testing has not been done, nor is the GPSAI actually using
+the rules - though there is no reason it should see them as any different when originally created by hand or bu learning.
+
+The milestone that has been achieved, is the integration of hand-crafted and machine learned rules.
+
+I'm now going to switch effort to creating a module that can be hot-swapped with an equivalent module that utilizes GSI's hardware.
+
