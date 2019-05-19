@@ -3041,3 +3041,18 @@ The milestone that has been achieved, is the integration of hand-crafted and mac
 
 I'm now going to switch effort to creating a module that can be hot-swapped with an equivalent module that utilizes GSI's hardware.
 
+Sunday 19th May 2019
+
+Just realized that I did not check in the last changes in test_vardb.py
+
+This is a module that is meant to sepearate out an interface to low level variable based search capabilities. This is being built separately in
+test_vardb and cpu_vardb modules (in ~dev). Once a cpu-based c library is developed and tested, I will modify the core swig
+libraries in this project to work with the cpu_vardb library. Once that is done, a hardware accelerated library can be developed
+entirely independently and then (wishfully) immediately swappable with the cpu version.
+
+Checking in once to push these changes (not the separate projects) and will then be able to develop the first version of a README.md
+for the agent project.
+
+CIW:
+
+Started work on interface to vardb.

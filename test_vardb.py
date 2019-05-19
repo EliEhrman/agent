@@ -8,13 +8,16 @@ import numpy as np
 from os.path import expanduser
 
 glove_fnt = '~/data/glove/glove.6B.50d.txt'
-c_num_gloves = 10000 # 10000 # 400000
+c_num_gloves = 100000 # 10000 # 400000
 c_bitvec_size = 50
 c_num_bits_padded = 64
 c_num_nibs = c_num_bits_padded / 4
 c_samples_fnt = '~/tmp/vardb_samples.txt'
 
-g_samples = ['hit the ball', 'where are you', 'the ball in here is in the water']
+g_samples = ['where are you', 'hit the ball', 'the ball in here is in the water', 'the cat is on the mat', 'the cat is on the table',
+			 'the ball is on the mat', 'the ball is on the floor', 'the cat is on the chair', 'the dog is on the mat', 'the ball is on the chair',
+			 'the ball is in the box', 'the dog is on the box']
+g_queries = ['the cat:50 is on the table:50']
 
 def get_nibs(lnibs):
 	v = 0
@@ -72,17 +75,35 @@ def load_word_dict():
 
 	return word_dict, l_str_vals
 
+def write_row(fh, word_dict, l_str_vals, sample, bquery):
+	lw = sample.split(' ')
+	fh.write('1' if bquery else '0')
+	fh.write('%03d' % len(lw))
+	var_dict = dict()
+	for iwc, wc in enumerate(lw):
+		lwc = wc.split(':')
+		w = lwc[0]
+		hd = '00'; var_delta = '00'
+		if len(lwc) > 1:
+			hd = '%02d' % (int(lwc[1]))
+		ivar = var_dict.get(w, -1)
+		if ivar == -1:
+			var_dict[w] = iwc
+		else:
+			var_delta = '%02d' % (int(iwc - ivar))
+		idx = word_dict.get(w, -1)
+		assert idx != -1, ('Error! The word \'%s\' from the samples is not in the glv based dictionary' % w)
+		fh.write(l_str_vals[idx] + hd + var_delta)
+	fh.write('\n')
+
+
 def make_samples(word_dict, l_str_vals):
 	fn = expanduser(c_samples_fnt)
 	fh = open(fn, 'wb')
 	for sample in g_samples:
-		lw = sample.split(' ')
-		fh.write('%03d' % len(lw))
-		for w in lw:
-			idx = word_dict.get(w, -1)
-			assert idx != -1, 'Error! The samples may only use words from the glv based dictionary'
-			fh.write(l_str_vals[idx])
-		fh.write('\n')
+		write_row(fh, word_dict, l_str_vals, sample, bquery=False)
+	for sample in g_queries:
+		write_row(fh, word_dict, l_str_vals, sample, bquery=True)
 	fh.close
 
 
