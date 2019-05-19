@@ -10,9 +10,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60b20013-eebf-4dd4-a709-0b01b1d10aab" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebook.txt" beforeDir="false" afterPath="$PROJECT_DIR$/notebook.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_vardb.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_vardb.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -46,8 +46,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/notebook.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="835">
-              <caret line="3057" selection-start-line="3057" selection-end-line="3057" selection-end-column="35" />
+            <state relative-caret-position="457">
+              <caret line="3040" lean-forward="true" selection-start-line="3040" selection-end-line="3040" />
             </state>
           </provider>
         </entry>
@@ -701,7 +701,14 @@
       <option name="project" value="LOCAL" />
       <updated>1554790238319</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Started work on interface to vardb.">
+      <created>1558273907251</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1558273907251</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -797,7 +804,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Completed a0 of find_var_opts." />
     <MESSAGE value="Initial testing passes for part b of varopts." />
     <MESSAGE value="varopts works with too many mallocs but no memory leak." />
     <MESSAGE value="data returns from c to python. Fixed plenty bugs." />
@@ -822,7 +828,8 @@
     <MESSAGE value="Integrated lrules and ext rules using minimaly functional py run rule that must be replaced with solid c engine." />
     <MESSAGE value="C run rule works with minimal testing." />
     <MESSAGE value="Initial testing shows incorporating learned rules as if ext is working." />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial testing shows incorporating learned rules as if ext is working." />
+    <MESSAGE value="Started work on interface to vardb." />
+    <option name="LAST_COMMIT_MESSAGE" value="Started work on interface to vardb." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2424,8 +2431,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/notebook.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="835">
-          <caret line="3057" selection-start-line="3057" selection-end-line="3057" selection-end-column="35" />
+        <state relative-caret-position="457">
+          <caret line="3040" lean-forward="true" selection-start-line="3040" selection-end-line="3040" />
         </state>
       </provider>
     </entry>
