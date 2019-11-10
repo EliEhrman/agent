@@ -17,7 +17,7 @@ c_samples_fnt = '~/tmp/vardb_samples.txt'
 g_samples = ['where are you', 'hit the ball', 'the ball in here is in the water', 'the cat is on the mat', 'the cat is on the table',
 			 'the ball is on the mat', 'the ball is on the floor', 'the cat is on the chair', 'the dog is on the mat', 'the ball is on the chair',
 			 'the ball is in the box', 'the dog is on the box']
-g_queries = ['the cat:50 is on the table:50']
+g_queries = ['the dog:50 is on the box:50']
 
 def get_nibs(lnibs):
 	v = 0

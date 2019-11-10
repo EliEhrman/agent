@@ -1,6 +1,7 @@
 /* bitvecdb.c */
 #define _GNU_SOURCE
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -9,6 +10,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "../../vardb/cpu_vardb/vardb.h"
 #include "bitvecdb.h"
 #include "bdb.h"
 
@@ -16,6 +18,8 @@ int My_variable = 3;
 double density = 4.1;
 
 #define CLUSTER_BY_EL true
+#define NUM_WBITS 16
+#define NUM_VDB_ROWS 4	
 
 
 int num_mallocs = 0;
@@ -174,16 +178,18 @@ void* bdballoc(void * ptr, int * palloc_size, size_t elsize, size_t num_els) {
 	return new_ptr;
 }
 
-void respond(void);
+//void respond(void);
 
 void * init_capp(void) {
 //	return NULL;
-	respond();
 	tSBDBApp * papp = (tSBDBApp *) bdbmalloc(sizeof (tSBDBApp));
+	papp->hvdb = vardb_init();
 	papp->name = NULL;
 	papp->db = NULL;
 	papp->num_db_els = 0;
 	papp->num_db_els_alloc = 0;
+	papp->vdb_cols = NULL;
+	papp->num_vdb_cols_alloc = 0;
 	papp->rec_ptrs = NULL;
 	papp->num_rec_ptrs = 0;
 	papp->rec_lens = NULL;
@@ -329,15 +335,49 @@ void clear_db(void * happ) {
 	papp->num_agents = 1;
 }
 
+void compr_bits(u16 * compr_data, int num_els, char * data, int bitvec_size) {
+	printf("compr_bits called for %d els, ", num_els);
+	for (int ib=0; ib < num_els * bitvec_size; ib++) {
+		printf("%hhu ", data[ib]);
+	}
+	printf("\n");
+	memset(compr_data, 0, num_els * NUM_VDB_ROWS * sizeof(u16));
+	for (int iel = 0; iel < num_els; iel++) {
+		char * p_el_data = &(data[bitvec_size * iel]);
+		//u16 * compr_el_data = &(compr_data[iel * NUM_VDB_ROWS]);
+		for (int ibit = 0; ibit < bitvec_size; ibit++) {
+			int iw = ibit / NUM_WBITS;
+			if (p_el_data[ibit] != '\0') {
+//				printf("bit %d set. for word %d at pos %d \n", ibit, (num_els * iw) + iel, (ibit % NUM_WBITS));
+				compr_data[(num_els * iw) + iel] |= (0x0001 << (ibit % NUM_WBITS));
+			}
+		}		
+	}
+	printf("compressed to: ");
+	for (int irow = 0; irow < NUM_VDB_ROWS; irow++) {
+		for (int iel = 0; iel < num_els; iel++) {
+			printf("%04X ", compr_data[(num_els * irow) + iel]);
+		}
+		printf(" | ");
+	}
+	printf("\n");
+}
+
+
 void add_rec(void * happ, int num_els, char * data) {
 //	return;
 	if (happ == NULL) return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
-//	printf("add_rec called for %d els. Total %d\n", num_els, papp->num_db_els);
+	printf("%s: add_rec %d called for %d els. Prev total %d\n", papp->name, papp->num_rec_ptrs, num_els, papp->num_db_els);
 	if (num_els > papp->max_rec_len) {
 		papp->max_rec_len = num_els;
 		printf("max rec len set to %d for db %s.\n", papp->max_rec_len, papp->name);
 	}
+	u16 compr_data[num_els * NUM_VDB_ROWS];
+	compr_bits(compr_data, num_els, data, papp->bitvec_size);
+
+	papp->vdb_cols = (int *)bdballoc(papp->vdb_cols, &(papp->num_vdb_cols_alloc), sizeof (int), papp->num_rec_ptrs + 1);
+	papp->vdb_cols[papp->num_rec_ptrs] = vardb_add_rec(papp->hvdb, papp->num_rec_ptrs, compr_data, num_els, NUM_VDB_ROWS);
 	int old_num_els = papp->num_db_els;
 	papp->num_db_els += num_els;
 	papp->db = (char *) bdballoc(papp->db, &(papp->num_db_els_alloc), sizeof (char)*papp->bitvec_size, papp->num_db_els);
@@ -399,7 +439,12 @@ void change_rec(void * happ, int num_els, char * data, int irec) {
 				irec, papp->rec_lens[irec], num_els);
 		return;
 	}
+//	printf("BitvecDB Error! change_rec called but not implemented.\n");
 	memcpy(&(papp->db[papp->rec_ptrs[irec] * papp->bitvec_size]), data, num_els * sizeof (char)*papp->bitvec_size);
+	u16 compr_data[num_els * NUM_VDB_ROWS];
+	compr_bits(compr_data, num_els, data, papp->bitvec_size);
+	printf("change_rec called for irec %d at col %d.\n", irec, papp->vdb_cols[irec]);
+	vardb_change_rec(papp->hvdb, papp->vdb_cols[irec], compr_data, num_els, NUM_VDB_ROWS);
 	//	printf("bitvecdb change_rec called for irec %d len %d. pos: %d\n", irec, num_els, papp->rec_ptrs[irec]);
 	//	for (int iel=0; iel<papp->num_db_els; iel++) {
 	//		printf("iel: %d. ", iel);
@@ -438,6 +483,7 @@ int test_rec_name(void * happ, char * name, int irec) {
 
 char * __get_name_exact(tSBDBApp * papp, int qlen, char * qbits, bool bprint) {
 //	printf("db has %d recs.\n", papp->num_rec_ptrs);
+	//printf("BitvecDB Error! vardb version of __get_name_exact called but not implemented.\n");
 	int irec_found = -1;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 //		printf("rec %d has name %s.\n", irec, papp->rec_names[irec]);
@@ -457,6 +503,20 @@ char * __get_name_exact(tSBDBApp * papp, int qlen, char * qbits, bool bprint) {
 	return NULL;
 }
 
+char * __get_name_exact_vdb(tSBDBApp * papp, int qlen, u16 * qdata, int num_rows, bool bprint) {
+	 u16 ret_buf[2]; // we are looking for the first exact match. The buf is populated with idx of record and then a terminating 0xffff
+	vardb_find_seq(papp->hvdb, ret_buf, 2, qdata, qlen, num_rows);
+	//	printf("db has %d recs.\n", papp->num_rec_ptrs);
+	//printf("BitvecDB Error! vardb version of __get_name_exact_vdb called but not implemented.\n");
+	if (ret_buf[0] != 0xffff) {
+		if (bprint) printf(" (get_name_exact %d  %s) ", ret_buf[0], papp->rec_names[ret_buf[0]]);
+		return papp->rec_names[ret_buf[0]];
+
+	}
+	if (bprint)	printf("(get_name_exact !rec not found!)");
+	return NULL;
+}
+
 char * get_name_exact_silent(tSBDBApp * papp, int qlen, char * qbits) {
 	return __get_name_exact(papp, qlen, qbits, false);
 }
@@ -464,6 +524,11 @@ char * get_name_exact_silent(tSBDBApp * papp, int qlen, char * qbits) {
 char * get_name_exact(tSBDBApp * papp, int qlen, char * qbits) {
 	return __get_name_exact(papp, qlen, qbits, true);
 }
+
+char * get_name_exact_vdb(tSBDBApp * papp, int qlen, u16 * qdata, int num_rows) {
+	return __get_name_exact_vdb(papp, qlen, qdata, num_rows, true);
+}
+
 
 void print_db_recs(void * happ, void * hcdbels) {
 	if (happ == NULL) return;
@@ -482,6 +547,7 @@ void print_db_recs(void * happ, void * hcdbels) {
 
 
 int get_irec_exact(tSBDBApp * papp, int qlen, char * qbits) {
+	printf("BitvecDB Error! vardb version of get_irec_exact called but not implemented.\n");
 //	printf("db has %d recs.\n", papp->num_rec_ptrs);
 	int irec_found = -1;
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
@@ -500,6 +566,7 @@ int get_irec_exact(tSBDBApp * papp, int qlen, char * qbits) {
 void del_rec(void * happ, int num_els, int irec) {
 //	return;
 	tSBDBApp * papp = (tSBDBApp *) happ;
+	printf("BitvecDB Error! vardb version of del_rec called but not implemented.\n");
 
 	int remove_pos = papp->rec_ptrs[irec];
 	char * ptr1 = &(papp->db[remove_pos * papp->bitvec_size]);
@@ -569,18 +636,51 @@ void agent_change_rec(void * happ, int iagent, int irec, int badd) {
 int dist_cmp(const void * r1, const void * r2) {
 	const tSDistRec * d1 = r1;
 	const tSDistRec * d2 = r2;
-	if ((d1->dist < 0) && (d2->dist < 0)) return 0;
+	if ((d1->dist < 0) && (d2->dist < 0)) {
+		if (d1->idx < d2->idx)
+			return -1;
+		else
+			return 1;
+	}
 	if (d1->dist < 0) return 1;
 	if (d2->dist < 0) return -1;
 	if (d1->dist < d2->dist) return -1;
 	if (d1->dist > d2->dist) return 1;
-	if (d1->dist == d2->dist) return 0;
+	if (d1->dist == d2->dist) {
+		if (d1->idx < d2->idx)
+			return -1;
+		else
+			return 1;
+		
+	}
 	return 0;
 }
 
 int get_closest_recs(void * happ, int k, int * idxs_ret, int * hds_ret, char * obits,
 		int num_els, char * qdata, int iskip, int delta) {
+//	printf("BitvecDB Error! vardb version of get_closest_recs called but not implemented.\n");
 	tSBDBApp * papp = (tSBDBApp *) happ;
+
+	u16 compr_data[num_els * NUM_VDB_ROWS];
+	compr_bits(compr_data, num_els, qdata, papp->bitvec_size);
+	u16 ret_buf[k+1]; u16 dist_buf[k+1];
+	vardb_find_closest_context(	papp->hvdb, ret_buf, dist_buf, k+1, k, compr_data, num_els, iskip, delta, NUM_VDB_ROWS);
+	tSDistRec hds[k];
+	bool b_beyond = false; int num_vret = 0;
+	for (int iret = 0; iret < k; iret++) {
+		if (b_beyond || ret_buf[iret] == 0xffff) {
+			b_beyond = true;
+			hds[iret].dist = -1;
+			hds[iret].idx = -1;
+		}
+		else {
+			hds[iret].dist = dist_buf[iret];
+			hds[iret].idx = ret_buf[iret];
+			num_vret++;
+		}		
+	}
+	qsort(hds, num_vret, sizeof (tSDistRec), dist_cmp);
+	
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 		if (papp->rec_lens[irec] == (num_els - delta))
 			papp->hd_buf[irec].dist = 0;
@@ -614,10 +714,15 @@ int get_closest_recs(void * happ, int k, int * idxs_ret, int * hds_ret, char * o
 	//	printf("\n");
 	qsort(papp->hd_buf, papp->num_rec_ptrs, sizeof (tSDistRec), dist_cmp);
 
-	int num_ret = 0;
+	int num_ret = 0; bool bcheck = true;
 	for (int iret = 0; iret < k; iret++) {
 		if ((iret >= k) || (iret >= papp->num_rec_ptrs)) break;
 		tSDistRec * pdr = &(papp->hd_buf[iret]);
+		if ((iret < num_vret) && (pdr->idx != hds[iret].idx || pdr->dist != hds[iret].dist)) {
+			printf(	"get_closest_recs error! returned value %d does not match! %d:%d vs %d:%d\n", 
+					iret, pdr->idx, pdr->dist, hds[iret].idx, hds[iret].dist);
+			bcheck = false;
+		}
 		if (pdr->dist < 0) break;
 		idxs_ret[iret] = pdr->idx;
 		hds_ret[iret] = pdr->dist;
@@ -625,6 +730,12 @@ int get_closest_recs(void * happ, int k, int * idxs_ret, int * hds_ret, char * o
 				&(papp->db[(papp->rec_ptrs[pdr->idx] + iskip) * papp->bitvec_size]),
 				papp->bitvec_size * sizeof (char));
 		num_ret++;
+	}
+	if (bcheck) {
+		printf("get_closest_recs all vdb results check.\n");
+	}
+	else {
+		printf("get_closest_recs error for db %s.\n", papp->name);
 	}
 
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
@@ -662,6 +773,7 @@ int calc_hd_bucket(tSBDBApp * papp, int hd) {
 
 void fill_hd_buf(tSBDBApp * papp, int iseed, int plen) {
 //	printf("fill_hd_buf called for seed %d. \n", iseed);
+	printf("BitvecDB Error! vardb version of fill_hd_buf called but not implemented.\n");
 	for (int irec = 0; irec < papp->num_rec_ptrs; irec++) {
 		if (papp->rec_lens[irec] == plen)
 			papp->hd_buf[irec].dist = 0;
@@ -985,6 +1097,7 @@ int get_plen_irecs(void * hcapp, int* ret_arr, int plen, int iagent) {
 
 int get_cluster(void * hcapp, int * members_ret, int num_ret, char * cent,
 		int plen, int * hd_thresh) {
+	printf("BitvecDB Error! vardb version of get_cluster called but not implemented.\n");
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 
 	printf("get_cluster: num_ret: %d, plen: %d, num recs: %d. db size %d, hd thresh map:", 
@@ -1060,6 +1173,7 @@ int get_irecs_with_eid(void* hcapp, int * ret_arr, int iagent, int iel_at, char 
 }
 
 int get_next_irec(tSBDBApp * papp, int istart, int iagent, int qlen, char ** match_pat, int * match_hd) {
+	printf("BitvecDB Error! vardb version of get_next_irec called but not implemented.\n");
 	for (int irec = istart+1; irec < papp->num_rec_ptrs; irec++) {
 		if (!papp->agent_mrks[iagent][irec]) continue;
 		if (papp->rec_lens[irec] != qlen) continue;
@@ -1084,6 +1198,7 @@ int get_next_irec(tSBDBApp * papp, int istart, int iagent, int qlen, char ** mat
 }
 
 char * get_el_in_rec(tSBDBApp * papp, int irec, int iel) {
+	printf("BitvecDB Error! vardb version of get_el_in_rec called but not implemented.\n");
 	return &(papp->db[(papp->rec_ptrs[irec] + iel) * papp->bitvec_size]);
 }
 
@@ -1108,6 +1223,7 @@ void set_hd_thresh(void * hcapp, int irec, int * hd_thresh, int plen) { // set p
 }
 
 bool test_for_thresh(tSBDBApp * papp, int plen, int * ext_thresh, int irec, char * qrec, bool bext, bool bperel) {
+	printf("BitvecDB Error! vardb version of test_for_thresh called but not implemented.\n");
 	int hd_tot = 0;
 	if (papp->rec_lens[irec] != plen) return false;
 	bool bfound = true;
@@ -1184,6 +1300,7 @@ int get_thresh_recs_by_list(void * hcapp, int * ret_arr, int plen, int * ext_thr
 }
 
 bool test_for_el_hd(tSBDBApp * papp, int iel, int hd_req, int irec, char * qrec) {
+	printf("BitvecDB Error! vardb version of test_for_el_hd called but not implemented.\n");
 	char * prec = &(papp->db[(papp->rec_ptrs[irec] + iel) * papp->bitvec_size]);
 	printf("iel %d db vs. q:", iel);
 	int hd = 0;
@@ -1215,6 +1332,7 @@ int get_el_hd_recs_by_list(	void * hcapp, int * irec_arr, int * cand_arr, int nu
 
 void set_rule_data(	void * hcapp, int irec, int num_phrases, int * phrase_offsets, int * thresh_hds, int num_var_defs, 
 					int * var_defs, int bresult, int cid, int rid, int b_hd_per_el) {
+	printf("vardb implementation of set_rule_data called.\n");
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	tSRuleRec * prule = (tSRuleRec *)&(papp->rule_data[irec]);
 	// the following calc needs explanation. Prior to calling this function, add_rec has been called to put the
@@ -1272,7 +1390,7 @@ void set_rule_data(	void * hcapp, int irec, int num_phrases, int * phrase_offset
 					prule->var_tbl[isrc].locs[prule->var_tbl[isrc].num_locs][0] = iphrase;
 					prule->var_tbl[isrc].locs[prule->var_tbl[isrc].num_locs][1] = iel;
 					prule->var_tbl[isrc].num_locs++;
-					pair_dict_set(&(prule->d_var_opts), iphrase, iel, isrc);
+					pair_dict_set(&(prule->d_var_opts), iphrase, iel, isrc); // I think this is wrong but should cause no harm
 					break;
 				}
 			}
@@ -1287,7 +1405,7 @@ void set_rule_data(	void * hcapp, int irec, int num_phrases, int * phrase_offset
 				int i_orig_pos = phrase_offsets[iphrase]+iel;
 				prule->var_tbl[ivar].hd_thresh = thresh_hds[i_orig_pos];
 //				if (cent_hds[i_orig_pos] == 0) {
-					prule->var_tbl[ivar].src_pat_el = papp->rec_ptrs[irec] + i_orig_pos; // &(papp->db[(papp->rec_ptrs[irec] + i_orig_pos) * papp->bitvec_size]);
+					prule->var_tbl[ivar].src_pat_el = /* papp->rec_ptrs[irec] + */ i_orig_pos; // &(papp->db[(papp->rec_ptrs[irec] + i_orig_pos) * papp->bitvec_size]);
 //				}
 				ivar++;
 			}
@@ -1297,9 +1415,21 @@ void set_rule_data(	void * hcapp, int irec, int num_phrases, int * phrase_offset
 	printf("printing rule var tbl for rule %d. %d vars\n", irec, prule->num_vars);
 	for (int ivar = 0; ivar < prule->num_vars; ivar++) {
 		tSVarData * pvar = &(prule->var_tbl[ivar]);
-		char * src_val = get_name_exact(papp->pdbels, 1, &(papp->db[pvar->src_pat_el*papp->bitvec_size]));
+//		int valr_el_bits_len = papp->rec_lens[pvar->src_pat_el];
+		u16 var_el_compr[NUM_VDB_ROWS];
+		printf("Calling vardb_get_rec_data for src_pat_el %d at col %d.\n", pvar->src_pat_el, papp->vdb_cols[irec] + pvar->src_pat_el);
+		vardb_get_rec_data(papp->hvdb, papp->vdb_cols[irec]+pvar->src_pat_el, var_el_compr, 1, NUM_VDB_ROWS);
+		char * src_val = get_name_exact(papp->pdbels, 1, &(papp->db[(papp->rec_ptrs[irec] + pvar->src_pat_el) *papp->bitvec_size]));
+		char * src_val_test = get_name_exact_vdb(papp->pdbels, 1, var_el_compr, NUM_VDB_ROWS);
+		if (src_val == NULL || src_val_test == NULL) {
+			printf("Error!get_name_exact  got two ptrs %p and %p, one is NULL.\n", src_val, src_val_test);
+			continue;
+		}
+		if (strcmp(src_val, src_val_test) != 0) {
+			printf("Error!. get_name_exact from vdb does not match our name. %s vs %s", src_val, src_val_test);
+		}
 		printf(	"var %d with %d locs. val pos: %d, val: \'%s\', hd: %d\n", ivar, pvar->num_locs, 
-				pvar->src_pat_el, src_val, pvar->hd_thresh);
+				(papp->rec_ptrs[irec] + pvar->src_pat_el), src_val, pvar->hd_thresh);
 		for (int iloc = 0; iloc < pvar->num_locs; iloc++) {
 			printf("%d: %d %d.\n", iloc, pvar->locs[iloc][0], pvar->locs[iloc][1]);
 		}
@@ -1350,6 +1480,7 @@ char * get_rec(tSBDBApp * pdb, int irec) {
 
 int find_matching_rules(void * hcapp, void * hcdb, int * ret_arr, int * ret_rperms,
 						int num_srcs, int * src_rperms, int num_cats, int * cat_arr) {
+	printf("BitvecDB Error! vardb version of find_matching_rules called but not implemented.\n");
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
 	tSBDBApp * pdb = (tSBDBApp *) hcdb;
 	int num_found = 0;
@@ -1448,6 +1579,7 @@ void find_matching_rules_opt(	tSBDBApp * papp, tSBDBApp * pdb, tSBDBApp * pdbels
 								int src_rperm, int num_cats, int * cat_arr, int num_rids, int * rid_arr,
 								int * iel_ret, int * ivar_ret,int * src_iphrase_ret, int * src_iel_ret, int num_rets,
 								bool bresult, int iphrase) {
+	printf("BitvecDB Error! vardb version of find_matching_rules_opt called but not implemented.\n");
 	tSRuleRec * prule = &(papp->rule_data[irec]);
 	if (bresult) {		
 		if (!prule->b_result)  {
@@ -1512,8 +1644,8 @@ void find_matching_rules_opt(	tSBDBApp * papp, tSBDBApp * pdb, tSBDBApp * pdbels
 		}
 		int hd_var = 0;
 		tSVarData * pvar = &(prule->var_tbl[ivar]);
-		printf("var %d found with val pos %d. %d locs.\n", ivar, pvar->src_pat_el, pvar->num_locs);
-		char * rule_var = &(papp->db[pvar->src_pat_el*papp->bitvec_size]);
+		printf("var %d found with val pos %d. %d locs.\n", ivar, papp->rec_ptrs[irec] + pvar->src_pat_el, pvar->num_locs);
+		char * rule_var = &(papp->db[(papp->rec_ptrs[irec] + pvar->src_pat_el)*papp->bitvec_size]);
 		char * src_val = get_name_exact(papp->pdbels, 1, rule_var);
 		printf("Comparing rule word %s to result word %s.\n", src_val, get_name_exact(pdbels, 1, qel));
 		for (int ibit = 0; ibit < papp->bitvec_size; ibit++) {
@@ -1604,5 +1736,6 @@ int find_matching_rules_vo(	void * hcapp, void * hcdb, void * hcdbels, int * ret
 
 void free_capp(void * hcapp) {
 	tSBDBApp * papp = (tSBDBApp *) hcapp;
+	vardb_free(papp->hvdb);
 	bdbfree(papp);
 }

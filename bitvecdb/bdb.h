@@ -77,9 +77,12 @@ typedef struct SBDBApp tSBDBApp;
 
 struct SBDBApp {
     int bitvec_size;
+    void * hvdb;
     char * name;
     char * db;
     tSBDBApp * pdbels;
+    int * vdb_cols; // array holding col returned from each rec added, num_rec_ptrs long
+    int num_vdb_cols_alloc;
     int num_db_els;
     int num_db_els_alloc;
     int * rec_ptrs; // array of indices into the db for each rec. A rec may be variable length. The index must be multiplied by bitvec size
